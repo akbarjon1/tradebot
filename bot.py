@@ -1,4 +1,5 @@
 import os
+import time
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import io
@@ -52,9 +53,19 @@ def process_with_gemini(user_text, pil_image=None):
     if pil_image:
         contents.append(pil_image)
 
-    response = ai_client.models.generate_content(
-        model="gemini-2.5-flash", contents=contents
-    )
+   response = None
+    for attempt in range(3):
+        try:
+            response = ai_client.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=contents
+            )
+            break
+        except Exception as err:
+            if "503" in str(err) and attempt < 2:
+                time.sleep(2)
+                continue
+            raise err
 
     clean_json = response.text.strip()
     clean_json = re.sub(
