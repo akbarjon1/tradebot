@@ -54,7 +54,7 @@ Foydalanuvchi xabari:
     if pil_image:
         contents.append(pil_image)
 
-   response = None
+    response = None
     for attempt in range(5):
         try:
             response = ai_client.models.generate_content(
@@ -64,12 +64,12 @@ Foydalanuvchi xabari:
             break
         except Exception as err:
             if "503" in str(err) and attempt < 4:
-                time.sleep((attempt + 1) * 2)  # 2s, 4s, 6s, 8s kutadi
+                time.sleep((attempt + 1) * 2)
                 continue
             if "503" in str(err):
                 return {
                     "type": "chat",
-                    "reply": "⚠️ Hozirda Google AI serverida vaqtinchalik yuqori tirbandlik kuzatilmoqda. Iltimos, 1 daqiqadan so'ng qaytadan yuborib ko'ring."
+                    "reply": "⚠️ Hozirda Google AI serverida vaqtinchalik yuqori tirbandlik kuzatilmoqda. Iltimos, birozdan so'ng qaytadan yuborib ko'ring."
                 }
             raise err
 
