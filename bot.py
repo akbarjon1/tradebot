@@ -53,7 +53,7 @@ def process_with_gemini(user_text, pil_image=None):
         contents.append(pil_image)
 
     response = ai_client.models.generate_content(
-        model="gemini-2.0-flash", contents=contents
+        model="gemini-3.6-flash", contents=contents
     )
 
     clean_json = response.text.strip()
