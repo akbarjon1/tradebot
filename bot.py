@@ -9,7 +9,7 @@ import time
 import feedparser
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "7969188094:AAGs4Psq9cQdJp5v1u9sW4j2XnE")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
 
 # O'zingizning Google Gemini kalitingizni mana shu qo'shtirnoq ichiga yozing:
 GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
