@@ -28,6 +28,10 @@
             font-family: 'Inter', sans-serif;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             background-color: var(--bg-body);
             color: var(--text-primary);
@@ -44,6 +48,9 @@
             flex-direction: column;
             padding: 24px 16px;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         .logo {
@@ -76,22 +83,25 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             color: var(--text-muted);
             text-decoration: none;
             border-radius: 8px;
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
-        .nav-item a:hover, .nav-item.active a {
+        .nav-item a:hover {
             background-color: #21262d;
             color: var(--text-primary);
         }
 
         .nav-item.active a {
+            background-color: rgba(46, 160, 67, 0.15);
             color: var(--accent-green-glow);
+            font-weight: 600;
         }
 
         /* Main Content */
@@ -178,6 +188,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 28px;
+            scroll-margin-top: 20px;
         }
 
         .card-header {
@@ -198,6 +209,7 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
+            scroll-margin-top: 20px;
         }
 
         .trades-list {
@@ -215,6 +227,11 @@
             padding: 14px 18px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
+            transition: border-color 0.2s;
+        }
+
+        .trade-item:hover {
+            border-color: #30363d;
         }
 
         .trade-left {
@@ -241,12 +258,12 @@
 
         @media (max-width: 850px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border-color); }
             .main-content { padding: 18px; }
         }
     </style>
 </head>
-<body>
+<body id="top">
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -255,10 +272,18 @@
             <span>TradeBot Pro</span>
         </div>
         <ul class="nav-links">
-            <li class="nav-item active"><a href="#"><i class="fa-solid fa-gauge-high"></i> Monitoring</a></li>
-            <li class="nav-item"><a href="#"><i class="fa-solid fa-bolt"></i> Signallar</a></li>
-            <li class="nav-item"><a href="#"><i class="fa-solid fa-chart-line"></i> Grafiklar</a></li>
-            <li class="nav-item"><a href="#"><i class="fa-brands fa-telegram"></i> Telegram Kanal</a></li>
+            <li class="nav-item active" onclick="setActive(this)">
+                <a href="#top"><i class="fa-solid fa-gauge-high"></i> Monitoring</a>
+            </li>
+            <li class="nav-item" onclick="setActive(this)">
+                <a href="#signals-section"><i class="fa-solid fa-bolt"></i> Signallar</a>
+            </li>
+            <li class="nav-item" onclick="setActive(this)">
+                <a href="#chart-section"><i class="fa-solid fa-chart-line"></i> Grafiklar</a>
+            </li>
+            <li class="nav-item">
+                <a href="https://t.me/Tradejournal49" target="_blank"><i class="fa-brands fa-telegram"></i> Telegram Kanal</a>
+            </li>
         </ul>
     </aside>
 
@@ -276,7 +301,7 @@
             </div>
         </div>
 
-        <!-- 4 ta Asosiy Ko'rsatkich Kartasi -->
+        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Bot Holati</div>
@@ -301,11 +326,11 @@
         </div>
 
         <!-- TradingView Vidjeti -->
-        <div class="chart-card">
+        <div class="chart-card" id="chart-section">
             <div class="card-header">
                 <div class="card-title"><i class="fa-solid fa-chart-candlestick"></i> Bozor Grafigi (BTC/USDT)</div>
             </div>
-            <div style="height: 380px; width: 100%;">
+            <div style="height: 420px; width: 100%;">
                 <div class="tradingview-widget-container" style="height:100%;width:100%">
                   <div id="tradingview_chart" style="height:100%;width:100%"></div>
                   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -329,8 +354,8 @@
             </div>
         </div>
 
-        <!-- Notion'dan kelgan so'nggi savdolar ro'yxati -->
-        <div class="trades-card">
+        <!-- Notion Signallar Ro'yxati -->
+        <div class="trades-card" id="signals-section">
             <div class="card-header">
                 <div class="card-title"><i class="fa-solid fa-list-check"></i> Oxirgi Qaydlar & Signallar</div>
             </div>
@@ -355,5 +380,13 @@
         </div>
     </main>
 
+    <script>
+        function setActive(element) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+    </script>
 </body>
 </html>
