@@ -407,6 +407,9 @@ if __name__ == "__main__":
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
 
+    monitor_thread = threading.Thread(target=monitor_new_trades)
+    monitor_thread.start()
+
 import time
 
 try:
@@ -421,3 +424,57 @@ while True:
     except Exception as e:
         print(f"Ulanish xatosi (qayta urinish): {e}")
         time.sleep(3)
+
+import time
+
+# Oxirgi yuborilgan bitimlar ID sini saqlash uchun to'plam
+sent_trade_ids = set()
+
+def monitor_new_trades():
+    global sent_trade_ids
+    channel_chat_id = "5436696482"  # Siz ishlatgan kanal ID si
+
+    # Bot ilk bor yoqilganda barcha mavjud bitimlarni "yuborilgan" deb belgilab oladi
+    # (Eski bitimlarni qayta-qayta kanalga tashlamasligi uchun)
+    try:
+        initial_trades = get_trades_from_notion() or []
+        for t in initial_trades:
+            if isinstance(t, dict) and 'id' in t:
+                sent_trade_ids.add(t['id'])
+    except Exception as e:
+        print(f"Boshlang'ich yuklashda xato: {e}")
+
+    while True:
+        try:
+            time.sleep(60)  # Har 60 soniyada Notion bazani tekshiradi
+            trades = get_trades_from_notion() or []
+
+            for trade in trades:
+                trade_id = trade.get('id')
+                if trade_id and trade_id not in sent_trade_ids:
+                    # Yangi bitim ma'lumotlarini ajratib olish
+                    pair = trade.get('pair', 'Noma\'lum')
+                    side = trade.get('type', trade.get('direction', 'BUY/SELL'))
+                    entry = trade.get('entry', '-')
+                    sl = trade.get('sl', '-')
+                    tp = trade.get('tp', '-')
+                    
+                    # Signal matnini tayyorlash
+                    icon = "🟢" if "buy" in str(side).lower() else "🔴"
+                    signal_text = (
+                        f"{icon} <b>YANGI SIGNAL!</b>\n\n"
+                        f"📊 <b>Aktiv:</b> {pair}\n"
+                        f"📈 <b>Yo'nalish:</b> {side}\n"
+                        f"🎯 <b>Kirish narxi:</b> {entry}\n"
+                        f"🛑 <b>Stop Loss:</b> {sl}\n"
+                        f"💰 <b>Take Profit:</b> {tp}\n\n"
+                        f"⚡️ <i>Menejment qoidalariga amal qiling!</i>"
+                    )
+
+                    # Kanalga yuborish
+                    bot.send_message(channel_chat_id, signal_text, parse_mode="HTML")
+                    sent_trade_ids.add(trade_id)
+
+        except Exception as e:
+            print(f"Monitoringda xatolik: {e}")
+            time.sleep(10)
