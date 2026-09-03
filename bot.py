@@ -403,28 +403,6 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-if __name__ == "__main__":
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.start()
-
-    monitor_thread = threading.Thread(target=monitor_new_trades)
-    monitor_thread.start()
-
-import time
-
-try:
-    bot.remove_webhook()
-except Exception:
-    pass
-
-while True:
-    try:
-        print("Bot ishga tushdi...")
-        bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception as e:
-        print(f"Ulanish xatosi (qayta urinish): {e}")
-        time.sleep(3)
-
 import time
 
 sent_trade_ids = set()
@@ -474,8 +452,25 @@ def monitor_new_trades():
             time.sleep(10)
 
 if __name__ == "__main__":
+    # 1. Saytni alohida oqimda yurgazish
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
 
+    # 2. Monitoringni alohida oqimda yurgazish
     monitor_thread = threading.Thread(target=monitor_new_trades)
     monitor_thread.start()
+
+    # 3. Botning o'zini yurgazish
+    import time
+    try:
+        bot.remove_webhook()
+    except Exception:
+        pass
+
+    while True:
+        try:
+            print("Bot ishga tushdi...")
+            bot.infinity_polling(timeout=10, long_polling_timeout=5)
+        except Exception as e:
+            print(f"Ulanish xatosi (qayta urinish): {e}")
+            time.sleep(3)
