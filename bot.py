@@ -371,13 +371,33 @@ def handle_incoming(
 
 import os
 import threading
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def home():
     trades = get_trades_from_notion()
     return render_template("index.html", trades=trades)
+
+@app.route('/send_feedback', methods=['POST'])
+def send_feedback():
+    data = request.get_json() or {}
+    name = data.get('name', 'Anonim').strip()
+    message_text = data.get('message', '').strip()
+    
+    if not message_text:
+        return jsonify({"success": False, "error": "Xabar bo'sh bo'lishi mumkin emas"}), 400
+
+    channel_chat_id = "-1005436696482"
+    alert_text = f"💬 <b>Saytdan yangi izoh!</b>\n\n👤 <b>Kimdan:</b> {name}\n📝 <b>Xabar:</b>\n{message_text}"
+    
+    try:
+        bot.send_message(channel_chat_id, alert_text, parse_mode="HTML")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
