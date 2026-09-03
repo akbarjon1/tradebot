@@ -144,43 +144,34 @@ def fetch_and_post_crypto_news():
                         link = latest.get("link", "")
                         
                         prompt = f"""
-                        Sen "Obsidian Lab" kiber-tahlil laboratoriyasining yetakchi kripto tahlilchisisan.
-                        Quyidagi yangilikni o'zbek tiliga tarjima qilib, chuqur tahliliy va lo'nda ko'rinishda yozib ber.
+Sen Obsidian Lab kripto kanali tahlilchisisan.
+Quyidagi yangilikni o'zbek tiliga tarjima qilib, professional qisqa post tayyorlab ber.
 
-                        Sarlavha: {title}
-                        Tafsilot: {summary}
+Yangilik sarlavhasi: {title}
+Tafsilot: {summary}
 
-                        Talablar:
-                        - Sarlavhani o'zbek tiliga jiddiy, professional qilib o'gir.
-                        - Voqea mazmunini 2 jumlada tushuntir.
-                        - Bozorga yoki treyderlarga ta'sirini 1 jumlada tahlil qil.
-                        - HTML teglaridan (<tg-spoiler>, <b>, <i>) foydalan, markdown yozma.
+Format aynan quyidagicha bo'lsin (hech qanday HTML teglarsiz, oddiy matn):
+⚡️ // OBSIDIAN RADAR: [O'zbekcha qisqa sarlavha]
 
-                        Format aynan shunday bo'lsin:
-                        ⚡️ <b>// OBSIDIAN RADAR</b>
+📌 Tafsilot: [Voqea haqida 2 jumlada asosiy mazmun]
 
-                        📌 <b>[O'zbekcha Sarlavha]</b>
+💡 Tahlil: [Bozorga ta'siri haqida 1 jumla]
 
-                        📖 <b>Tafsilot:</b> [Mazmuni]
-
-                        💡 <b>Tahlil:</b> [Bozorga ta'siri]
-
-                        🔗 <a href="{link}">To'liq o'qish</a>
-                        """
+🔗 Manba: {link}
+"""
                         try:
                             ai_response = model.generate_content(prompt)
-                            post_text = ai_response.text
+                            post_text = ai_response.text.strip()
                         except Exception as ai_err:
                             print(f"AI Xatolik: {ai_err}")
-                            post_text = f"⚡️ <b>// OBSIDIAN RADAR:</b> {title}\n\n🔗 <a href='{link}'>Batafsil</a>"
+                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n📌 Tafsilot: {summary[:200]}...\n\n🔗 Manba: {link}"
                         
                         bot.send_message(
                             chat_id=CHANNEL_CHAT_ID,
                             text=post_text,
-                            parse_mode="HTML",
                             disable_web_page_preview=False
                         )
-                        print(f"LOG: [Obsidian Radar] Kanalga chiroyli post chiqdi: {title}")
+                        print(f"LOG: [Obsidian Radar] Kanalga post chiqdi!")
                         break
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
