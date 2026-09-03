@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade AI Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        h1 { margin: 0; font-size: 24px; color: #38bdf8; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #94a3b8; }
+        .card .value { font-size: 26px; font-weight: bold; color: #f1f5f9; }
+        .trade-card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #38bdf8;
+        }
+        .trade-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .trade-text { color: #cbd5e1; font-size: 14px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trade AI Dashboard</h1>
+            <span>Jonli Hisobot</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="card">
+                <h3>Jami Saqlangan Tahlillar</h3>
+                <div class="value">{{ trades|length }} ta</div>
+            </div>
+            <div class="card">
+                <h3>Tizim Holati</h3>
+                <div class="value" style="color: #4ade80;">Faol</div>
+            </div>
+        </div>
+
+        <h2>Oxirgi Tahlillar</h2>
+        <div>
+            {% for trade in trades %}
+            <div class="trade-card">
+                <div class="trade-title">{{ trade.title }}</div>
+                <div class="trade-text">{{ trade.content }}</div>
+            </div>
+            {% else %}
+            <p style="color: #94a3b8;">Hozircha tahlillar mavjud emas.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
