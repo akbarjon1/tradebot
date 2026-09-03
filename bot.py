@@ -153,7 +153,7 @@ def save_trade_to_notion(data):
 
 
 def get_trades_from_notion():
-    url = f"[https://api.notion.com/v1/blocks/](https://api.notion.com/v1/blocks/){NOTION_PARENT_PAGE_ID}/children?page_size=15"
+    url = f"https://api.notion.com/v1/blocks/{NOTION_PARENT_PAGE_ID}/children?page_size=15"
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
         "Notion-Version": "2022-06-28",
@@ -169,7 +169,7 @@ def get_trades_from_notion():
                     title = b.get("child_page", {}).get("title", "Savdo Tahlili")
                     created_time = b.get("created_time", "")[:10]
                     
-                    child_url = f"[https://api.notion.com/v1/blocks/](https://api.notion.com/v1/blocks/){page_id}/children"
+                   child_url = f"https://api.notion.com/v1/blocks/{page_id}/children"
                     c_res = requests.get(child_url, headers=headers)
                     details = []
                     if c_res.status_code == 200:
