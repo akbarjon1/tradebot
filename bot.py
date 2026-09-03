@@ -168,8 +168,8 @@ def get_trades_from_notion():
                 if b.get("type") == "child_page":
                     title = b.get("child_page", {}).get("title", "Savdo Tahlili")
                     created_time = b.get("created_time", "")[:10]
-                    
-                   child_url = f"https://api.notion.com/v1/blocks/{page_id}/children"
+
+                    child_url = f"https://api.notion.com/v1/blocks/{page_id}/children"
                     c_res = requests.get(child_url, headers=headers)
                     details = []
                     if c_res.status_code == 200:
@@ -179,14 +179,14 @@ def get_trades_from_notion():
                             rich_text = cb.get(b_type, {}).get("rich_text", [])
                             if rich_text:
                                 details.append(rich_text[0].get("plain_text", ""))
-                    
+
                     full_text = "\n".join(details)
                     trades.append({
                         "id": page_id,
                         "title": title,
                         "date": created_time,
                         "content": full_text if full_text else "Batafsil ma'lumot Notion'da",
-                        "raw_blocks": details
+                        "raw_blocks": details,
                     })
                 elif b.get("type") == "paragraph":
                     text_list = b.get("paragraph", {}).get("rich_text", [])
@@ -196,7 +196,7 @@ def get_trades_from_notion():
                             "title": "Qayd",
                             "date": b.get("created_time", "")[:10],
                             "content": text_list[0].get("plain_text", ""),
-                            "raw_blocks": []
+                            "raw_blocks": [],
                         })
     except Exception as e:
         print("Notion o'qishda xatolik:", e)
