@@ -247,6 +247,36 @@ def send_welcome(message):
         "Men bilan bemalol suhbatlashishingiz yoki trading savdolaringizni 'Notionga qo'sh' deb yuborishingiz mumkin.",
     )
 
+@bot.message_handler(commands=['radar', 'brief'])
+def send_morning_radar(message):
+    bot.send_chat_action(message.chat.id, 'typing')
+    import datetime
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    prompt = f"""
+    Sen professional treyding yordamchisisan. Bugungi sana: {today}.
+    Foydalanuvchi uchun professional, qisqa va lo'nda "Ertalabki Bozor Radari"ni tayyorlab ber.
+    
+    Format:
+    🌅 BOZOR RADARI | {today}
+    
+    📊 Bugungi Sessiyalar Rejasi:
+    - London sessiyasi: (Kutilmalar)
+    - Nyu-York sessiyasi: (Kutilmalar)
+    
+    ⚠️ Yangiliklar va Xavflar:
+    - Diqqat qilinishi kerak bo'lgan soatlar.
+    
+    🧠 Kunlik Mindset:
+    - Qisqa intizom eslatmasi.
+    """
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        bot.reply_to(message, response.text)
+    except Exception as e:
+        bot.reply_to(message, f"Radar xatosi: {e}")
 
 @bot.message_handler(
     content_types=["text"],
