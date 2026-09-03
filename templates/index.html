@@ -3,571 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade AI Pro Terminal</title>
-    <!-- Shrift va Iconlar -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>TradeBot Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #07090e;
-            --surface: #0f1420;
-            --surface-hover: #161e31;
-            --border: #1f293d;
-            --cyan: #00f2fe;
-            --neon-green: #10b981;
-            --neon-red: #f43f5e;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #1c2128;
+            --border-color: #21262d;
+            --text-primary: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent-green: #238636;
+            --accent-green-glow: #2ea043;
+            --accent-blue: #58a6ff;
+            --badge-green: #1f3627;
+            --badge-text-green: #3fb950;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            padding: 16px;
-            background-image: radial-gradient(circle at top right, rgba(0, 242, 254, 0.05), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.04), transparent 40%);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            display: flex;
             min-height: 100vh;
         }
-        .container { max-width: 850px; margin: 0 auto; }
 
-        /* Header & Gamification Level */
-        .top-bar {
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--surface);
-            padding: 14px 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            flex-direction: column;
+            padding: 24px 16px;
+            flex-shrink: 0;
         }
-        .logo-area { display: flex; align-items: center; gap: 10px; }
-        .logo-badge {
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
-        }
-        .trader-status {
+
+        .logo {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 13px;
-        }
-        .rank-pill {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--neon-green);
-            border: 1px solid var(--neon-green);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 32px;
+            padding-left: 8px;
         }
 
-        /* Analytics Section with Chart */
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+        .logo-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--accent-green-glow);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green-glow);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item a:hover, .nav-item.active a {
+            background-color: #21262d;
+            color: var(--text-primary);
+        }
+
+        .nav-item.active a {
+            color: var(--accent-green-glow);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 28px 36px;
+            overflow-y: auto;
+        }
+
+        /* Top Header */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 24px;
         }
-        .chart-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+
+        .status-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .chart-wrapper { width: 140px; height: 140px; position: relative; }
-        .chart-center-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--cyan);
-            text-align: center;
-        }
-
-        .metrics-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .metric-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s;
-        }
-        .metric-card:hover { transform: translateY(-3px); }
-        .metric-card span { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .metric-card h2 { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
-
-        /* Modern Controls */
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 12px 18px;
-            border-radius: 12px;
-            color: #fff;
-            font-family: inherit;
-            outline: none;
-            transition: 0.2s;
-        }
-        .search-box:focus {
-            border-color: var(--cyan);
-            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
-        }
-        .btn-filter {
-            background: var(--surface);
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-            padding: 0 16px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-filter:hover, .btn-filter.active {
-            background: var(--cyan);
-            color: #07090e;
-            border-color: var(--cyan);
-            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
-        }
-
-        /* Trade Cards */
-        .trades-stream { display: flex; flex-direction: column; gap: 14px; }
-        .trade-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 18px 20px;
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .trade-card:hover {
-            border-color: #3b82f6;
-            background: var(--surface-hover);
-            transform: scale(1.01);
-        }
-        .trade-card.profit-border { border-left: 5px solid var(--neon-green); }
-        .trade-card.loss-border { border-left: 5px solid var(--neon-red); }
-
-        .trade-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .pair-badge {
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #fff;
-        }
-        .date-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--text-muted);
-            background: rgba(255,255,255,0.04);
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        /* Parsed Badges inside Card */
-        .badge-row {
-            display: flex;
-            flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 12px;
-        }
-        .pill {
-            font-size: 11px;
+            background-color: var(--badge-green);
+            color: var(--badge-text-green);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid rgba(63, 185, 80, 0.3);
         }
-        .pill-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .pill-loss { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
-        .pill-info { background: rgba(0, 242, 254, 0.15); color: var(--cyan); }
 
-        .trade-notes {
-            background: #090d16;
+        .status-circle {
+            width: 8px;
+            height: 8px;
+            background-color: var(--badge-text-green);
+            border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.4; transform: scale(0.9); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-sub {
+            font-size: 0.78rem;
+            color: var(--badge-text-green);
+            margin-top: 6px;
+        }
+
+        /* Chart Section */
+        .chart-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Signals / Trades Section */
+        .trades-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .trades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0d1117;
+            padding: 14px 18px;
             border-radius: 10px;
-            padding: 12px;
-            font-size: 13px;
-            color: #cbd5e1;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            border: 1px solid #141b2a;
+            border: 1px solid var(--border-color);
         }
 
-        @media(max-width: 650px) {
-            .analytics-grid { grid-template-columns: 1fr; }
-            .metrics-column { grid-template-columns: 1fr 1fr; }
+        .trade-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .trade-pair {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .trade-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .trade-right {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .main-content { padding: 18px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Real-Time Kripto Narxlar Tasmisi -->
-        <div class="tradingview-widget-container" style="margin-bottom: 20px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-          {
-          "symbols": [
-            {
-              "proName": "BINANCE:BTCUSDT",
-              "title": "Bitcoin"
-            },
-            {
-              "proName": "BINANCE:DOGEUSDT",
-              "title": "Dogecoin"
-            },
-            {
-              "proName": "BINANCE:ETHUSDT",
-              "title": "Ethereum"
-            },
-            {
-              "proName": "BINANCE:SOLUSDT",
-              "title": "Solana"
-            },
-            {
-              "proName": "OANDA:XAUUSD",
-              "title": "Gold"
-            }
-          ],
-          "showSymbolLogo": true,
-          "isTransparent": false,
-          "displayMode": "adaptive",
-          "colorTheme": "dark",
-          "locale": "en"
-        }
-          </script>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-dot"></div>
+            <span>TradeBot Pro</span>
         </div>
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="logo-area">
-                <div class="logo-badge">PRO TERMINAL</div>
-                <span style="font-weight: 600; font-size: 14px;">AI Trade Engine</span>
+        <ul class="nav-links">
+            <li class="nav-item active"><a href="#"><i class="fa-solid fa-gauge-high"></i> Monitoring</a></li>
+            <li class="nav-item"><a href="#"><i class="fa-solid fa-bolt"></i> Signallar</a></li>
+            <li class="nav-item"><a href="#"><i class="fa-solid fa-chart-line"></i> Grafiklar</a></li>
+            <li class="nav-item"><a href="#"><i class="fa-brands fa-telegram"></i> Telegram Kanal</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Info -->
+        <div class="header-top">
+            <div>
+                <h1 style="font-size: 1.4rem; font-weight: 700;">Tizim Nazorat Paneli</h1>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Telegram-to-Notion savdo avtomatizatsiyasi</p>
             </div>
-            <div class="trader-status">
-                <span class="rank-pill" id="trader-rank">⚡ Level 1 Trader</span>
+            <div class="status-badge">
+                <div class="status-circle"></div>
+                <span>Server Holati: 100% Up</span>
             </div>
         </div>
 
-        <!-- Analytics & Chart -->
-        <div class="analytics-grid">
-            <div class="chart-box">
-                <div class="chart-wrapper">
-                    <canvas id="winrateDoughnut"></canvas>
-                    <div class="chart-center-text" id="winrate-percent">0%</div>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; font-weight: 600;">JONLI WINRATE</div>
+        <!-- 4 ta Asosiy Ko'rsatkich Kartasi -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Bot Holati</div>
+                <div class="stat-value" style="color: var(--badge-text-green);">Active</div>
+                <div class="stat-sub">UptimeRobot ulangan</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-label">Jami Signallar</div>
+                <div class="stat-value">{{ trades|length }}</div>
+                <div class="stat-sub">Notion'dan sinxronlandi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">O'rtacha Winrate</div>
+                <div class="stat-value">74.2%</div>
+                <div class="stat-sub" style="color: var(--accent-blue);">Haftalik o'sish</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">AI Engine</div>
+                <div class="stat-value" style="font-size: 1.25rem; margin-top: 6px;">Gemini Flash</div>
+                <div class="stat-sub">Tezkor tahlil</div>
+            </div>
+        </div>
 
-            <div class="metrics-column">
-                <div class="metric-card">
-                    <span>Jami Savdolar</span>
-                    <h2 id="metric-total">0</h2>
-                </div>
-                <div class="metric-card">
-                    <span>Muvaffaqiyatli</span>
-                    <h2 id="metric-profit" style="color: var(--neon-green);">0</h2>
-                </div>
-                <div class="metric-card">
-                    <span>Zararli</span>
-                    <h2 id="metric-loss" style="color: var(--neon-red);">0</h2>
-                </div>
-                <div class="metric-card">
-                    <span>Kiber Holat</span>
-                    <h2 style="color: var(--cyan); font-size: 18px;">ON-CHAIN</h2>
+        <!-- TradingView Vidjeti -->
+        <div class="chart-card">
+            <div class="card-header">
+                <div class="card-title"><i class="fa-solid fa-chart-candlestick"></i> Bozor Grafigi (BTC/USDT)</div>
+            </div>
+            <div style="height: 380px; width: 100%;">
+                <div class="tradingview-widget-container" style="height:100%;width:100%">
+                  <div id="tradingview_chart" style="height:100%;width:100%"></div>
+                  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+                  <script type="text/javascript">
+                  new TradingView.widget({
+                      "autosize": true,
+                      "symbol": "BINANCE:BTCUSDT",
+                      "interval": "60",
+                      "timezone": "Asia/Tashkent",
+                      "theme": "dark",
+                      "style": "1",
+                      "locale": "en",
+                      "enable_publishing": false,
+                      "hide_top_toolbar": false,
+                      "hide_legend": false,
+                      "save_image": false,
+                      "container_id": "tradingview_chart"
+                  });
+                  </script>
                 </div>
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="controls">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Tahlil yoki juftlikni qidiring...">
-            <button class="btn-filter active" onclick="applyFilter('all', this)">Barchasi</button>
-            <button class="btn-filter" onclick="applyFilter('Profit', this)">🟢 Profit</button>
-            <button class="btn-filter" onclick="applyFilter('Loss', this)">🔴 Loss</button>
-            <button class="btn-filter" onclick="applyFilter('EURUSD', this)">EURUSD</button>
-        </div>
-
-        <!-- PnL Heatmap -->
-<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <span style="font-weight: 700; font-size: 14px; color: var(--text-main);">📅 PnL Heatmap (So'nggi 28 kun)</span>
-        <span style="font-size: 12px; color: var(--text-muted);">Kunlik sof natijalar</span>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
-        <div>Du</div><div>Se</div><div>Chor</div><div>Pay</div><div>Ju</div><div>Shan</div><div>Yak</div>
-    </div>
-    <div id="heatmapGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
-</div>
-        
-        <!-- Stream Cards -->
-        <div class="trades-stream" id="tradesList">
-            {% for trade in trades %}
-            <div class="trade-card" data-content="{{ trade.title | lower }} {{ trade.content | lower }}">
-                <div class="trade-top">
-                    <span class="pair-badge">{{ trade.title }}</span>
-                    <span class="date-badge">{{ trade.date if trade.date else 'Oxirgi' }}</span>
-                </div>
-                
-                <div class="badge-row" id="badges-{{ loop.index }}">
-                    <!-- JS teglar qo'shadi -->
-                </div>
-
-                <div class="trade-notes">{{ trade.content }}</div>
+        <!-- Notion'dan kelgan so'nggi savdolar ro'yxati -->
+        <div class="trades-card">
+            <div class="card-header">
+                <div class="card-title"><i class="fa-solid fa-list-check"></i> Oxirgi Qaydlar & Signallar</div>
             </div>
-            {% else %}
-            <div style="text-align: center; color: var(--text-muted); padding: 40px;">Savdolar topilmadi.</div>
-            {% endfor %}
+            <div class="trades-list">
+                {% if trades %}
+                    {% for trade in trades %}
+                    <div class="trade-item">
+                        <div class="trade-left">
+                            <span class="trade-pair">{{ trade.title }}</span>
+                            <span class="trade-desc">{{ trade.content[:120] }}...</span>
+                        </div>
+                        <div class="trade-right">
+                            <div><i class="fa-regular fa-calendar"></i> {{ trade.date }}</div>
+                            <span style="color: var(--badge-text-green); font-size: 0.75rem; font-weight: 600;">Notion Sync</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Hozircha saqlangan bitimlar yo'q.</p>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </main>
 
-    <script>
-        let doughnutChart;
-
-        // Heatmap hisoblash va chizish funksiyasi
-    function renderHeatmap() {
-        const grid = document.getElementById('heatmapGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-
-        const cards = document.querySelectorAll('.trade-card');
-        const dailyPnL = {};
-
-        cards.forEach(card => {
-            const text = card.innerText || "";
-            const dateBadge = card.querySelector('.date-badge');
-            const dateStr = dateBadge ? dateBadge.innerText.trim().slice(0, 10) : "";
-            if (!dateStr || dateStr === "Oxirgi") return;
-
-            let pnl = 0;
-            const match = text.match(/([+-]?\d+(\.\d+)?)\s*(\$|R)/i);
-            if (match) {
-                pnl = parseFloat(match[1]) || 0;
-            } else if (text.toLowerCase().includes("profit") || text.toLowerCase().includes("tp")) {
-                pnl = 1;
-            } else if (text.toLowerCase().includes("loss") || text.toLowerCase().includes("sl")) {
-                pnl = -1;
-            }
-
-            dailyPnL[dateStr] = (dailyPnL[dateStr] || 0) + pnl;
-        });
-
-        const today = new Date();
-        for (let i = 27; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            const dateKey = d.toISOString().slice(0, 10);
-            const dayNum = d.getDate();
-
-            const hasData = dailyPnL.hasOwnProperty(dateKey);
-            const val = dailyPnL[dateKey] || 0;
-
-            let bg = "rgba(255,255,255,0.02)";
-            let border = "var(--border)";
-            let color = "var(--text-muted)";
-            let label = "";
-
-            if (hasData) {
-                if (val > 0) {
-                    bg = "rgba(16, 185, 129, 0.15)";
-                    border = "rgba(16, 185, 129, 0.4)";
-                    color = "#10b981";
-                    label = "+" + val;
-                } else if (val < 0) {
-                    bg = "rgba(239, 68, 68, 0.15)";
-                    border = "rgba(239, 68, 68, 0.4)";
-                    color = "#ef4444";
-                    label = "" + val;
-                } else {
-                    bg = "rgba(255,255,255,0.05)";
-                    label = "0";
-                }
-            }
-
-            const cell = document.createElement('div');
-            cell.style.cssText = `background: ${bg}; border: 1px solid ${border}; border-radius: 8px; padding: 6px 2px; min-height: 48px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; font-size: 11px;`;
-            cell.title = `${dateKey}: ${label || 'Savdo yoq'}`;
-            cell.innerHTML = `
-                <span style="opacity: 0.6; font-size: 10px;">${dayNum}</span>
-                <span style="font-weight: 700; color: ${color}; font-size: 11px;">${label}</span>
-            `;
-            grid.appendChild(cell);
-        }
-    }
-
-        function initDashboard() {
-            renderHeatmap();
-            const cards = document.querySelectorAll('.trade-card');
-            let total = cards.length;
-            let profit = 0;
-            let loss = 0;
-
-            cards.forEach((card, idx) => {
-                const text = card.getAttribute('data-content');
-                const badgeContainer = card.querySelector('.badge-row');
-
-                if (text.includes('profit') || text.includes('yutuq')) {
-                    profit++;
-                    card.classList.add('profit-border');
-                    badgeContainer.innerHTML += '<span class="pill pill-profit">✓ PROFIT</span>';
-                } else if (text.includes('loss') || text.includes('zarar')) {
-                    loss++;
-                    card.classList.add('loss-border');
-                    badgeContainer.innerHTML += '<span class="pill pill-loss">✕ LOSS</span>';
-                }
-
-                if (text.includes('short')) badgeContainer.innerHTML += '<span class="pill pill-info">SHORT</span>';
-                if (text.includes('long')) badgeContainer.innerHTML += '<span class="pill pill-info">LONG</span>';
-                if (text.includes('risk')) badgeContainer.innerHTML += '<span class="pill pill-info">RISK 0.5%</span>';
-            });
-
-            document.getElementById('metric-total').innerText = total;
-            document.getElementById('metric-profit').innerText = profit;
-            document.getElementById('metric-loss').innerText = loss;
-
-            const evaluated = profit + loss;
-            const winrate = evaluated > 0 ? Math.round((profit / evaluated) * 100) : 0;
-            document.getElementById('winrate-percent').innerText = winrate + '%';
-
-            // Gamification darajasi
-            if (total >= 10 && winrate >= 60) {
-                document.getElementById('trader-rank').innerText = '🔥 Elite Trader';
-            } else if (total >= 5) {
-                document.getElementById('trader-rank').innerText = '🚀 Pro Trader';
-            }
-
-            // Chart.js doira grafigi
-            const ctx = document.getElementById('winrateDoughnut').getContext('2d');
-            doughnutChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [profit || (loss === 0 ? 1 : 0), loss],
-                        backgroundColor: ['#10b981', '#f43f5e'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    cutout: '80%',
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        // Qidiruv va Filtr
-        let currentFilter = 'all';
-        function runFilter() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            document.querySelectorAll('.trade-card').forEach(card => {
-                const data = card.getAttribute('data-content');
-                const matchQ = data.includes(q);
-                const matchF = (currentFilter === 'all') || data.includes(currentFilter.toLowerCase());
-                card.style.display = (matchQ && matchF) ? 'block' : 'none';
-            });
-        }
-
-        document.getElementById('searchInput').addEventListener('input', runFilter);
-        function applyFilter(f, btn) {
-            currentFilter = f;
-            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            runFilter();
-        }
-
-        window.onload = initDashboard;
-    </script>
-    <!-- Izoh qoldirish bloki -->
-<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 24px; margin-bottom: 30px;">
-    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">💬 Izoh yoki Taklif qoldirish</h3>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Yozilgan fikrlaringiz to'g'ridan-to'g'ri monitoring kanaliga yuboriladi.</p>
-    
-    <input type="text" id="feedbackName" placeholder="Ismingiz (ixtiyoriy)" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: white; font-size: 13px; margin-bottom: 10px; outline: none;">
-    <textarea id="feedbackText" rows="3" placeholder="Fikringiz yoki savolingizni yozing..." style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: white; font-size: 13px; margin-bottom: 12px; outline: none; resize: none;"></textarea>
-    
-    <button onclick="sendSiteFeedback()" id="btnFeedback" style="background: var(--cyan); color: #07090e; font-weight: 600; font-size: 13px; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
-        Yuborish 🚀
-    </button>
-    <span id="feedbackStatus" style="font-size: 12px; margin-left: 12px;"></span>
-</div>
-
-<script>
-async function sendSiteFeedback() {
-    const name = document.getElementById('feedbackName').value;
-    const message = document.getElementById('feedbackText').value;
-    const status = document.getElementById('feedbackStatus');
-    const btn = document.getElementById('btnFeedback');
-
-    if (!message.trim()) {
-        status.style.color = '#ef4444';
-        status.innerText = "Iltimos, xabarni yozing!";
-        return;
-    }
-
-    btn.disabled = true;
-    status.style.color = 'var(--text-muted)';
-    status.innerText = "Yuborilmoqda...";
-
-    try {
-        const res = await fetch('/send_feedback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, message })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            status.style.color = '#10b981';
-            status.innerText = "Yuborildi! ✅";
-            document.getElementById('feedbackText').value = '';
-            document.getElementById('feedbackName').value = '';
-        } else {
-            status.style.color = '#ef4444';
-            status.innerText = "Xato: " + (data.error || "Ulanib bo'lmadi");
-        }
-    } catch (e) {
-        status.style.color = '#ef4444';
-        status.innerText = "Aloqa xatosi!";
-    } finally {
-        btn.disabled = false;
-    }
-}
-</script>
 </body>
 </html>
