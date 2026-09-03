@@ -268,21 +268,24 @@ def send_morning_radar(message):
     🧠 Kunlik Mindset:
     - Qisqa intizom eslatmasi.
     """
-    try:
-        response = ai_client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt
-        )
-        bot.reply_to(message, response.text)
-    except Exception as e:
-        bot.reply_to(message, f"Radar xatosi: {e}")
-
-@bot.message_handler(
-    content_types=["text"],
-    func=lambda msg: not msg.text.startswith("/"),
-)
-def handle_text(message):
-    handle_incoming(message, user_text=message.text, pil_image=None)
+    
+    # 3 martagacha avtomatik qayta urinish
+    for attempt in range(3):
+        try:
+            response = ai_client.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=prompt
+            )
+            bot.reply_to(message, response.text)
+            return
+        except Exception as e:
+            err_str = str(e)
+            # Agar server band (503) yoki limit (429) bo'lsa, kutib qayta urinadi
+            if ("503" in err_str or "429" in err_str) and attempt < 2:
+                time.sleep(3)
+                continue
+            bot.reply_to(message, f"Radar xatosi: {e}")
+            break
 
 
 @bot.message_handler(content_types=["photo"])
