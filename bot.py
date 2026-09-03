@@ -30,6 +30,14 @@ def process_with_gemini(user_text, pil_image=None):
     2. Agar bu ODDIY SUHBAT yoki SAVOL bo'lsa (masalan: "havo qanaqa", "salom", "qalesan", "trading nima?"):
        "should_save": false qiling va "chat_response" qismida foydalanuvchiga do'stona, aniq javob bering. Hech qanday "xatolik" demang. (Masalan, ob-havo so'rasa, joylashuvga qarab umumiy iliq javob bering).
 
+    3. Agar foydalanuvchi RISK yoki LOT hisoblashni so'rasa (masalan: "EURUSD depozit 5000, risk 1%, kirish 1.0850, stop 1.0830 lot hisobla"):
+   - "should_save": false qiling.
+   - "chat_response" qismida:
+     * Depozit va risk summasini ($ da)
+     * Stop-loss masofasini (pip yoki punktda)
+     * Tavsiya qilingan aniq LOT hajmini (lot formulasiga ko'ra)
+     * Qisqa va lo'nda professional formatda hisoblab bering.
+
     FAQAT quyidagi JSON formatida javob bering:
     {{
         "should_save": true yoki false,
@@ -220,6 +228,16 @@ def get_trades_from_notion():
         print("Notion o'qishda xatolik:", e)
     return trades
 
+@bot.message_handler(commands=['calc', 'risk', 'lot'])
+def handle_calc_command(message):
+    guide_text = (
+        "⚖️ **Risk & Lot Kalkulyatori**\n\n"
+        "Lot hajmini hisoblash uchun menga quyidagicha yozing:\n"
+        "👉 `Depozit 10000$, risk 1%, EURUSD kirish 1.0850, stop 1.0830`\n"
+        "👉 `XAUUSD (Oltin) 2000$ balans, 2% risk, kirish 2500, stop 2490`\n\n"
+        "Men sizga ochishingiz kerak bo'lgan aniq **Lot hajmi**ni hisoblab beraman!"
+    )
+    bot.reply_to(message, guide_text, parse_mode="Markdown")
 
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
