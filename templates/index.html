@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade AI Dashboard</title>
+    <title>Trade AI Analytics</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -34,22 +34,53 @@
             font-size: 13px;
             font-weight: 600;
         }
+
+        /* Analytics Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .card {
+            background-color: #131d33;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            text-align: center;
+        }
+        .card h3 { margin: 0 0 6px 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card .value { font-size: 20px; font-weight: bold; color: #f8fafc; }
+
+        /* Winrate Bar */
+        .winrate-container {
             background-color: #131d33;
             padding: 16px;
             border-radius: 12px;
             border: 1px solid #1e293b;
+            margin-bottom: 24px;
         }
-        .card h3 { margin: 0 0 6px 0; font-size: 13px; color: #94a3b8; }
-        .card .value { font-size: 22px; font-weight: bold; color: #f8fafc; }
+        .winrate-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .bar-wrapper {
+            background: #ef4444;
+            height: 10px;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+        .bar-profit {
+            background: #22c55e;
+            height: 100%;
+            transition: width 0.6s ease;
+        }
 
-        /* Qidiruv va Filtr qismi */
+        /* Controls */
         .controls {
             margin-bottom: 20px;
             display: flex;
@@ -67,9 +98,7 @@
             outline: none;
             transition: 0.2s;
         }
-        .search-box:focus {
-            border-color: #38bdf8;
-        }
+        .search-box:focus { border-color: #38bdf8; }
         .filter-buttons {
             display: flex;
             gap: 8px;
@@ -92,32 +121,26 @@
             font-weight: 600;
         }
 
-        .section-title {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #f1f5f9;
-        }
+        /* Trade Cards */
+        .section-title { font-size: 18px; margin-bottom: 15px; color: #f1f5f9; }
         .trade-card {
             background-color: #131d33;
             border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
             border: 1px solid #1e293b;
             border-left: 4px solid #38bdf8;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: 0.2s;
         }
+        .trade-card.profit-card { border-left-color: #22c55e; }
+        .trade-card.loss-card { border-left-color: #ef4444; }
+
         .trade-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
+            align-items: center;
+            margin-bottom: 10px;
         }
-        .trade-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: #f8fafc;
-        }
+        .trade-title { font-size: 16px; font-weight: 600; color: #f8fafc; }
         .trade-date {
             font-size: 12px;
             color: #64748b;
@@ -129,45 +152,68 @@
             background: #0f172a;
             padding: 12px;
             border-radius: 8px;
-            font-size: 13.5px;
+            font-size: 13px;
             color: #cbd5e1;
             line-height: 1.6;
             white-space: pre-wrap;
             border: 1px solid #1e293b;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Trade AI Dashboard</h1>
+            <h1>Trade AI Analytics</h1>
             <div class="live-badge">● Jonli</div>
         </div>
 
+        <!-- 4 xil Statistika Paneli -->
         <div class="stats-grid">
             <div class="card">
-                <h3>Jami Tahlillar</h3>
-                <div class="value" id="visible-count">{{ trades|length }} ta</div>
+                <h3>Jami</h3>
+                <div class="value" id="stat-total">0</div>
             </div>
             <div class="card">
-                <h3>Holat</h3>
-                <div class="value" style="color: #38bdf8;">Sinxron</div>
+                <h3>Winrate</h3>
+                <div class="value" id="stat-winrate" style="color: #38bdf8;">0%</div>
+            </div>
+            <div class="card">
+                <h3>Profit</h3>
+                <div class="value" id="stat-profit" style="color: #4ade80;">0</div>
+            </div>
+            <div class="card">
+                <h3>Loss</h3>
+                <div class="value" id="stat-loss" style="color: #f87171;">0</div>
             </div>
         </div>
 
-        <!-- Filtr va Qidiruv boshqaruvi -->
+        <!-- Winrate Vizual Chizig'i -->
+        <div class="winrate-container">
+            <div class="winrate-header">
+                <span style="color: #4ade80;">Yutuqli (Profit)</span>
+                <span style="color: #f87171;">Zararli (Loss)</span>
+            </div>
+            <div class="bar-wrapper">
+                <div class="bar-profit" id="profit-bar" style="width: 50%;"></div>
+            </div>
+        </div>
+
+        <!-- Qidiruv va Filtr -->
         <div class="controls">
-            <input type="text" id="searchInput" class="search-box" placeholder="Savdo nomi yoki juftlik bo'yicha qidirish (masalan: EURUSD)...">
+            <input type="text" id="searchInput" class="search-box" placeholder="Savdo nomi yoki juftlik bo'yicha qidirish...">
             <div class="filter-buttons">
                 <button class="btn-filter active" onclick="applyFilter('all', this)">Barchasi</button>
-                <button class="btn-filter" onclick="applyFilter('Profit', this)">Profit</button>
+                <button class="btn-filter" onclick="applyFilter('Profit', this)">Faqat Profit</button>
+                <button class="btn-filter" onclick="applyFilter('Loss', this)">Faqat Loss</button>
                 <button class="btn-filter" onclick="applyFilter('EURUSD', this)">EURUSD</button>
-                <button class="btn-filter" onclick="applyFilter('Short', this)">Short</button>
-                <button class="btn-filter" onclick="applyFilter('Long', this)">Long</button>
             </div>
         </div>
 
-        <div class="section-title">Savdo Tarixi</div>
+        <div class="section-title">Savdolar Ro'yxati</div>
         
         <div id="tradesList">
             {% for trade in trades %}
@@ -181,33 +227,55 @@
                 <div class="trade-content">{{ trade.content }}</div>
             </div>
             {% else %}
-            <p id="noTrades" style="color: #64748b; text-align: center; padding: 30px;">Hozircha saqlangan tahlillar yo'q.</p>
+            <p style="color: #64748b; text-align: center; padding: 30px;">Hozircha saqlangan tahlillar yo'q.</p>
             {% endfor %}
         </div>
     </div>
 
     <script>
+        // Statistika va Winrate'ni avtomatik hisoblash
+        function calculateStats() {
+            const cards = document.querySelectorAll('.trade-card');
+            let total = cards.length;
+            let profitCount = 0;
+            let lossCount = 0;
+
+            cards.forEach(card => {
+                const text = card.getAttribute('data-search');
+                if (text.includes('profit') || text.includes('yutuq')) {
+                    profitCount++;
+                    card.classList.add('profit-card');
+                } else if (text.includes('loss') || text.includes('zarar')) {
+                    lossCount++;
+                    card.classList.add('loss-card');
+                }
+            });
+
+            document.getElementById('stat-total').innerText = total + ' ta';
+            document.getElementById('stat-profit').innerText = profitCount;
+            document.getElementById('stat-loss').innerText = lossCount;
+
+            const evaluatedTrades = profitCount + lossCount;
+            let winrate = evaluatedTrades > 0 ? Math.round((profitCount / evaluatedTrades) * 100) : 0;
+            
+            document.getElementById('stat-winrate').innerText = winrate + '%';
+            document.getElementById('profit-bar').style.width = (evaluatedTrades > 0 ? winrate : 50) + '%';
+        }
+
+        // Qidiruv va Filtr
         let currentFilter = 'all';
 
         function filterTrades() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.trade-card');
-            let count = 0;
 
             cards.forEach(card => {
                 const searchData = card.getAttribute('data-search');
                 const matchesSearch = searchData.includes(query);
                 const matchesFilter = currentFilter === 'all' || searchData.includes(currentFilter.toLowerCase());
 
-                if (matchesSearch && matchesFilter) {
-                    card.style.display = 'block';
-                    count++;
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
             });
-
-            document.getElementById('visible-count').innerText = count + ' ta';
         }
 
         document.getElementById('searchInput').addEventListener('input', filterTrades);
@@ -218,6 +286,9 @@
             btn.classList.add('active');
             filterTrades();
         }
+
+        // Sahifa yuklanganda hisob-kitobni ishga tushirish
+        calculateStats();
     </script>
 </body>
 </html>
