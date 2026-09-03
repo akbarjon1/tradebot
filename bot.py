@@ -170,10 +170,10 @@ def save_trade_to_notion(data):
     res = requests.post(url, headers=headers, json=payload)
     return res.status_code == 200, res.text
 def get_trades_from_notion():
-    url = f"https://api.notion.com/v1/blocks/{NOTION_PARENT_PAGE_ID}/children?page_size=20"
+    url = f"https://api.notion.com/v1/blocks/{NOTION_PARENT_PAGE_ID}/children?page_size=15"
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": "2022-06-28"
+        "Notion-Version": "2022-06-28",
     }
     trades = []
     try:
@@ -181,17 +181,40 @@ def get_trades_from_notion():
         if res.status_code == 200:
             blocks = res.json().get("results", [])
             for b in blocks:
+                # Agar child_page bo'lsa
                 if b.get("type") == "child_page":
+                    page_id = b.get("id")
+                    title = b.get("child_page", {}).get("title", "Savdo Tahlili")
+                    created_time = b.get("created_time", "")[:10]  # Sana: YYYY-MM-DD
+                    
+                    # Sahifa ichidagi bloklarni o'qish
+                    child_url = f"https://api.notion.com/v1/blocks/{page_id}/children"
+                    c_res = requests.get(child_url, headers=headers)
+                    details = []
+                    if c_res.status_code == 200:
+                        child_blocks = c_res.json().get("results", [])
+                        for cb in child_blocks:
+                            b_type = cb.get("type")
+                            rich_text = cb.get(b_type, {}).get("rich_text", [])
+                            if rich_text:
+                                details.append(rich_text[0].get("plain_text", ""))
+                    
+                    # Matnlarni birlashtirib, parametrlarni ajratib olish
+                    full_text = "\n".join(details)
                     trades.append({
-                        "title": b.get("child_page", {}).get("title", "Tahlil"),
-                        "content": "Batafsil ma'lumot Notion sahifasida"
+                        "title": title,
+                        "date": created_time,
+                        "content": full_text if full_text else "Batafsil ma'lumot Notion'da",
+                        "raw_blocks": details
                     })
                 elif b.get("type") == "paragraph":
                     text_list = b.get("paragraph", {}).get("rich_text", [])
                     if text_list:
                         trades.append({
-                            "title": "Oxirgi qayd",
-                            "content": text_list[0].get("plain_text", "")
+                            "title": "Qayd",
+                            "date": b.get("created_time", "")[:10],
+                            "content": text_list[0].get("plain_text", ""),
+                            "raw_blocks": []
                         })
     except Exception as e:
         print("Notion o'qishda xatolik:", e)
