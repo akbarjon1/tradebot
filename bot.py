@@ -18,7 +18,7 @@ NOTION_TOKEN = os.environ.get("NOTION_TOKEN", "ntn_336865308429ozPtbUSzeydTi2uFI
 NOTION_PARENT_PAGE_ID = os.environ.get("NOTION_PARENT_PAGE_ID", "2337d7dfab1a801e8ce8f72a83c0389c")
 
 # Agar kanalingiz bo'lsa, ID odatda -100 bilan boshlanadi. Masalan: "-1005436696482"
-CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "-5436696482")
+CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "-3814115881")
 # ====================================================
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
