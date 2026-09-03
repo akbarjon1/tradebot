@@ -9,9 +9,9 @@ import feedparser
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-NOTION_API_KEY = os.environ.get("NOTION_API_KEY", "")
-NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig")
+NOTION_API_KEY = os.environ.get("NOTION_API_KEY", "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")
+NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID", "2927d7dfab1a8000953ef1a2c403ecb2")
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Telegram obyektlari
