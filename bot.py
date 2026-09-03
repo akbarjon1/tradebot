@@ -250,8 +250,7 @@ def send_welcome(message):
 @bot.message_handler(commands=['radar', 'brief'])
 def send_morning_radar(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    import datetime
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     prompt = f"""
     Sen professional treyding yordamchisisan. Bugungi sana: {today}.
     Foydalanuvchi uchun professional, qisqa va lo'nda "Ertalabki Bozor Radari"ni tayyorlab ber.
@@ -270,14 +269,11 @@ def send_morning_radar(message):
     - Qisqa intizom eslatmasi.
     """
     try:
-        # Faylingizdagi mavjud chaqirish usulidan foydalanamiz
-        if 'client' in globals():
-            response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-            bot.reply_to(message, response.text)
-        else:
-            model = genai.GenerativeModel("gemini-2.5-flash")
-            response = model.generate_content(prompt)
-            bot.reply_to(message, response.text)
+        response = ai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        bot.reply_to(message, response.text)
     except Exception as e:
         bot.reply_to(message, f"Radar xatosi: {e}")
 
@@ -388,5 +384,17 @@ if __name__ == "__main__":
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
 
-    print("Bot ishga tushdi...")
-    bot.infinity_polling()
+import time
+
+try:
+    bot.remove_webhook()
+except Exception:
+    pass
+
+while True:
+    try:
+        print("Bot ishga tushdi...")
+        bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    except Exception as e:
+        print(f"Ulanish xatosi (qayta urinish): {e}")
+        time.sleep(3)
