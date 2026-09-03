@@ -270,7 +270,7 @@ def send_morning_radar(message):
     """
     try:
         response = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt
         )
         bot.reply_to(message, response.text)
