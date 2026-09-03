@@ -1,4 +1,5 @@
 import os
+import re
 import telebot
 import google.generativeai as genai
 from notion_client import Client
@@ -8,13 +9,16 @@ import time
 import feedparser
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig")
-NOTION_API_KEY = os.environ.get("NOTION_API_KEY", "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")
-NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID", "2927d7dfab1a8000953ef1a2c403ecb2")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "7969188094:AAGs4Psq9cQdJp5v1u9sW4j2XnE")
+
+# O'zingizning Google Gemini kalitingizni mana shu qo'shtirnoq ichiga yozing:
+GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
+
+NOTION_API_KEY = os.environ.get("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")
+NOTION_DATABASE_ID = os.environ.get("2927d7dfab1a8000953ef1a2c403ecb2")
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
-# AI va Telegram obyektlari
+# AI va Bot obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 notion = Client(auth=NOTION_API_KEY)
@@ -140,22 +144,25 @@ def fetch_and_post_crypto_news():
                     if news_id not in SEEN_NEWS:
                         SEEN_NEWS.add(news_id)
                         title = latest.title
-                        summary = latest.get("summary", "")[:300]
+                        raw_summary = latest.get("summary", "")[:400]
                         link = latest.get("link", "")
                         
+                        # HTML teglarni matndan tozalaymiz:
+                        clean_summary = re.sub('<[^<]+?>', '', raw_summary).strip()
+                        
                         prompt = f"""
-Sen Obsidian Lab kripto kanali tahlilchisisan.
-Quyidagi yangilikni o'zbek tiliga tarjima qilib, professional qisqa post tayyorlab ber.
+Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
+Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun tushunarli va professional ko'rinishda ber:
 
-Yangilik sarlavhasi: {title}
-Tafsilot: {summary}
+Sarlavha: {title}
+Mazmuni: {clean_summary}
 
-Format aynan quyidagicha bo'lsin (hech qanday HTML teglarsiz, oddiy matn):
+Format aynan mana shunday bo'lsin:
 ⚡️ // OBSIDIAN RADAR: [O'zbekcha qisqa sarlavha]
 
 📌 Tafsilot: [Voqea haqida 2 jumlada asosiy mazmun]
 
-💡 Tahlil: [Bozorga ta'siri haqida 1 jumla]
+💡 Tahlil: [Bozorga yoki treyderlarga ta'siri haqida 1 jumla]
 
 🔗 Manba: {link}
 """
@@ -163,22 +170,22 @@ Format aynan quyidagicha bo'lsin (hech qanday HTML teglarsiz, oddiy matn):
                             ai_response = model.generate_content(prompt)
                             post_text = ai_response.text.strip()
                         except Exception as ai_err:
-                            print(f"AI Xatolik: {ai_err}")
-                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n📌 Tafsilot: {summary[:200]}...\n\n🔗 Manba: {link}"
+                            print(f"AI Xatolik sababi: {ai_err}")
+                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n📌 Tafsilot: {clean_summary[:200]}...\n\n🔗 Manba: {link}"
                         
                         bot.send_message(
                             chat_id=CHANNEL_CHAT_ID,
                             text=post_text,
                             disable_web_page_preview=False
                         )
-                        print(f"LOG: [Obsidian Radar] Kanalga post chiqdi!")
+                        print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
                         break
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
             
         time.sleep(3600)
 
-# --- 7. ISHGA TUSHIRISH ---
+# --- 7. TIZIMNI ISHGA TUSHIRISH ---
 if __name__ == "__main__":
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
