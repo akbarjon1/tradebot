@@ -61,16 +61,22 @@ def process_with_gemini(user_text, pil_image=None):
     if pil_image:
         contents.append(pil_image)
 
-    response = ai_client.models.generate_content(
-        model="gemini-3.6-flash", contents=contents
-    )
-
-    clean_json = response.text.strip()
-    clean_json = re.sub(
-        r"^```json\s*|^```\s*|```$", "", clean_json, flags=re.MULTILINE
-    ).strip()
-
-    return json.loads(clean_json)
+    # Server band bo'lsa, avtomatik 3 marta qayta urinish
+    for attempt in range(3):
+        try:
+            response = ai_client.models.generate_content(
+                model="gemini-3.6-flash", contents=contents
+            )
+            clean_json = response.text.strip()
+            clean_json = re.sub(
+                r"^```json\s*|^```\s*|```$", "", clean_json, flags=re.MULTILINE
+            ).strip()
+            return json.loads(clean_json)
+        except Exception as e:
+            if attempt < 2:
+                time.sleep(2)
+                continue
+            raise e
 
 
 def save_trade_to_notion(data):
