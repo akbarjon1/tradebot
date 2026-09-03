@@ -400,39 +400,68 @@ def fetch_and_post_crypto_news():
                     title = latest.title
                     summary = latest.get("summary", "")[:300]
                     
-                    # Gemini orqali qisqa tahliliy xulosa tayyorlash
-                    prompt = f"""
-                    Quyidagi kripto yangilikni o'zbek tilida, Obsidian Lab kiber-tahlil uslubida qisqacha (maksimum 2-3 jumla) qilib yozib ber:
-                    Sarlavha: {title}
-                    Tafsilot: {summary}
+                   # ==========================================
+# OBSIDIAN LAB // AVTOMATIK YANGILIKLAR TIZIMI
+# ==========================================
+SEEN_NEWS = set()
+
+def fetch_and_post_crypto_news():
+    """Har 1 soatda yangi crypto yangiliklarni kanalga uzatadi"""
+    RSS_URLS = [
+        "https://cointelegraph.com/rss",
+        "https://feeds.feedburner.com/CoinDesk"
+    ]
+    
+    while True:
+        try:
+            print("LOG: [Obsidian Radar] Yangiliklar tekshirilmoqda...")
+            for url in RSS_URLS:
+                feed = feedparser.parse(url)
+                if feed.entries:
+                    latest = feed.entries[0]
+                    news_id = latest.get("id", latest.get("link"))
                     
-                    Format quyidagicha bo'lsin:
-                    ⚡️ // OBSIDIAN RADAR: [Qisqa o'zbekcha sarlavha]
-                    
-                    [2 ta jumlada asosiy mazmun va bozorga ta'siri]
-                    
-                    🔗 Manba: CoinTelegraph
-                    """
-                    
-                    try:
-                        ai_response = model.generate_content(prompt)
-                        post_text = ai_response.text
-                    except Exception:
-                        post_text = f"⚡️ // OBSIDIAN RADAR\n\n{title}\n\n🔗 {latest.link}"
-                    
-                    # Kanalga xabarni yuborish
-                    if CHANNEL_CHAT_ID:
+                    if news_id not in SEEN_NEWS:
+                        SEEN_NEWS.add(news_id)
+                        title = latest.title
+                        summary = latest.get("summary", "")[:300]
+                        link = latest.get("link", "")
+                        
+                        prompt = f"""
+                        Quyidagi kripto yangilikni o'zbek tilida, Obsidian Lab kiber-tahlil uslubida qisqacha (2-3 jumla) qilib yozib ber:
+                        Sarlavha: {title}
+                        Tafsilot: {summary}
+                        
+                        Format aynan quyidagicha bo'lsin:
+                        ⚡️ // OBSIDIAN RADAR: [Qisqa o'zbekcha sarlavha]
+
+                        [2 ta jumlada asosiy mazmun va bozorga ta'siri]
+
+                        🔗 Manba: {link}
+                        """
+                        
+                        try:
+                            ai_response = model.generate_content(prompt)
+                            post_text = ai_response.text
+                        except Exception as ai_err:
+                            print(f"AI Xatolik: {ai_err}")
+                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n🔗 Manba: {link}"
+                        
                         bot.send_message(
                             chat_id=CHANNEL_CHAT_ID,
                             text=post_text,
                             disable_web_page_preview=False
                         )
+                        print(f"LOG: [Obsidian Radar] Kanalga post chiqdi: {title}")
+                        break
+                        
         except Exception as e:
-            print(f"Yangiliklar tizimida xatolik: {e}")
+            print(f"LOG: Yangiliklar tizimida xatolik: {e}")
             
-        # 15 daqiqa (900 soniya) kutish
+        # 1 soat kutish
         time.sleep(3600)
 
-# Yangiliklar skanerini fon rejimida ishga tushirish
+# Yangiliklar skanerini fonda ishga tushirish
 news_thread = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
 news_thread.start()
+
