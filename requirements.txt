@@ -1,6 +1,7 @@
 pyTelegramBotAPI
-google-genai
+google-generativeai
+notion-client
+Flask
 requests
 pillow
-Flask
 feedparser
