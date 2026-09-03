@@ -1,6 +1,9 @@
 import io
 import json
 import os
+import feedparser
+import threading
+import time
 import re
 import threading
 import time
@@ -374,3 +377,62 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Ulanish xatosi: {e}")
             time.sleep(3)
+
+            # ==========================================
+# OBSIDIAN LAB // AVTOMATIK YANGILIKLAR TIZIMI
+# ==========================================
+SEEN_NEWS = set()
+
+def fetch_and_post_crypto_news():
+    """Har 15 daqiqada yangi crypto tahlil va yangiliklarni kanalga uzatadi"""
+    RSS_URL = "https://cointelegraph.com/rss"
+    
+    while True:
+        try:
+            feed = feedparser.parse(RSS_URL)
+            if feed.entries:
+                latest = feed.entries[0]
+                news_id = latest.get("id", latest.get("link"))
+                
+                # Agar bu yangilik hali kanalga chiqmagan bo'lsa
+                if news_id not in SEEN_NEWS:
+                    SEEN_NEWS.add(news_id)
+                    title = latest.title
+                    summary = latest.get("summary", "")[:300]
+                    
+                    # Gemini orqali qisqa tahliliy xulosa tayyorlash
+                    prompt = f"""
+                    Quyidagi kripto yangilikni o'zbek tilida, Obsidian Lab kiber-tahlil uslubida qisqacha (maksimum 2-3 jumla) qilib yozib ber:
+                    Sarlavha: {title}
+                    Tafsilot: {summary}
+                    
+                    Format quyidagicha bo'lsin:
+                    ⚡️ // OBSIDIAN RADAR: [Qisqa o'zbekcha sarlavha]
+                    
+                    [2 ta jumlada asosiy mazmun va bozorga ta'siri]
+                    
+                    🔗 Manba: CoinTelegraph
+                    """
+                    
+                    try:
+                        ai_response = model.generate_content(prompt)
+                        post_text = ai_response.text
+                    except Exception:
+                        post_text = f"⚡️ // OBSIDIAN RADAR\n\n{title}\n\n🔗 {latest.link}"
+                    
+                    # Kanalga xabarni yuborish
+                    if CHANNEL_CHAT_ID:
+                        bot.send_message(
+                            chat_id=CHANNEL_CHAT_ID,
+                            text=post_text,
+                            disable_web_page_preview=False
+                        )
+        except Exception as e:
+            print(f"Yangiliklar tizimida xatolik: {e}")
+            
+        # 15 daqiqa (900 soniya) kutish
+        time.sleep(3600)
+
+# Yangiliklar skanerini fon rejimida ishga tushirish
+news_thread = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
+news_thread.start()
