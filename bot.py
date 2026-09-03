@@ -12,7 +12,7 @@ from google import genai
 from flask import Flask, render_template, request, jsonify
 
 # ==================== SOZLAMALAR ====================
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGk-_T7sDQvA1W3X50ADbJZhQLIIC65sLA")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig")
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN", "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")
 NOTION_PARENT_PAGE_ID = os.environ.get("NOTION_PARENT_PAGE_ID", "2337d7dfab1a801e8ce8f72a83c0389c")
