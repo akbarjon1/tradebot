@@ -82,7 +82,7 @@ Foydalanuvchi xabari:
 
 
 def save_trade_to_notion(data):
-    url = "[https://api.notion.com/v1/pages](https://api.notion.com/v1/pages)"
+    url = "https://api.notion.com/v1/pages"
     headers = {
         "Authorization": f"Bearer {NOTION_TOKEN}",
         "Content-Type": "application/json",
