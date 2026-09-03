@@ -9,12 +9,12 @@ import feedparser
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_KEY")
-NOTION_API_KEY = os.environ.get("NOTION_API_KEY", "YOUR_NOTION_KEY")
-NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID", "YOUR_NOTION_DB_ID")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+NOTION_API_KEY = os.environ.get("NOTION_API_KEY", "")
+NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID", "")
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
-# AI va Notion obyektlari
+# AI va Telegram obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 notion = Client(auth=NOTION_API_KEY)
@@ -90,7 +90,7 @@ def handle_trade_message(message):
     except Exception as e:
         bot.reply_to(message, f"Xatolik yuz berdi: {e}")
 
-# --- 5. NOTION MONITORING (SIGNALLARNI KANALGA CHIQARISH) ---
+# --- 5. NOTION MONITORING ---
 sent_trade_ids = set()
 
 def monitor_new_trades():
@@ -121,7 +121,7 @@ def monitor_new_trades():
         except Exception as e:
             print(f"Monitoring davomida xatolik: {e}")
 
-# --- 6. AVTOMATIK YANGILIKLAR TIZIMI (HAR 1 SOATDA) ---
+# --- 6. AVTOMATIK YANGILIKLAR TIZIMI ---
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
@@ -144,33 +144,50 @@ def fetch_and_post_crypto_news():
                         link = latest.get("link", "")
                         
                         prompt = f"""
-                        Quyidagi kripto yangilikni o'zbek tilida, Obsidian Lab kiber-tahlil uslubida qisqacha (2-3 jumla) qilib yozib ber:
+                        Sen "Obsidian Lab" kiber-tahlil laboratoriyasining yetakchi kripto tahlilchisisan.
+                        Quyidagi yangilikni o'zbek tiliga tarjima qilib, chuqur tahliliy va lo'nda ko'rinishda yozib ber.
+
                         Sarlavha: {title}
                         Tafsilot: {summary}
-                        
-                        Format aynan quyidagicha bo'lsin:
-                        ⚡️ // OBSIDIAN RADAR: [Qisqa o'zbekcha sarlavha]
 
-                        [2 ta jumlada asosiy mazmun va bozorga ta'siri]
+                        Talablar:
+                        - Sarlavhani o'zbek tiliga jiddiy, professional qilib o'gir.
+                        - Voqea mazmunini 2 jumlada tushuntir.
+                        - Bozorga yoki treyderlarga ta'sirini 1 jumlada tahlil qil.
+                        - HTML teglaridan (<tg-spoiler>, <b>, <i>) foydalan, markdown yozma.
 
-                        🔗 Manba: {link}
+                        Format aynan shunday bo'lsin:
+                        ⚡️ <b>// OBSIDIAN RADAR</b>
+
+                        📌 <b>[O'zbekcha Sarlavha]</b>
+
+                        📖 <b>Tafsilot:</b> [Mazmuni]
+
+                        💡 <b>Tahlil:</b> [Bozorga ta'siri]
+
+                        🔗 <a href="{link}">To'liq o'qish</a>
                         """
                         try:
                             ai_response = model.generate_content(prompt)
                             post_text = ai_response.text
                         except Exception as ai_err:
                             print(f"AI Xatolik: {ai_err}")
-                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n🔗 Manba: {link}"
+                            post_text = f"⚡️ <b>// OBSIDIAN RADAR:</b> {title}\n\n🔗 <a href='{link}'>Batafsil</a>"
                         
-                        bot.send_message(chat_id=CHANNEL_CHAT_ID, text=post_text, disable_web_page_preview=False)
-                        print(f"LOG: [Obsidian Radar] Kanalga post chiqdi: {title}")
+                        bot.send_message(
+                            chat_id=CHANNEL_CHAT_ID,
+                            text=post_text,
+                            parse_mode="HTML",
+                            disable_web_page_preview=False
+                        )
+                        print(f"LOG: [Obsidian Radar] Kanalga chiroyli post chiqdi: {title}")
                         break
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
             
         time.sleep(3600)
 
-# --- 7. TIZIMNI ISHGA TUSHIRISH ---
+# --- 7. ISHGA TUSHIRISH ---
 if __name__ == "__main__":
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
