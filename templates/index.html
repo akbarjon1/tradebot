@@ -287,6 +287,18 @@
             <button class="btn-filter" onclick="applyFilter('EURUSD', this)">EURUSD</button>
         </div>
 
+        <!-- PnL Heatmap -->
+<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <span style="font-weight: 700; font-size: 14px; color: var(--text-main);">📅 PnL Heatmap (So'nggi 28 kun)</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Kunlik sof natijalar</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+        <div>Du</div><div>Se</div><div>Chor</div><div>Pay</div><div>Ju</div><div>Shan</div><div>Yak</div>
+    </div>
+    <div id="heatmapGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
+</div>
+        
         <!-- Stream Cards -->
         <div class="trades-stream" id="tradesList">
             {% for trade in trades %}
@@ -311,7 +323,79 @@
     <script>
         let doughnutChart;
 
+        // Heatmap hisoblash va chizish funksiyasi
+    function renderHeatmap() {
+        const grid = document.getElementById('heatmapGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        const cards = document.querySelectorAll('.trade-card');
+        const dailyPnL = {};
+
+        cards.forEach(card => {
+            const text = card.innerText || "";
+            const dateBadge = card.querySelector('.date-badge');
+            const dateStr = dateBadge ? dateBadge.innerText.trim().slice(0, 10) : "";
+            if (!dateStr || dateStr === "Oxirgi") return;
+
+            let pnl = 0;
+            const match = text.match(/([+-]?\d+(\.\d+)?)\s*(\$|R)/i);
+            if (match) {
+                pnl = parseFloat(match[1]) || 0;
+            } else if (text.toLowerCase().includes("profit") || text.toLowerCase().includes("tp")) {
+                pnl = 1;
+            } else if (text.toLowerCase().includes("loss") || text.toLowerCase().includes("sl")) {
+                pnl = -1;
+            }
+
+            dailyPnL[dateStr] = (dailyPnL[dateStr] || 0) + pnl;
+        });
+
+        const today = new Date();
+        for (let i = 27; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const dateKey = d.toISOString().slice(0, 10);
+            const dayNum = d.getDate();
+
+            const hasData = dailyPnL.hasOwnProperty(dateKey);
+            const val = dailyPnL[dateKey] || 0;
+
+            let bg = "rgba(255,255,255,0.02)";
+            let border = "var(--border)";
+            let color = "var(--text-muted)";
+            let label = "";
+
+            if (hasData) {
+                if (val > 0) {
+                    bg = "rgba(16, 185, 129, 0.15)";
+                    border = "rgba(16, 185, 129, 0.4)";
+                    color = "#10b981";
+                    label = "+" + val;
+                } else if (val < 0) {
+                    bg = "rgba(239, 68, 68, 0.15)";
+                    border = "rgba(239, 68, 68, 0.4)";
+                    color = "#ef4444";
+                    label = "" + val;
+                } else {
+                    bg = "rgba(255,255,255,0.05)";
+                    label = "0";
+                }
+            }
+
+            const cell = document.createElement('div');
+            cell.style.cssText = `background: ${bg}; border: 1px solid ${border}; border-radius: 8px; padding: 6px 2px; min-height: 48px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; font-size: 11px;`;
+            cell.title = `${dateKey}: ${label || 'Savdo yoq'}`;
+            cell.innerHTML = `
+                <span style="opacity: 0.6; font-size: 10px;">${dayNum}</span>
+                <span style="font-weight: 700; color: ${color}; font-size: 11px;">${label}</span>
+            `;
+            grid.appendChild(cell);
+        }
+    }
+
         function initDashboard() {
+            renderHeatmap();
             const cards = document.querySelectorAll('.trade-card');
             let total = cards.length;
             let profit = 0;
