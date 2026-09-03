@@ -513,5 +513,61 @@
 
         window.onload = initDashboard;
     </script>
+    <!-- Izoh qoldirish bloki -->
+<div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 24px; margin-bottom: 30px;">
+    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">💬 Izoh yoki Taklif qoldirish</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Yozilgan fikrlaringiz to'g'ridan-to'g'ri monitoring kanaliga yuboriladi.</p>
+    
+    <input type="text" id="feedbackName" placeholder="Ismingiz (ixtiyoriy)" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: white; font-size: 13px; margin-bottom: 10px; outline: none;">
+    <textarea id="feedbackText" rows="3" placeholder="Fikringiz yoki savolingizni yozing..." style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: white; font-size: 13px; margin-bottom: 12px; outline: none; resize: none;"></textarea>
+    
+    <button onclick="sendSiteFeedback()" id="btnFeedback" style="background: var(--cyan); color: #07090e; font-weight: 600; font-size: 13px; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;">
+        Yuborish 🚀
+    </button>
+    <span id="feedbackStatus" style="font-size: 12px; margin-left: 12px;"></span>
+</div>
+
+<script>
+async function sendSiteFeedback() {
+    const name = document.getElementById('feedbackName').value;
+    const message = document.getElementById('feedbackText').value;
+    const status = document.getElementById('feedbackStatus');
+    const btn = document.getElementById('btnFeedback');
+
+    if (!message.trim()) {
+        status.style.color = '#ef4444';
+        status.innerText = "Iltimos, xabarni yozing!";
+        return;
+    }
+
+    btn.disabled = true;
+    status.style.color = 'var(--text-muted)';
+    status.innerText = "Yuborilmoqda...";
+
+    try {
+        const res = await fetch('/send_feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, message })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            status.style.color = '#10b981';
+            status.innerText = "Yuborildi! ✅";
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackName').value = '';
+        } else {
+            status.style.color = '#ef4444';
+            status.innerText = "Xato: " + (data.error || "Ulanib bo'lmadi");
+        }
+    } catch (e) {
+        status.style.color = '#ef4444';
+        status.innerText = "Aloqa xatosi!";
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
 </body>
 </html>
