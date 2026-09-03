@@ -237,6 +237,41 @@
 </head>
 <body>
     <div class="container">
+        <!-- Real-Time Kripto Narxlar Tasmisi -->
+        <div class="tradingview-widget-container" style="margin-bottom: 20px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+          {
+          "symbols": [
+            {
+              "proName": "BINANCE:BTCUSDT",
+              "title": "Bitcoin"
+            },
+            {
+              "proName": "BINANCE:DOGEUSDT",
+              "title": "Dogecoin"
+            },
+            {
+              "proName": "BINANCE:ETHUSDT",
+              "title": "Ethereum"
+            },
+            {
+              "proName": "BINANCE:SOLUSDT",
+              "title": "Solana"
+            },
+            {
+              "proName": "OANDA:XAUUSD",
+              "title": "Gold"
+            }
+          ],
+          "showSymbolLogo": true,
+          "isTransparent": false,
+          "displayMode": "adaptive",
+          "colorTheme": "dark",
+          "locale": "en"
+        }
+          </script>
+        </div>
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="logo-area">
