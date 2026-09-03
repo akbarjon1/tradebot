@@ -5,78 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade AI Dashboard</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #0b1120;
+            color: #e2e8f0;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
         }
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid #1e293b;
             padding-bottom: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
-        h1 { margin: 0; font-size: 24px; color: #38bdf8; }
+        h1 { margin: 0; font-size: 22px; color: #38bdf8; font-weight: 700; }
+        .live-badge {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
         }
         .card {
-            background-color: #1e293b;
-            padding: 20px;
+            background-color: #131d33;
+            padding: 16px;
             border-radius: 12px;
-            border: 1px solid #334155;
+            border: 1px solid #1e293b;
         }
-        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #94a3b8; }
-        .card .value { font-size: 26px; font-weight: bold; color: #f1f5f9; }
-        .trade-card {
-            background-color: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
+        .card h3 { margin: 0 0 6px 0; font-size: 13px; color: #94a3b8; }
+        .card .value { font-size: 22px; font-weight: bold; color: #f8fafc; }
+
+        .section-title {
+            font-size: 18px;
             margin-bottom: 15px;
-            border-left: 4px solid #38bdf8;
+            color: #f1f5f9;
         }
-        .trade-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .trade-text { color: #cbd5e1; font-size: 14px; white-space: pre-wrap; }
+        .trade-card {
+            background-color: #131d33;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 1px solid #1e293b;
+            border-left: 4px solid #38bdf8;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .trade-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+        .trade-date {
+            font-size: 12px;
+            color: #64748b;
+            background: #0f172a;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .trade-content {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border: 1px solid #1e293b;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Trade AI Dashboard</h1>
-            <span>Jonli Hisobot</span>
+            <div class="live-badge">● Jonli</div>
         </div>
 
         <div class="stats-grid">
             <div class="card">
-                <h3>Jami Saqlangan Tahlillar</h3>
+                <h3>Jami Tahlillar</h3>
                 <div class="value">{{ trades|length }} ta</div>
             </div>
             <div class="card">
-                <h3>Tizim Holati</h3>
-                <div class="value" style="color: #4ade80;">Faol</div>
+                <h3>Holat</h3>
+                <div class="value" style="color: #38bdf8;">Sinxron</div>
             </div>
         </div>
 
-        <h2>Oxirgi Tahlillar</h2>
+        <div class="section-title">Savdo Tarixi va Tahlillar</div>
+        
         <div>
             {% for trade in trades %}
             <div class="trade-card">
-                <div class="trade-title">{{ trade.title }}</div>
-                <div class="trade-text">{{ trade.content }}</div>
+                <div class="trade-header">
+                    <span class="trade-title">{{ trade.title }}</span>
+                    {% if trade.date %}
+                    <span class="trade-date">{{ trade.date }}</span>
+                    {% endif %}
+                </div>
+                <div class="trade-content">{{ trade.content }}</div>
             </div>
             {% else %}
-            <p style="color: #94a3b8;">Hozircha tahlillar mavjud emas.</p>
+            <p style="color: #64748b; text-align: center; padding: 30px;">Hozircha saqlangan tahlillar yo'q.</p>
             {% endfor %}
         </div>
     </div>
