@@ -389,7 +389,7 @@ def send_feedback():
     if not message_text:
         return jsonify({"success": False, "error": "Xabar bo'sh bo'lishi mumkin emas"}), 400
 
-    channel_chat_id = "-1005436696482"
+    channel_chat_id = "-5436696482"
     alert_text = f"💬 <b>Saytdan yangi izoh!</b>\n\n👤 <b>Kimdan:</b> {name}\n📝 <b>Xabar:</b>\n{message_text}"
     
     try:
