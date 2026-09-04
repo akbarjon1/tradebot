@@ -173,27 +173,45 @@ def run_flask():
 # --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Salom! Men Obsidian Radar botiman. Menga istalgan savdo signalini yuboring, Notion'ga saqlayman.")
+    bot.reply_to(message, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Xullas, signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
-    prompt = f"Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:\n{user_text}"
     
+    # Kripto-slang va erkin stil uchun prompt
+    prompt = f"""Sen Obsidian Lab kanalining ashaddiy kripto treyder AI yordamchisisan.
+Xaraktering: O'zbekcha kripto-slanglarda gapirasan ("brat", "jigar", "kotletit qildik", "rek bo'ldik", "fomo", "to the moon", "qizil sham", "likvidatsiya bo'lma", "raketa", "dipdan ilish"). Hech qanaqa rasmiyatchilik yo'q, xuddi choyxonada kripto muhokama qilayotgan tajribali oshnadeksan. Hazil-mutoyiba va qochirimlar bo'lsin.
+
+Foydalanuvchi yozdi: "{user_text}"
+
+Qoidalar:
+1. Agar foydalanuvchi shunchaki gaplashsa ("nima gap", "qalesan", "bozor nima bo'lyapti" va h.k.):
+   - Unga toza treydercha slanglar bilan, qiziqarli, kulgili va jonli javob qaytar. Qisqa va lo'nda bo'lsin.
+2. Agar bu aniq savdo signali bo'lsa (Entry, TP, SL, Long/Short kabi aniq raqamlar bo'lsa):
+   - Javobning eng birinchi so'zi aniq "SIGNAL_DETECTED" bo'lsin.
+   - Keyingi qatordan signalni qisqa, tushunarli formatda tahlil qilib ber (masalan: "Riskni boshqar, stopni unutma").
+"""
     try:
         content = get_ai_analysis(prompt)
         if not content:
-            bot.reply_to(message, "⚠️ AI xizmatlarida vaqtinchalik uzilish yuz berdi.")
+            bot.reply_to(message, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
             return
 
-        title = user_text[:30]
-        success, msg = save_trade_to_notion(title, content)
-        if success:
-            bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
+        # Agar savdo signali bo'lsa
+        if content.startswith("SIGNAL_DETECTED"):
+            clean_content = content.replace("SIGNAL_DETECTED", "").strip()
+            title = user_text[:30]
+            success, msg = save_trade_to_notion(title, clean_content)
+            
+            reply_text = f"🎯 *Signal Notion'ga qadab qo'yildi, brat!*\n\n{clean_content}\n\n⚠️ _Kotletit qilib yuborma, risk-menejment esdan chiqmasin!_"
+            bot.reply_to(message, reply_text, parse_mode="Markdown")
         else:
-            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda muammo: {msg}\n\nAI Xulosasi:\n{content}")
+            # Oddiy suhbat
+            bot.reply_to(message, content)
+
     except Exception as e:
-        bot.reply_to(message, f"Xatolik yuz berdi: {e}")
+        bot.reply_to(message, f"Brat, xatolik berdi: {e}")
 
 # --- 6. NOTION MONITORING ---
 sent_trade_ids = set()
