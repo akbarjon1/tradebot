@@ -78,11 +78,34 @@ def save_trade_to_notion(title, content):
         return False
 
 # --- 3. FLASK WEB SAYTI ---
+CHANNEL_ID = "-5436696482"
+comments_store = []
+
 @app.route('/')
 def home():
     trades = get_trades_from_notion()
-    return render_template('index.html', trades=trades)
+    return render_template('index.html', trades=trades, comments=comments_store)
 
+@app.route('/add_comment', methods=['POST'])
+def add_comment():
+    import datetime
+    user_comment = request.form.get('comment')
+    if user_comment:
+        now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        comments_store.insert(0, {
+            'text': user_comment,
+            'created_at': now_time
+        })
+        try:
+            tg_text = (
+                f"💬 *Obsidian Lab // Yangi Izoh*\n\n"
+                f"📝 *Fikr:*\n{user_comment}\n\n"
+                f"⏱ `{now_time}`"
+            )
+            bot.send_message(CHANNEL_ID, tg_text, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Kanalga yuborishda xatolik: {e}")
+    return home()
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
