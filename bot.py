@@ -1,29 +1,130 @@
 import os
 import re
 import telebot
-import google.generativeai as genai
-from notion_client import Client
 import threading
 import time
 import feedparser
 from flask import Flask, render_template, request
+
+# --- YANGI SDK'LAR (2026-yil holatiga mos) ---
+# DIQQAT: "google.generativeai" kutubxonasi 2025-yil 30-noyabrda butunlay
+# to'xtatilgan (EOL). O'rniga rasmiy, birlashtirilgan "google-genai" ishlatiladi.
+#   pip uninstall google-generativeai
+#   pip install google-genai
+from google import genai
+from google.genai import types as genai_types
+
 from groq import Groq
+from notion_client import Client
+
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig")
-NOTION_API_KEY = "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"
-NOTION_DATABASE_ID = "2337d7dfab1a8143a758000bc70b4204"
+# Kalitlarni kodga hardcode QILMANG. Ularni Render.com'ning
+# Dashboard -> Environment bo'limida saqlang va shu yerdan o'qing.
+# (Hardcode qilingan zaxira qiymatlar xavfsizlik uchun olib tashlandi —
+#  pastda .strip() bilan probel/qator ko'chirish xatolarining oldi olinadi.)
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"].strip()
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"].strip()
+GROQ_API_KEY = os.environ["GROQ_API_KEY"].strip()
+NOTION_API_KEY = os.environ["NOTION_API_KEY"].strip()
+NOTION_DATABASE_ID = os.environ["NOTION_DATABASE_ID"].strip()
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
-# AI va Bot obyektlari
-# Model nomini yangisiga to'g'rilaymiz:
-model = genai.GenerativeModel("models/gemini-3.6-flash")
 
-# Groq kalitingizni o'zini shu yerga to'g'ridan-to'g'ri yozamiz (Render bilan bog'lanib o'tirmasligi uchun):
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "gsk_BuYerdagiGroqKalitingizniYozing")
+# --- 2. AI MIJOZLARI ---
+
+# Gemini: yangi Client-asosidagi sintaksis
+gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+
+# Model tanlovi (barchasi hozir GA holatida, google.ai.dev/gemini-api/docs/changelog):
+#   "gemini-2.5-flash"  -> eng barqaror, uzoq muddatli, arzon
+#   "gemini-3.6-flash"  -> yangiroq avlod, kod/agentic vazifalar uchun kuchliroq
+GEMINI_MODEL = "gemini-2.5-flash"
+
+# Groq: llama-3.3-70b-versatile va llama-3.1-8b-instant 2026-08-16'da
+# butunlay o'chirilgan. Hozirgi tavsiya etilgan modellar:
 groq_client = Groq(api_key=GROQ_API_KEY)
-notion = Client(auth=NOTION_API_KEY)
+GROQ_MODEL = "openai/gpt-oss-120b"  # asosiy zaxira model
+
+
+# --- 3. NOTION MIJOZI ---
+notion = Client(auth=NOTION_API_KEY)  # standart Notion-Version: 2025-09-03
+
+
+def get_data_source_id(database_id: str) -> str:
+    """
+    2025-yil sentabrdan Notion bazalar "data source" orqali so'raladi.
+    Eski uslub (to'g'ridan-to'g'ri database_id bilan .query()) ba'zan
+    "InvalidRequestURL" xatosini beradi. Shu funksiya bazaga tegishli
+    data_source_id'ni bir marta olib beradi.
+    """
+    db = notion.databases.retrieve(database_id=database_id)
+    return db["data_sources"][0]["id"]
+
+
+try:
+    NOTION_DATA_SOURCE_ID = get_data_source_id(NOTION_DATABASE_ID)
+except Exception as e:
+    print(f"[Notion] data_source_id olishda xato: {e}")
+    NOTION_DATA_SOURCE_ID = None
+
+
+def notion_query(**kwargs):
+    """
+    Eski notion.databases.query(database_id=...) o'rniga shu funksiyani
+    ishlating. Masalan:
+        notion_query(filter={...}, sorts=[...])
+    """
+    if not NOTION_DATA_SOURCE_ID:
+        raise RuntimeError("NOTION_DATA_SOURCE_ID aniqlanmagan — Notion ulanishini tekshiring.")
+    return notion.data_sources.query(data_source_id=NOTION_DATA_SOURCE_ID, **kwargs)
+
+
+# --- 4. AI TAHLIL FUNKSIYASI: avval Gemini, xato bo'lsa — darhol Groq ---
+def get_ai_analysis(prompt: str) -> str:
+    """
+    1) Gemini orqali javob olishga harakat qiladi.
+    2) Har qanday xato bo'lsa (limit, tarmoq, kalit, model va h.k.) —
+       xatoni log qilib, darhol Groq (fallback)ga o'tadi.
+    3) Ikkalasi ham ishlamasa — foydalanuvchiga tushunarli xabar qaytaradi.
+    """
+    # 1-urinish: Gemini
+    try:
+        response = gemini_client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=genai_types.GenerateContentConfig(
+                temperature=0.7,
+                max_output_tokens=1024,
+            ),
+        )
+        text = (response.text or "").strip()
+        if text:
+            return text
+        raise ValueError("Gemini bo'sh javob qaytardi")
+    except Exception as gemini_error:
+        print(f"[Gemini xato] {gemini_error}")
+
+    # 2-urinish: Groq (zaxira)
+    try:
+        completion = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1024,
+        )
+        text = (completion.choices[0].message.content or "").strip()
+        if text:
+            return text
+        raise ValueError("Groq bo'sh javob qaytardi")
+    except Exception as groq_error:
+        print(f"[Groq xato] {groq_error}")
+
+    # Ikkalasi ham ishlamadi
+    return "⚠️ AI xizmatlarida vaqtinchalik uzilish yuz berdi. Birozdan so'ng qayta urinib ko'ring."
+
+
+# --- 5. BOT VA FLASK OBYEKTLARI ---
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
 
