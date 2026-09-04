@@ -5,3 +5,4 @@ Flask
 requests
 pillow
 feedparser
+groq
