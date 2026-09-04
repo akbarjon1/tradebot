@@ -198,26 +198,35 @@ Sarlavha: {title}
 Mazmuni: {clean_summary}
 
 Format aynan mana shunday bo'lsin:
-⚡️ // OBSIDIAN RADAR: [O'zbekcha qisqa sarlavha]
+⚡️ *OBSIDIAN RADAR // MARKET ALERT*
+━━━━━━━━━━━━━━━━━━━━
 
-📌 Tafsilot: [Voqea haqida 2 jumlada asosiy mazmun]
+📌 *Mavzu:*
+*[O'zbekcha qisqa sarlavha]*
 
-💡 Tahlil: [Bozorga yoki treyderlarga ta'siri haqida 1 jumla]
+📋 *Qisqacha Tahlil:*
+[Voqea haqida 2 jumlada asosiy mazmun]
 
-🔗 Manba: {link}
+💡 *Bozorga ta'siri:*
+[Treydorlar uchun 1 ta xulosa]
+
+━━━━━━━━━━━━━━━━━━━━
+🌐 [Batafsil maqolani o'qish]({link})
 """
-                        try:
-                            ai_response = model.generate_content(prompt)
-                            post_text = ai_response.text.strip()
-                        except Exception as ai_err:
-                            print(f"AI Xatolik sababi: {ai_err}")
-                            post_text = f"⚡️ // OBSIDIAN RADAR: {title}\n\n📌 Tafsilot: {clean_summary[:200]}...\n\n🔗 Manba: {link}"
-                        
-                        bot.send_message(
-                            chat_id=CHANNEL_CHAT_ID,
-                            text=post_text,
-                            disable_web_page_preview=False
-                        )
+
+        try:
+            ai_response = model.generate_content(prompt)
+            post_text = ai_response.text.strip()
+        except Exception as ai_err:
+            print(f"AI Xatolik sababi: {ai_err}")
+            post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
+
+        bot.send_message(
+            chat_id=CHANNEL_CHAT_ID,
+            text=post_text,
+            parse_mode="Markdown",
+            disable_web_page_preview=True
+        )
                         print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
                         break
         except Exception as e:
