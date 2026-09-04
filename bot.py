@@ -30,16 +30,104 @@ CHANNEL_CHAT_ID = get_env("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Google Sheets mijozi
+# Google Sheets mijozi va avtomatik dizayn
 sheet = None
+spreadsheet = None
+
+def format_google_sheet(sh, sp):
+    """Google Jadvalni avtomatik ravishda chiroyli professional terminal qilib bezash"""
+    try:
+        sheet_id = sh.id
+        requests = [
+            # 1. Shapkani muzlatish (Freeze header)
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_id,
+                        "gridProperties": {"frozenRowCount": 1}
+                    },
+                    "fields": "gridProperties.frozenRowCount"
+                }
+            },
+            # 2. Ustunlar kengligini to'g'irlash (A: 90px, B: 240px, C: 480px, D: 110px)
+            {
+                "updateDimensionProperties": {
+                    "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 0, "endIndex": 1},
+                    "properties": {"pixelSize": 90},
+                    "fields": "pixelSize"
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 1, "endIndex": 2},
+                    "properties": {"pixelSize": 240},
+                    "fields": "pixelSize"
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3},
+                    "properties": {"pixelSize": 480},
+                    "fields": "pixelSize"
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 3, "endIndex": 4},
+                    "properties": {"pixelSize": 110},
+                    "fields": "pixelSize"
+                }
+            },
+            # 3. Shapka dizayni: To'q qora-ko'k fon, oq qalin shrift, o'rtada
+            {
+                "repeatCell": {
+                    "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": 4},
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": {"red": 0.11, "green": 0.12, "blue": 0.16},
+                            "horizontalAlignment": "CENTER",
+                            "verticalAlignment": "MIDDLE",
+                            "textFormat": {
+                                "foregroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                                "fontSize": 11,
+                                "bold": True
+                            }
+                        }
+                    },
+                    "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
+                }
+            },
+            # 4. Matnlarni sig'dirish (Text Wrap) va vertikal markazlashtirish
+            {
+                "repeatCell": {
+                    "range": {"sheetId": sheet_id, "startRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": 4},
+                    "cell": {
+                        "userEnteredFormat": {
+                            "wrapStrategy": "WRAP",
+                            "verticalAlignment": "MIDDLE"
+                        }
+                    },
+                    "fields": "userEnteredFormat(wrapStrategy,verticalAlignment)"
+                }
+            }
+        ]
+        sp.batch_update({"requests": requests})
+        print("🎨 Google Sheets dizayni avtomatik ravishda bezatildi!")
+    except Exception as e:
+        print(f"Dizayn qo'llashda ogohlantirish: {e}")
+
 if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
     try:
         cred_info = json.loads(GOOGLE_CREDENTIALS_JSON)
         scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         credentials = Credentials.from_service_account_info(cred_info, scopes=scopes)
         gc = gspread.authorize(credentials)
-        sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
+        spreadsheet = gc.open_by_key(SPREADSHEET_ID)
+        sheet = spreadsheet.sheet1
         print("✅ Google Sheets ulandi!")
+        
+        # Jadvalni bir martada to'liq go'zal ko'rinishga keltiramiz:
+        format_google_sheet(sheet, spreadsheet)
     except Exception as e:
         print(f"⚠️ Google Sheets ulanishda xatolik: {e}")
 
