@@ -1,174 +1,95 @@
 import os
 import re
-import telebot
-import threading
 import time
+import threading
 import feedparser
+import telebot
 from flask import Flask, render_template, request
-
-# --- YANGI SDK'LAR (2026-yil holatiga mos) ---
-# DIQQAT: "google.generativeai" kutubxonasi 2025-yil 30-noyabrda butunlay
-# to'xtatilgan (EOL). O'rniga rasmiy, birlashtirilgan "google-genai" ishlatiladi.
-#   pip uninstall google-generativeai
-#   pip install google-genai
 from google import genai
 from google.genai import types as genai_types
-
 from groq import Groq
 from notion_client import Client
 
-
 # --- 1. SOZLAMALAR VA KALITLAR ---
-# Kalitlarni kodga hardcode QILMANG. Ularni Render.com'ning
-# Dashboard -> Environment bo'limida saqlang va shu yerdan o'qing.
-# (Hardcode qilingan zaxira qiymatlar xavfsizlik uchun olib tashlandi —
-#  pastda .strip() bilan probel/qator ko'chirish xatolarining oldi olinadi.)
-TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"].strip()
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"].strip()
-GROQ_API_KEY = os.environ["GROQ_API_KEY"].strip()
-NOTION_API_KEY = os.environ["NOTION_API_KEY"].strip()
-NOTION_DATABASE_ID = os.environ["NOTION_DATABASE_ID"].strip()
-CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
+def get_env(key, default=""):
+    val = os.environ.get(key, default)
+    return val.strip() if val else default
 
+TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
+GEMINI_API_KEY = get_env("GEMINI_API_KEY")
+GROQ_API_KEY = get_env("GROQ_API_KEY")
+NOTION_API_KEY = get_env("NOTION_API_KEY")
+NOTION_DATABASE_ID = get_env("NOTION_DATABASE_ID")
+CHANNEL_CHAT_ID = get_env("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
-# --- 2. AI MIJOZLARI ---
+# AI Mijozlari
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Gemini: yangi Client-asosidagi sintaksis
-gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+# Notion mijozi (InvalidRequestURL xatosini to'liq yechish)
+notion = Client(auth=NOTION_API_KEY) if NOTION_API_KEY else None
+NOTION_DATA_SOURCE_ID = None
 
-# Model tanlovi (barchasi hozir GA holatida, google.ai.dev/gemini-api/docs/changelog):
-#   "gemini-2.5-flash"  -> eng barqaror, uzoq muddatli, arzon
-#   "gemini-3.6-flash"  -> yangiroq avlod, kod/agentic vazifalar uchun kuchliroq
-GEMINI_MODEL = "gemini-2.5-flash"
-
-# Groq: llama-3.3-70b-versatile va llama-3.1-8b-instant 2026-08-16'da
-# butunlay o'chirilgan. Hozirgi tavsiya etilgan modellar:
-groq_client = Groq(api_key=GROQ_API_KEY)
-GROQ_MODEL = "openai/gpt-oss-120b"  # asosiy zaxira model
-
-
-# --- 3. NOTION MIJOZI ---
-notion = Client(auth=NOTION_API_KEY)  # standart Notion-Version: 2025-09-03
-
-
-def get_data_source_id(database_id: str) -> str:
-    """
-    2025-yil sentabrdan Notion bazalar "data source" orqali so'raladi.
-    Eski uslub (to'g'ridan-to'g'ri database_id bilan .query()) ba'zan
-    "InvalidRequestURL" xatosini beradi. Shu funksiya bazaga tegishli
-    data_source_id'ni bir marta olib beradi.
-    """
-    db = notion.databases.retrieve(database_id=database_id)
-    return db["data_sources"][0]["id"]
-
-
-try:
-    NOTION_DATA_SOURCE_ID = get_data_source_id(NOTION_DATABASE_ID)
-except Exception as e:
-    print(f"[Notion] data_source_id olishda xato: {e}")
-    NOTION_DATA_SOURCE_ID = None
-
-
-def notion_query(**kwargs):
-    """
-    Eski notion.databases.query(database_id=...) o'rniga shu funksiyani
-    ishlating. Masalan:
-        notion_query(filter={...}, sorts=[...])
-    """
-    if not NOTION_DATA_SOURCE_ID:
-        raise RuntimeError("NOTION_DATA_SOURCE_ID aniqlanmagan — Notion ulanishini tekshiring.")
-    return notion.data_sources.query(data_source_id=NOTION_DATA_SOURCE_ID, **kwargs)
-
-
-# --- 4. AI TAHLIL FUNKSIYASI: avval Gemini, xato bo'lsa — darhol Groq ---
-def get_ai_analysis(prompt: str) -> str:
-    """
-    1) Gemini orqali javob olishga harakat qiladi.
-    2) Har qanday xato bo'lsa (limit, tarmoq, kalit, model va h.k.) —
-       xatoni log qilib, darhol Groq (fallback)ga o'tadi.
-    3) Ikkalasi ham ishlamasa — foydalanuvchiga tushunarli xabar qaytaradi.
-    """
-    # 1-urinish: Gemini
+if notion and NOTION_DATABASE_ID:
     try:
-        response = gemini_client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-            config=genai_types.GenerateContentConfig(
-                temperature=0.7,
-                max_output_tokens=1024,
-            ),
-        )
-        text = (response.text or "").strip()
-        if text:
-            return text
-        raise ValueError("Gemini bo'sh javob qaytardi")
-    except Exception as gemini_error:
-        print(f"[Gemini xato] {gemini_error}")
+        db = notion.databases.retrieve(database_id=NOTION_DATABASE_ID)
+        if "data_sources" in db and len(db["data_sources"]) > 0:
+            NOTION_DATA_SOURCE_ID = db["data_sources"][0]["id"]
+            print(f"✅ Notion Data Source ulandi: {NOTION_DATA_SOURCE_ID}")
+    except Exception as e:
+        print(f"⚠️ Notion bazasini aniqlashda ogohlantirish: {e}")
 
-    # 2-urinish: Groq (zaxira)
-    try:
-        completion = groq_client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=1024,
-        )
-        text = (completion.choices[0].message.content or "").strip()
-        if text:
-            return text
-        raise ValueError("Groq bo'sh javob qaytardi")
-    except Exception as groq_error:
-        print(f"[Groq xato] {groq_error}")
-
-    # Ikkalasi ham ishlamadi
-    return "⚠️ AI xizmatlarida vaqtinchalik uzilish yuz berdi. Birozdan so'ng qayta urinib ko'ring."
-
-
-# --- 5. BOT VA FLASK OBYEKTLARI ---
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
 
-# --- UNIVERSAL AI FUNKSIYASI ---
-def ask_ai(prompt):
-    err_log = []
-    
-    # 1. Gemini bilan urinish
-    try:
-        res = model.generate_content(prompt)
-        if res and res.text:
-            return res.text.strip()
-    except Exception as gemini_err:
-        err_msg = f"Gemini: {str(gemini_err)[:80]}"
-        print(f"⚠️ {err_msg}")
-        err_log.append(err_msg)
+# --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
+def get_ai_analysis(prompt: str) -> str:
+    # 1. Yangi SDK bilan Gemini
+    if gemini_client:
+        try:
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=800,
+                ),
+            )
+            text = (response.text or "").strip()
+            if text:
+                return text
+        except Exception as gemini_err:
+            print(f"⚠️ Gemini ishlamadi: {gemini_err}")
 
-    # 2. Groq (Llama-3) bilan urinish
+    # 2. Zaxira: Groq (Amaldagi openai/gpt-oss-120b modeli)
     if groq_client:
         try:
             print("⚡️ Zaxira: Groq ishga tushdi...")
-            chat_completion = groq_client.chat.completions.create(
+            completion = groq_client.chat.completions.create(
+                model="openai/gpt-oss-120b",
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.3-70b-versatile",
+                temperature=0.7,
+                max_tokens=800,
             )
-            return chat_completion.choices[0].message.content.strip()
+            text = (completion.choices[0].message.content or "").strip()
+            if text:
+                return text
         except Exception as groq_err:
-            err_msg = f"Groq: {str(groq_err)[:80]}"
-            print(f"⚠️ {err_msg}")
-            err_log.append(err_msg)
-    else:
-        err_log.append("Groq kaliti Render Environment'da topilmadi!")
+            print(f"⚠️ Groq xatolik: {groq_err}")
 
-    print(f"Barcha AI xatolari: {err_log}")
     return None
 
-# --- 2. NOTION FUNKSIYALARI ---
+# --- 3. NOTION FUNKSIYALARI ---
 def get_trades_from_notion():
+    if not notion:
+        return []
     try:
-        if hasattr(notion.databases, 'query'):
-            response = notion.databases.query(database_id=NOTION_DATABASE_ID)
+        # Yangi data_sources yoki eski databases query moslashuvi
+        if NOTION_DATA_SOURCE_ID and hasattr(notion, 'data_sources'):
+            response = notion.data_sources.query(data_source_id=NOTION_DATA_SOURCE_ID)
         else:
-            response = notion.request(path=f"databases/{NOTION_DATABASE_ID}/query", method="POST")
-            
+            response = notion.databases.query(database_id=NOTION_DATABASE_ID)
+
         trades = []
         for row in response.get("results", []):
             trade_id = row.get("id")
@@ -190,11 +111,13 @@ def get_trades_from_notion():
         return []
 
 def save_trade_to_notion(title, content):
+    if not notion or not NOTION_DATABASE_ID:
+        return False, "Notion sozlamalari to'liq emas"
     try:
         safe_content = content[:2000]
         safe_title = title[:100]
         
-        response = notion.pages.create(
+        notion.pages.create(
             parent={"database_id": NOTION_DATABASE_ID},
             properties={
                 "Name": {"title": [{"text": {"content": safe_title}}]},
@@ -207,7 +130,7 @@ def save_trade_to_notion(title, content):
         print(f"Notionga yozishda xatolik: {err_msg}")
         return False, err_msg
 
-# --- 3. FLASK WEB SAYTI ---
+# --- 4. FLASK WEB SAYTI ---
 CHANNEL_ID = "-5436696482"
 comments_store = []
 
@@ -247,10 +170,10 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 4. TELEGRAM BOT HANDLERLAR ---
+# --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Salom! Men Obsidian Radar botiman. Menga istalgan savdo signali matnini yuborsangiz, uni tahlil qilib Notion bazasiga saqlayman.")
+    bot.reply_to(message, "Salom! Men Obsidian Radar botiman. Menga istalgan savdo signalini yuboring, Notion'ga saqlayman.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
@@ -258,7 +181,7 @@ def handle_trade_message(message):
     prompt = f"Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:\n{user_text}"
     
     try:
-        content = ask_ai(prompt)
+        content = get_ai_analysis(prompt)
         if not content:
             bot.reply_to(message, "⚠️ AI xizmatlarida vaqtinchalik uzilish yuz berdi.")
             return
@@ -268,11 +191,11 @@ def handle_trade_message(message):
         if success:
             bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
         else:
-            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda muammo bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
+            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda muammo: {msg}\n\nAI Xulosasi:\n{content}")
     except Exception as e:
         bot.reply_to(message, f"Xatolik yuz berdi: {e}")
 
-# --- 5. NOTION MONITORING ---
+# --- 6. NOTION MONITORING ---
 sent_trade_ids = set()
 
 def monitor_new_trades():
@@ -283,7 +206,7 @@ def monitor_new_trades():
             if t.get("id"):
                 sent_trade_ids.add(t["id"])
     except Exception as e:
-        print(f"Monitoring boshlanishida xatolik: {e}")
+        print(f"Monitoring boshlanishida ogohlantirish: {e}")
 
     while True:
         try:
@@ -303,7 +226,7 @@ def monitor_new_trades():
         except Exception as e:
             print(f"Monitoring davomida xatolik: {e}")
 
-# --- 6. AVTOMATIK YANGILIKLAR TIZIMI ---
+# --- 7. AVTOMATIK YANGILIKLAR TIZIMI ---
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
@@ -348,7 +271,7 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
 ━━━━━━━━━━━━━━━━━━━━
 🌐 [Batafsil maqolani o'qish]({link})
 """
-                    post_text = ask_ai(prompt)
+                    post_text = get_ai_analysis(prompt)
 
                     if not post_text:
                         post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
@@ -376,7 +299,7 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
 
         time.sleep(3600)
 
-# --- 7. TIZIMNI ISHGA TUSHIRISH ---
+# --- 8. ISHGA TUSHIRISH ---
 if __name__ == "__main__":
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
