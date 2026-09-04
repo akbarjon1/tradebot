@@ -18,7 +18,7 @@ CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("models/gemini-2.5-flash")
+model = genai.GenerativeModel("models/gemini-3.6-flash")
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 notion = Client(auth=NOTION_API_KEY)
