@@ -20,7 +20,7 @@ CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("models/gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 notion = Client(auth=NOTION_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
