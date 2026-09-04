@@ -245,7 +245,7 @@ def run_flask():
 # --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
+    bot.send_message(message.chat.id, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
@@ -271,7 +271,7 @@ Muhim qoida:
     try:
         content = get_ai_analysis(prompt)
         if not content:
-            bot.reply_to(message, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
+            bot.send_message(message.chat.id, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
             return
 
         if content.startswith("SIGNAL_DETECTED"):
@@ -283,12 +283,12 @@ Muhim qoida:
                 reply_text = f"🎯 *Signal Google Sheets'ga qadab qo'yildi, brat!*\n\n{clean_content}\n\n⚠️ _Kotletit qilib yuborma, risk-menejment esdan chiqmasin!_"
             else:
                 reply_text = f"⚠️ Tahlil tayyor, lekin Sheets'ga saqlanmadi: {msg}\n\n{clean_content}"
-            bot.reply_to(message, reply_text, parse_mode="Markdown")
+            bot.send_message(message.chat.id, reply_text, parse_mode="Markdown")
         else:
-            bot.reply_to(message, content)
+            bot.send_message(message.chat.id, content)
 
     except Exception as e:
-        bot.reply_to(message, f"Brat, xatolik berdi: {e}")
+        bot.send_message(message.chat.id, f"Brat, xatolik berdi: {e}")
 
 # --- 6. GOOGLE SHEETS MONITORING ---
 sent_trade_ids = set()
