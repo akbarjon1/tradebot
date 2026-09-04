@@ -28,7 +28,12 @@ app = Flask(__name__)
 # --- 2. NOTION FUNKSIYALARI ---
 def get_trades_from_notion():
     try:
-        response = notion.databases.query(database_id=NOTION_DATABASE_ID)
+        # Yangi va eski notion-client versiyalariga mos query
+        if hasattr(notion.databases, 'query'):
+            response = notion.databases.query(database_id=NOTION_DATABASE_ID)
+        else:
+            response = notion.request(path=f"databases/{NOTION_DATABASE_ID}/query", method="POST")
+            
         trades = []
         for row in response.get("results", []):
             trade_id = row.get("id")
@@ -51,13 +56,22 @@ def get_trades_from_notion():
 
 def save_trade_to_notion(title, content):
     try:
-        notion.pages.create(
+        # Notion bitta blokda 2000 belgidan oshig'ini qabul qilmaydi
+        safe_content = content[:2000]
+        safe_title = title[:100]
+        
+        response = notion.pages.create(
             parent={"database_id": NOTION_DATABASE_ID},
             properties={
-                "Name": {"title": [{"text": {"content": title}}]},
-                "Tahlil": {"rich_text": [{"text": {"content": content}}]}
+                "Name": {"title": [{"text": {"content": safe_title}}]},
+                "Tahlil": {"rich_text": [{"text": {"content": safe_content}}]}
             }
         )
+        return True, "Muvaffaqiyatli saqlandi"
+    except Exception as e:
+        err_msg = str(e)
+        print(f"Notionga yozishda xatolik: {err_msg}")
+        return False, err_msg
         return True
     except Exception as e:
         print(f"Notionga yozishda xatolik: {e}")
