@@ -22,7 +22,7 @@ CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 genai.configure(AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig)
 model = genai.GenerativeModel("gemini-pro")
 notion = Client(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)
-bot = telebot.TeleBot(6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo)
+bot = telebot.TeleBot("6722502116:AAGmwQ0EoYYiyGDvpfAB2J9sygrO5yy_DVo")
 app = Flask(__name__)
 
 # --- 2. NOTION FUNKSIYALARI ---
