@@ -88,24 +88,32 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 # --- 4. TELEGRAM BOT HANDLERLAR ---
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Obsidian Lab Terminaliga xush kelibsiz! Savdo signallarini yuboring.")
-
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     try:
-        # Notion hisobingizdagi barcha jadvallarni qidirish
-        results = notion.search(filter={"value": "database", "property": "object"}).get("results", [])
+        # Hech qanday filtrsiz qidirish
+        results = notion.search().get("results", [])
         if not results:
-            bot.reply_to(message, "Hech qanday Notion bazasi topilmadi. Integratsiyaga ruxsat berilganini tekshiring.")
+            bot.reply_to(message, "Hech narsa topilmadi. Notion sahifangizda Connection ulanganini tekshiring.")
             return
 
-        text = "Topilgan Notion Database ID'lar:\n\n"
-        for db in results:
-            title = db.get("title", [{}])[0].get("plain_text", "Nomsiz baza")
-            db_id = db.get("id").replace("-", "")
-            text += f"📌 {title}:\n`{db_id}`\n\n"
+        text = "Topilgan Notion obyektlari:\n\n"
+        for item in results:
+            obj_type = item.get("object", "noma'lum")
+            obj_id = item.get("id", "").replace("-", "")
+            
+            # Sarlavhani aniqlash
+            title = "Nomsiz"
+            if "title" in item and isinstance(item["title"], list) and len(item["title"]) > 0:
+                title = item["title"][0].get("plain_text", "Nomsiz")
+            elif "properties" in item:
+                for prop in item["properties"].values():
+                    if prop.get("type") == "title" and prop.get("title"):
+                        title = prop["title"][0].get("plain_text", "Nomsiz")
+                        break
+
+            text += f"🔹 **{title}** ({obj_type}):\n`{obj_id}`\n\n"
+
         bot.reply_to(message, text, parse_mode="Markdown")
     except Exception as e:
         bot.reply_to(message, f"Xatolik: {e}")
