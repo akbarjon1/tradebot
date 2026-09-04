@@ -94,23 +94,21 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
-    user_text = message.text
-    prompt = f"""
-    Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:
-    {user_text}
-    """
     try:
-        ai_res = model.generate_content(prompt)
-        title = user_text[:30]
-        content = ai_res.text
-        
-        success, msg = save_trade_to_notion(title, content)
-        if success:
-            bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
-        else:
-            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda xatolik bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
+        # Notion hisobingizdagi barcha jadvallarni qidirish
+        results = notion.search(filter={"value": "database", "property": "object"}).get("results", [])
+        if not results:
+            bot.reply_to(message, "Hech qanday Notion bazasi topilmadi. Integratsiyaga ruxsat berilganini tekshiring.")
+            return
+
+        text = "Topilgan Notion Database ID'lar:\n\n"
+        for db in results:
+            title = db.get("title", [{}])[0].get("plain_text", "Nomsiz baza")
+            db_id = db.get("id").replace("-", "")
+            text += f"📌 {title}:\n`{db_id}`\n\n"
+        bot.reply_to(message, text, parse_mode="Markdown")
     except Exception as e:
-        bot.reply_to(message, f"Xatolik yuz berdi: {e}")
+        bot.reply_to(message, f"Xatolik: {e}")
 
 # --- 5. NOTION MONITORING ---
 sent_trade_ids = set()
