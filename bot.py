@@ -180,23 +180,30 @@ def fetch_and_post_crypto_news():
         raw_summary = latest.get("summary", "")[:400]
         link = latest.get("link", "")
 
-        # HTML teglarni matndan tozalaymiz
+        # Maqola rasmini aniqlash
+        image_url = None
+        if "media_content" in latest and len(latest.media_content) > 0:
+            image_url = latest.media_content[0].get("url")
+        elif "enclosures" in latest and len(latest.enclosures) > 0:
+            image_url = latest.enclosures[0].get("url")
+
+        # HTML teglarni tozalash
         clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
 
         prompt = f"""Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
-Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun tushunarli va professional ko'rinishda ber:
+Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun lo'nda va professional shaklda ber.
 
 Sarlavha: {title}
 Mazmuni: {clean_summary}
 
-Format aynan mana shunday bo'lsin:
+Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgidan oshmasin):
 ⚡️ *OBSIDIAN RADAR // MARKET ALERT*
 ━━━━━━━━━━━━━━━━━━━━
 
 📌 *Mavzu:*
 *[O'zbekcha qisqa sarlavha]*
 
-📋 *Qisqacha Tahlil:*
+📋 *Tafsilot:*
 [Voqea haqida 2 jumlada asosiy mazmun]
 
 💡 *Bozorga ta'siri:*
@@ -213,12 +220,22 @@ Format aynan mana shunday bo'lsin:
             print(f"AI Xatolik sababi: {ai_err}")
             post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
 
-        bot.send_message(
-            chat_id=CHANNEL_CHAT_ID,
-            text=post_text,
-            parse_mode="Markdown",
-            disable_web_page_preview=True
-        )
+        # Rasm mavjud bo'lsa rasm bilan, bo'lmasa oddiy matn qilib chiqarish
+        if image_url:
+            bot.send_photo(
+                chat_id=CHANNEL_CHAT_ID,
+                photo=image_url,
+                caption=post_text,
+                parse_mode="Markdown"
+            )
+        else:
+            bot.send_message(
+                chat_id=CHANNEL_CHAT_ID,
+                text=post_text,
+                parse_mode="Markdown",
+                disable_web_page_preview=True
+            )
+            
         print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
 
     except Exception as e:
