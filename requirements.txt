@@ -1,6 +1,7 @@
 pyTelegramBotAPI
 google-genai
 groq
-notion-client
+gspread
+google-auth
 feedparser
 flask
