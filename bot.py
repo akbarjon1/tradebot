@@ -3,10 +3,10 @@ import re
 import telebot
 import google.generativeai as genai
 from notion_client import Client
-from flask import Flask, render_template
 import threading
 import time
 import feedparser
+from flask import Flask, render_template, request
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
