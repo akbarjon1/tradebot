@@ -17,12 +17,12 @@ NOTION_DATABASE_ID = "2337d7dfab1a8143a758000bc70b4204"
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
-genai.configure(api_key=GEMINI_API_KEY)
+# Model nomini yangisiga to'g'rilaymiz:
 model = genai.GenerativeModel("models/gemini-3.6-flash")
 
-groq_key = os.environ.get("GROQ_API_KEY", "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")
-groq_client = Groq(api_key=groq_key) if groq_key else None
-
+# Groq kalitingizni o'zini shu yerga to'g'ridan-to'g'ri yozamiz (Render bilan bog'lanib o'tirmasligi uchun):
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "gsk_BuYerdagiGroqKalitingizniYozing")
+groq_client = Groq(api_key=GROQ_API_KEY)
 notion = Client(auth=NOTION_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
