@@ -289,6 +289,80 @@
             color: var(--text-dim);
         }
 
+        /* Comments Form & List */
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .comment-input {
+            width: 100%;
+            background: rgba(8, 10, 14, 0.85);
+            border: 1px solid var(--obsidian-border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .comment-input:focus {
+            border-color: var(--neon-emerald);
+            box-shadow: 0 0 10px var(--emerald-glow);
+        }
+
+        .comment-btn {
+            align-self: flex-end;
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--neon-emerald);
+            border: 1px solid var(--obsidian-border-glow);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comment-btn:hover {
+            background: var(--neon-emerald);
+            color: #060709;
+            box-shadow: 0 0 16px var(--neon-emerald);
+        }
+
+        .comment-card {
+            background: rgba(8, 10, 14, 0.6);
+            border-left: 3px solid var(--neon-emerald);
+            border-top: 1px solid var(--obsidian-border);
+            border-right: 1px solid var(--obsidian-border);
+            border-bottom: 1px solid var(--obsidian-border);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+        }
+
+        .comment-text {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .comment-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
         @media (max-width: 900px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: static; }
@@ -313,6 +387,9 @@
             </li>
             <li class="nav-item" onclick="setActive(this)">
                 <a href="#chart-section"><i class="fa-solid fa-chart-line"></i> Grafik</a>
+            </li>
+            <li class="nav-item" onclick="setActive(this)">
+                <a href="#comments-section"><i class="fa-solid fa-comments"></i> Izohlar</a>
             </li>
             <li class="nav-item">
                 <a href="https://t.me/obsidian_lab_uz" target="_blank"><i class="fa-brands fa-telegram"></i> Telegram Node</a>
@@ -410,6 +487,36 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Comments / Izohlar Section -->
+        <div class="panel-box" id="comments-section">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-comments"></i> Savdo Qaydlari & Fikrlar</div>
+            </div>
+
+            <!-- Form -->
+            <form action="/add_comment" method="POST" class="comment-form">
+                <textarea name="comment" class="comment-input" placeholder="Yangi eslatma, risk xulosasi yoki tahlil izohini kiriting..." required></textarea>
+                <button type="submit" class="comment-btn">
+                    <i class="fa-solid fa-paper-plane"></i> Saqlash
+                </button>
+            </form>
+
+            <!-- Comments History -->
+            <div>
+                {% if comments %}
+                    {% for c in comments %}
+                    <div class="comment-card">
+                        <div class="comment-text">{{ c.text }}</div>
+                        <div class="comment-time">// {{ c.created_at }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-dim); font-size: 0.85rem; font-family: 'JetBrains Mono';">Hozircha saqlangan izohlar mavjud emas.</p>
+                {% endif %}
+            </div>
+        </div>
+
     </main>
 
     <script>
