@@ -169,25 +169,18 @@ def monitor_new_trades():
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
-    RSS_URLS = [
-        "https://cointelegraph.com/rss",
-        "https://feeds.feedburner.com/CoinDesk"
-    ]
-    while True:
-        try:
-            print("LOG: [Obsidian Radar] Yangiliklar tekshirilmoqda...")
-            for url in RSS_URLS:
-                feed = feedparser.parse(url)
-                if feed.entries:
-                    latest = feed.entries[0]
-                    news_id = latest.get("id", latest.get("link"))
-                    if news_id not in SEEN_NEWS:
-                        SEEN_NEWS.add(news_id)
-                        title = latest.title
-                        raw_summary = latest.get("summary", "")[:400]
-                        link = latest.get("link", "")
-                        
-                        # HTML teglarni matndan tozalaymiz:
+    try:
+        feed_url = "https://cointelegraph.com/rss"
+        feed = feedparser.parse(feed_url)
+        if not feed.entries:
+            return
+
+        latest = feed.entries[0]
+        title = latest.get("title", "")
+        raw_summary = latest.get("summary", "")[:400]
+        link = latest.get("link", "")
+
+        # HTML teglarni matndan tozalaymiz
         clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
 
         prompt = f"""Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
@@ -227,9 +220,9 @@ Format aynan mana shunday bo'lsin:
             disable_web_page_preview=True
         )
         print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
-        break
-        except Exception as e:
-            print(f"LOG: Yangiliklar tizimida xatolik: {e}")
+
+    except Exception as e:
+        print(f"LOG: Yangiliklar tizimida xatolik: {e}")
             
         time.sleep(3600)
 
