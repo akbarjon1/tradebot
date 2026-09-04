@@ -7,20 +7,20 @@ import threading
 import time
 import feedparser
 from flask import Flask, render_template, request
+from groq import Groq
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-
-# O'zingizning Google Gemini kalitingizni mana shu qo'shtirnoq ichiga yozing:
 GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
-
 NOTION_API_KEY = "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"
 NOTION_DATABASE_ID = "2337d7dfab1a8143a758000bc70b4204"
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("models/gemini-3.6-flash")
+model = genai.GenerativeModel("models/gemini-2.5-flash")
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
 notion = Client(auth=NOTION_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
@@ -28,7 +28,6 @@ app = Flask(__name__)
 # --- 2. NOTION FUNKSIYALARI ---
 def get_trades_from_notion():
     try:
-        # Yangi va eski notion-client versiyalariga mos query
         if hasattr(notion.databases, 'query'):
             response = notion.databases.query(database_id=NOTION_DATABASE_ID)
         else:
@@ -56,7 +55,6 @@ def get_trades_from_notion():
 
 def save_trade_to_notion(title, content):
     try:
-        # Notion bitta blokda 2000 belgidan oshig'ini qabul qilmaydi
         safe_content = content[:2000]
         safe_title = title[:100]
         
@@ -72,10 +70,6 @@ def save_trade_to_notion(title, content):
         err_msg = str(e)
         print(f"Notionga yozishda xatolik: {err_msg}")
         return False, err_msg
-        return True
-    except Exception as e:
-        print(f"Notionga yozishda xatolik: {e}")
-        return False
 
 # --- 3. FLASK WEB SAYTI ---
 CHANNEL_ID = "-5436696482"
@@ -91,7 +85,6 @@ def add_comment():
     import datetime
     user_comment = request.form.get('comment')
     if user_comment:
-        # Toshkent vaqtiga moslash (UTC+5)
         uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
         now_time = uzb_time.strftime("%Y-%m-%d %H:%M")
         
@@ -101,14 +94,19 @@ def add_comment():
         })
         try:
             tg_text = (
-                f"💬 *Obsidian Lab // Yangi Izoh*\n\n"
-                f"📝 *Fikr:*\n{user_comment}\n\n"
-                f"⏱ `{now_time}`"
+                f"┌ 💬 *OBSIDIAN LAB // FEEDBACK*\n"
+                f"├ ⏱ *Vaqt:* `{now_time}`\n"
+                f"├ 👤 *Manba:* `Web Terminal`\n"
+                f"└ ────────────────────\n\n"
+                f"📝 *Fikr / Izoh:*\n"
+                f"« {user_comment} »\n\n"
+                f"▫️ _Status: Qabul qilindi_"
             )
             bot.send_message(CHANNEL_ID, tg_text, parse_mode="Markdown")
         except Exception as e:
             print(f"Kanalga yuborishda xatolik: {e}")
     return home()
+
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
@@ -169,28 +167,26 @@ def monitor_new_trades():
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
-    try:
-        feed_url = "https://cointelegraph.com/rss"
-        feed = feedparser.parse(feed_url)
-        if not feed.entries:
-            return
+    while True:
+        try:
+            feed_url = "https://cointelegraph.com/rss"
+            feed = feedparser.parse(feed_url)
+            if feed.entries:
+                latest = feed.entries[0]
+                title = latest.get("title", "")
+                raw_summary = latest.get("summary", "")[:400]
+                link = latest.get("link", "")
 
-        latest = feed.entries[0]
-        title = latest.get("title", "")
-        raw_summary = latest.get("summary", "")[:400]
-        link = latest.get("link", "")
+                if link not in SEEN_NEWS:
+                    image_url = None
+                    if "media_content" in latest and len(latest.media_content) > 0:
+                        image_url = latest.media_content[0].get("url")
+                    elif "enclosures" in latest and len(latest.enclosures) > 0:
+                        image_url = latest.enclosures[0].get("url")
 
-        # Maqola rasmini aniqlash
-        image_url = None
-        if "media_content" in latest and len(latest.media_content) > 0:
-            image_url = latest.media_content[0].get("url")
-        elif "enclosures" in latest and len(latest.enclosures) > 0:
-            image_url = latest.enclosures[0].get("url")
+                    clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
 
-        # HTML teglarni tozalash
-        clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
-
-        prompt = f"""Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
+                    prompt = f"""Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
 Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun lo'nda va professional shaklda ber.
 
 Sarlavha: {title}
@@ -213,35 +209,54 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
 🌐 [Batafsil maqolani o'qish]({link})
 """
 
-        try:
-            ai_response = model.generate_content(prompt)
-            post_text = ai_response.text.strip()
-        except Exception as ai_err:
-            print(f"AI Xatolik sababi: {ai_err}")
-            post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
+                    # 1. Avval Gemini bilan urinib ko'ramiz
+                    post_text = None
+                    try:
+                        ai_response = model.generate_content(prompt)
+                        if ai_response and ai_response.text:
+                            post_text = ai_response.text.strip()
+                    except Exception as gemini_err:
+                        print(f"⚠️ Gemini limit tugadi yoki xatolik: {gemini_err}")
 
-        # Rasm mavjud bo'lsa rasm bilan, bo'lmasa oddiy matn qilib chiqarish
-        if image_url:
-            bot.send_photo(
-                chat_id=CHANNEL_CHAT_ID,
-                photo=image_url,
-                caption=post_text,
-                parse_mode="Markdown"
-            )
-        else:
-            bot.send_message(
-                chat_id=CHANNEL_CHAT_ID,
-                text=post_text,
-                parse_mode="Markdown",
-                disable_web_page_preview=True
-            )
-            
-        print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
+                    # 2. Gemini ishlamasa, avtomatik Groq (Llama-3) ishlaydi
+                    if not post_text:
+                        try:
+                            print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
+                            chat_completion = groq_client.chat.completions.create(
+                                messages=[{"role": "user", "content": prompt}],
+                                model="llama-3.3-70b-versatile",
+                            )
+                            post_text = chat_completion.choices[0].message.content.strip()
+                        except Exception as groq_err:
+                            print(f"⚠️ Groq xatolik: {groq_err}")
 
-    except Exception as e:
-        print(f"LOG: Yangiliklar tizimida xatolik: {e}")
-            
-        time.sleep(3600)
+                    # 3. Har ikkisi ham ishlamay qolsa (avariya varianti)
+                    if not post_text:
+                        post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
+
+                    # Kanalga yuborish
+                    if image_url:
+                        bot.send_photo(
+                            chat_id=CHANNEL_CHAT_ID,
+                            photo=image_url,
+                            caption=post_text,
+                            parse_mode="Markdown"
+                        )
+                    else:
+                        bot.send_message(
+                            chat_id=CHANNEL_CHAT_ID,
+                            text=post_text,
+                            parse_mode="Markdown",
+                            disable_web_page_preview=True
+                        )
+                    
+                    SEEN_NEWS.add(link)
+                    print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
+
+        except Exception as e:
+            print(f"LOG: Yangiliklar tizimida xatolik: {e}")
+
+        time.sleep(3600)  # Har 1 soatda yangiliklarni tekshiradi
 
 # --- 7. TIZIMNI ISHGA TUSHIRISH ---
 if __name__ == "__main__":
