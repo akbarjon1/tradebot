@@ -188,10 +188,9 @@ def fetch_and_post_crypto_news():
                         link = latest.get("link", "")
                         
                         # HTML teglarni matndan tozalaymiz:
-                        clean_summary = re.sub('<[^<]+?>', '', raw_summary).strip()
-                        
-                        prompt = f"""
-Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
+        clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
+
+        prompt = f"""Sen Obsidian Lab tahliliy kripto kanali uchun post yozuvchi AI bo'lasan.
 Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun tushunarli va professional ko'rinishda ber:
 
 Sarlavha: {title}
@@ -227,8 +226,8 @@ Format aynan mana shunday bo'lsin:
             parse_mode="Markdown",
             disable_web_page_preview=True
         )
-                        print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
-                        break
+        print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
+        break
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
             
