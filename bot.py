@@ -14,7 +14,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOy
 # O'zingizning Google Gemini kalitingizni mana shu qo'shtirnoq ichiga yozing:
 GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
 
-NOTION_API_KEY = "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"
+NOTION_API_KEY = "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"
 NOTION_DATABASE_ID = "2927d7dfab1a8000953ef1a2c403ecb2"
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
