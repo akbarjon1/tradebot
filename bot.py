@@ -15,7 +15,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOy
 GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
 
 NOTION_API_KEY = "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"
-NOTION_DATABASE_ID = "2337d7dfab1a8131a4b3f382e8673876"
+NOTION_DATABASE_ID = "NOTION_DATABASE_ID = "2927d7dfab1a81caa487000bc73ebe11"
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
@@ -90,33 +90,23 @@ def run_flask():
 # --- 4. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
+    user_text = message.text
+    prompt = f"""
+    Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:
+    {user_text}
+    """
     try:
-        # Hech qanday filtrsiz qidirish
-        results = notion.search().get("results", [])
-        if not results:
-            bot.reply_to(message, "Hech narsa topilmadi. Notion sahifangizda Connection ulanganini tekshiring.")
-            return
-
-        text = "Topilgan Notion obyektlari:\n\n"
-        for item in results:
-            obj_type = item.get("object", "noma'lum")
-            obj_id = item.get("id", "").replace("-", "")
-            
-            # Sarlavhani aniqlash
-            title = "Nomsiz"
-            if "title" in item and isinstance(item["title"], list) and len(item["title"]) > 0:
-                title = item["title"][0].get("plain_text", "Nomsiz")
-            elif "properties" in item:
-                for prop in item["properties"].values():
-                    if prop.get("type") == "title" and prop.get("title"):
-                        title = prop["title"][0].get("plain_text", "Nomsiz")
-                        break
-
-            text += f"🔹 **{title}** ({obj_type}):\n`{obj_id}`\n\n"
-
-        bot.reply_to(message, text, parse_mode="Markdown")
+        ai_res = model.generate_content(prompt)
+        title = user_text[:30]
+        content = ai_res.text
+        
+        success, msg = save_trade_to_notion(title, content)
+        if success:
+            bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
+        else:
+            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda xatolik bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
     except Exception as e:
-        bot.reply_to(message, f"Xatolik: {e}")
+        bot.reply_to(message, f"Xatolik yuz berdi: {e}")
 
 # --- 5. NOTION MONITORING ---
 sent_trade_ids = set()
