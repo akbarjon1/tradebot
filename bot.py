@@ -112,6 +112,28 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 # --- 4. TELEGRAM BOT HANDLERLAR ---
+def ask_ai(prompt):
+    # 1. Avval Gemini bilan urinib ko'ramiz
+    try:
+        res = model.generate_content(prompt)
+        if res and res.text:
+            return res.text.strip()
+    except Exception as gemini_err:
+        print(f"⚠️ Gemini ishlamadi: {gemini_err}")
+
+    # 2. Gemini o'xshamasa, darhol Groq (Llama-3) ishlaydi
+    try:
+        print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+        )
+        return chat_completion.choices[0].message.content.strip()
+    except Exception as groq_err:
+        print(f"⚠️ Groq xatolik: {groq_err}")
+
+    return None
+
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
@@ -120,10 +142,12 @@ def handle_trade_message(message):
     {user_text}
     """
     try:
-        ai_res = model.generate_content(prompt)
+        content = ask_ai(prompt)
+        if not content:
+            bot.reply_to(message, "⚠️ AI xizmatlarining barchasida xatolik yuz berdi.")
+            return
+
         title = user_text[:30]
-        content = ai_res.text
-        
         success, msg = save_trade_to_notion(title, content)
         if success:
             bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
