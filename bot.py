@@ -91,7 +91,10 @@ def add_comment():
     import datetime
     user_comment = request.form.get('comment')
     if user_comment:
-        now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        # Toshkent vaqtiga moslash (UTC+5)
+        uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
+        now_time = uzb_time.strftime("%Y-%m-%d %H:%M")
+        
         comments_store.insert(0, {
             'text': user_comment,
             'created_at': now_time
