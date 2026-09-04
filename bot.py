@@ -103,8 +103,12 @@ def handle_trade_message(message):
         ai_res = model.generate_content(prompt)
         title = user_text[:30]
         content = ai_res.text
-        save_trade_to_notion(title, content)
-        bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
+        
+        success, msg = save_trade_to_notion(title, content)
+        if success:
+            bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
+        else:
+            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda xatolik bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
     except Exception as e:
         bot.reply_to(message, f"Xatolik yuz berdi: {e}")
 
