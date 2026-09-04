@@ -80,19 +80,12 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
-    user_text = message.text
-    prompt = f"""
-    Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:
-    {user_text}
-    """
     try:
-        ai_res = model.generate_content(prompt)
-        title = user_text[:30]
-        content = ai_res.text
-        save_trade_to_notion(title, content)
-        bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
+        # Kalitingiz uchun ochiq bo'lgan modellarni ko'ramiz
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        bot.reply_to(message, f"Mavjud modellar:\n" + "\n".join(available_models))
     except Exception as e:
-        bot.reply_to(message, f"Xatolik yuz berdi: {e}")
+        bot.reply_to(message, f"Ro'yxatni olishda xatolik: {e}")
 
 # --- 5. NOTION MONITORING ---
 sent_trade_ids = set()
