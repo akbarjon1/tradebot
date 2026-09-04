@@ -1,14 +1,18 @@
 import os
 import re
 import time
+import json
+import uuid
+import datetime
 import threading
 import feedparser
 import telebot
+import gspread
+from google.oauth2.service_account import Credentials
 from flask import Flask, render_template, request
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
-from notion_client import Client
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 def get_env(key, default=""):
@@ -18,33 +22,32 @@ def get_env(key, default=""):
 TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
 GEMINI_API_KEY = get_env("GEMINI_API_KEY")
 GROQ_API_KEY = get_env("GROQ_API_KEY")
-NOTION_API_KEY = get_env("NOTION_API_KEY")
-NOTION_DATABASE_ID = get_env("NOTION_DATABASE_ID")
+SPREADSHEET_ID = get_env("SPREADSHEET_ID")
+GOOGLE_CREDENTIALS_JSON = get_env("GOOGLE_CREDENTIALS_JSON")
 CHANNEL_CHAT_ID = get_env("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI Mijozlari
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# Notion mijozi (InvalidRequestURL xatosini to'liq yechish)
-notion = Client(auth=NOTION_API_KEY) if NOTION_API_KEY else None
-NOTION_DATA_SOURCE_ID = None
-
-if notion and NOTION_DATABASE_ID:
+# Google Sheets mijozi
+sheet = None
+if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
     try:
-        db = notion.databases.retrieve(database_id=NOTION_DATABASE_ID)
-        if "data_sources" in db and len(db["data_sources"]) > 0:
-            NOTION_DATA_SOURCE_ID = db["data_sources"][0]["id"]
-            print(f"✅ Notion Data Source ulandi: {NOTION_DATA_SOURCE_ID}")
+        cred_info = json.loads(GOOGLE_CREDENTIALS_JSON)
+        scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        credentials = Credentials.from_service_account_info(cred_info, scopes=scopes)
+        gc = gspread.authorize(credentials)
+        sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
+        print("✅ Google Sheets ulandi!")
     except Exception as e:
-        print(f"⚠️ Notion bazasini aniqlashda ogohlantirish: {e}")
+        print(f"⚠️ Google Sheets ulanishda xatolik: {e}")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
 
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
 def get_ai_analysis(prompt: str) -> str:
-    # 1. Yangi SDK bilan Gemini
     if gemini_client:
         try:
             response = gemini_client.models.generate_content(
@@ -61,7 +64,6 @@ def get_ai_analysis(prompt: str) -> str:
         except Exception as gemini_err:
             print(f"⚠️ Gemini ishlamadi: {gemini_err}")
 
-    # 2. Zaxira: Groq (Amaldagi openai/gpt-oss-120b modeli)
     if groq_client:
         try:
             print("⚡️ Zaxira: Groq ishga tushdi...")
@@ -79,55 +81,38 @@ def get_ai_analysis(prompt: str) -> str:
 
     return None
 
-# --- 3. NOTION FUNKSIYALARI ---
-def get_trades_from_notion():
-    if not notion:
+# --- 3. GOOGLE SHEETS FUNKSIYALARI ---
+def get_trades_from_sheets():
+    if not sheet:
         return []
     try:
-        # Yangi data_sources yoki eski databases query moslashuvi
-        if NOTION_DATA_SOURCE_ID and hasattr(notion, 'data_sources'):
-            response = notion.data_sources.query(data_source_id=NOTION_DATA_SOURCE_ID)
-        else:
-            response = notion.databases.query(database_id=NOTION_DATABASE_ID)
-
+        records = sheet.get_all_records()
         trades = []
-        for row in response.get("results", []):
-            trade_id = row.get("id")
-            props = row.get("properties", {})
-            title_prop = props.get("Name", {}).get("title", [])
-            title = title_prop[0].get("plain_text", "Nomsiz") if title_prop else "Nomsiz"
-            content_prop = props.get("Tahlil", {}).get("rich_text", [])
-            content = content_prop[0].get("plain_text", "") if content_prop else ""
-            date_prop = row.get("created_time", "")[:10]
+        for r in records:
             trades.append({
-                "id": trade_id,
-                "title": title,
-                "content": content,
-                "date": date_prop
+                "id": str(r.get("ID", "")),
+                "title": str(r.get("Sarlavha", "Nomsiz")),
+                "content": str(r.get("Tahlil", "")),
+                "date": str(r.get("Sana", ""))
             })
         return trades
     except Exception as e:
-        print(f"Notion xatolik: {e}")
+        print(f"Google Sheets o'qishda xatolik: {e}")
         return []
 
-def save_trade_to_notion(title, content):
-    if not notion or not NOTION_DATABASE_ID:
-        return False, "Notion sozlamalari to'liq emas"
+def save_trade_to_sheets(title, content):
+    if not sheet:
+        return False, "Google Sheets ulanmagan"
     try:
-        safe_content = content[:2000]
-        safe_title = title[:100]
+        t_id = str(uuid.uuid4())[:8]
+        uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
+        date_str = uzb_time.strftime("%Y-%m-%d")
         
-        notion.pages.create(
-            parent={"database_id": NOTION_DATABASE_ID},
-            properties={
-                "Name": {"title": [{"text": {"content": safe_title}}]},
-                "Tahlil": {"rich_text": [{"text": {"content": safe_content}}]}
-            }
-        )
+        sheet.append_row([t_id, title[:100], content[:2000], date_str])
         return True, "Muvaffaqiyatli saqlandi"
     except Exception as e:
         err_msg = str(e)
-        print(f"Notionga yozishda xatolik: {err_msg}")
+        print(f"Google Sheets'ga yozishda xatolik: {err_msg}")
         return False, err_msg
 
 # --- 4. FLASK WEB SAYTI ---
@@ -136,12 +121,11 @@ comments_store = []
 
 @app.route('/')
 def home():
-    trades = get_trades_from_notion()
+    trades = get_trades_from_sheets()
     return render_template('index.html', trades=trades, comments=comments_store)
 
 @app.route('/add_comment', methods=['POST'])
 def add_comment():
-    import datetime
     user_comment = request.form.get('comment')
     if user_comment:
         uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
@@ -173,13 +157,12 @@ def run_flask():
 # --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Xullas, signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
+    bot.reply_to(message, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
     
-    # Kripto-slang va erkin stil uchun prompt
     prompt = f"""Sen Obsidian Lab kanalining ashaddiy kripto treyder AI yordamchisisan.
 Xaraktering: O'zbekcha kripto-slanglarda gapirasan ("brat", "jigar", "kotletit qildik", "rek bo'ldik", "fomo", "to the moon", "qizil sham", "likvidatsiya bo'lma", "raketa", "dipdan ilish"). Hech qanaqa rasmiyatchilik yo'q, xuddi choyxonada kripto muhokama qilayotgan tajribali oshnadeksan. Hazil-mutoyiba va qochirimlar bo'lsin.
 
@@ -198,28 +181,29 @@ Qoidalar:
             bot.reply_to(message, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
             return
 
-        # Agar savdo signali bo'lsa
         if content.startswith("SIGNAL_DETECTED"):
             clean_content = content.replace("SIGNAL_DETECTED", "").strip()
             title = user_text[:30]
-            success, msg = save_trade_to_notion(title, clean_content)
+            success, msg = save_trade_to_sheets(title, clean_content)
             
-            reply_text = f"🎯 *Signal Notion'ga qadab qo'yildi, brat!*\n\n{clean_content}\n\n⚠️ _Kotletit qilib yuborma, risk-menejment esdan chiqmasin!_"
+            if success:
+                reply_text = f"🎯 *Signal Google Sheets'ga qadab qo'yildi, brat!*\n\n{clean_content}\n\n⚠️ _Kotletit qilib yuborma, risk-menejment esdan chiqmasin!_"
+            else:
+                reply_text = f"⚠️ Tahlil tayyor, lekin Sheets'ga saqlanmadi: {msg}\n\n{clean_content}"
             bot.reply_to(message, reply_text, parse_mode="Markdown")
         else:
-            # Oddiy suhbat
             bot.reply_to(message, content)
 
     except Exception as e:
         bot.reply_to(message, f"Brat, xatolik berdi: {e}")
 
-# --- 6. NOTION MONITORING ---
+# --- 6. GOOGLE SHEETS MONITORING ---
 sent_trade_ids = set()
 
 def monitor_new_trades():
     global sent_trade_ids
     try:
-        initial = get_trades_from_notion()
+        initial = get_trades_from_sheets()
         for t in initial:
             if t.get("id"):
                 sent_trade_ids.add(t["id"])
@@ -229,7 +213,7 @@ def monitor_new_trades():
     while True:
         try:
             time.sleep(60)
-            trades = get_trades_from_notion()
+            trades = get_trades_from_sheets()
             for trade in trades:
                 t_id = trade.get("id")
                 if t_id and t_id not in sent_trade_ids:
@@ -322,8 +306,8 @@ if __name__ == "__main__":
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
 
-    t_notion = threading.Thread(target=monitor_new_trades, daemon=True)
-    t_notion.start()
+    t_sheet = threading.Thread(target=monitor_new_trades, daemon=True)
+    t_sheet.start()
 
     t_news = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
     t_news.start()
