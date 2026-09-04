@@ -11,7 +11,7 @@ from groq import Groq
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
-GEMINI_API_KEY = "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig" 
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig")
 NOTION_API_KEY = "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"
 NOTION_DATABASE_ID = "2337d7dfab1a8143a758000bc70b4204"
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
@@ -19,11 +19,39 @@ CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 # AI va Bot obyektlari
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("models/gemini-3.6-flash")
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+groq_key = os.environ.get("GROQ_API_KEY", "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")
+groq_client = Groq(api_key=groq_key) if groq_key else None
 
 notion = Client(auth=NOTION_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
+
+# --- UNIVERSAL AI FUNKSIYASI ---
+def ask_ai(prompt):
+    # 1. Gemini bilan urinish
+    try:
+        res = model.generate_content(prompt)
+        if res and res.text:
+            return res.text.strip()
+    except Exception as gemini_err:
+        print(f"⚠️ Gemini ishlamadi: {gemini_err}")
+
+    # 2. Groq (Llama-3) bilan urinish
+    if groq_client:
+        try:
+            print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
+            chat_completion = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama3-8b-8192",
+            )
+            return chat_completion.choices[0].message.content.strip()
+        except Exception as groq_err:
+            print(f"⚠️ Groq xatolik: {groq_err}")
+    else:
+        print("⚠️ Groq API kaliti topilmadi!")
+
+    return None
 
 # --- 2. NOTION FUNKSIYALARI ---
 def get_trades_from_notion():
@@ -112,39 +140,19 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 # --- 4. TELEGRAM BOT HANDLERLAR ---
-def ask_ai(prompt):
-    # 1. Avval Gemini bilan urinib ko'ramiz
-    try:
-        res = model.generate_content(prompt)
-        if res and res.text:
-            return res.text.strip()
-    except Exception as gemini_err:
-        print(f"⚠️ Gemini ishlamadi: {gemini_err}")
-
-    # 2. Gemini o'xshamasa, darhol Groq (Llama-3) ishlaydi
-    try:
-        print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
-        chat_completion = groq_client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
-        )
-        return chat_completion.choices[0].message.content.strip()
-    except Exception as groq_err:
-        print(f"⚠️ Groq xatolik: {groq_err}")
-
-    return None
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Salom! Men Obsidian Radar botiman. Menga istalgan savdo signali matnini yuborsangiz, uni tahlil qilib Notion bazasiga saqlayman.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
-    prompt = f"""
-    Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:
-    {user_text}
-    """
+    prompt = f"Quyidagi savdo signalini tahlil qil va Notion uchun qisqa sarlavha va asosiy parametrlarni ajratib ber:\n{user_text}"
+    
     try:
         content = ask_ai(prompt)
         if not content:
-            bot.reply_to(message, "⚠️ AI xizmatlarining barchasida xatolik yuz berdi.")
+            bot.reply_to(message, "⚠️ AI xizmatlarida vaqtinchalik uzilish yuz berdi.")
             return
 
         title = user_text[:30]
@@ -152,7 +160,7 @@ def handle_trade_message(message):
         if success:
             bot.reply_to(message, f"Bitim Notion bazasiga saqlandi!\n\nAI Xulosasi:\n{content}")
         else:
-            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda xatolik bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
+            bot.reply_to(message, f"AI tahlili tayyor, lekin Notion'ga saqlashda muammo bo'ldi: {msg}\n\nAI Xulosasi:\n{content}")
     except Exception as e:
         bot.reply_to(message, f"Xatolik yuz berdi: {e}")
 
@@ -232,33 +240,11 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
 ━━━━━━━━━━━━━━━━━━━━
 🌐 [Batafsil maqolani o'qish]({link})
 """
+                    post_text = ask_ai(prompt)
 
-                    # 1. Avval Gemini bilan urinib ko'ramiz
-                    post_text = None
-                    try:
-                        ai_response = model.generate_content(prompt)
-                        if ai_response and ai_response.text:
-                            post_text = ai_response.text.strip()
-                    except Exception as gemini_err:
-                        print(f"⚠️ Gemini limit tugadi yoki xatolik: {gemini_err}")
-
-                    # 2. Gemini ishlamasa, avtomatik Groq (Llama-3) ishlaydi
-                    if not post_text:
-                        try:
-                            print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
-                            chat_completion = groq_client.chat.completions.create(
-                                messages=[{"role": "user", "content": prompt}],
-                                model="llama-3.3-70b-versatile",
-                            )
-                            post_text = chat_completion.choices[0].message.content.strip()
-                        except Exception as groq_err:
-                            print(f"⚠️ Groq xatolik: {groq_err}")
-
-                    # 3. Har ikkisi ham ishlamay qolsa (avariya varianti)
                     if not post_text:
                         post_text = f"⚡️ *OBSIDIAN RADAR // MARKET ALERT*\n\n📌 *Mavzu:* {title}\n\n📋 *Tafsilot:* {clean_summary[:200]}...\n\n🌐 [Batafsil maqola]({link})"
 
-                    # Kanalga yuborish
                     if image_url:
                         bot.send_photo(
                             chat_id=CHANNEL_CHAT_ID,
@@ -280,7 +266,7 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
 
-        time.sleep(3600)  # Har 1 soatda yangiliklarni tekshiradi
+        time.sleep(3600)
 
 # --- 7. TIZIMNI ISHGA TUSHIRISH ---
 if __name__ == "__main__":
