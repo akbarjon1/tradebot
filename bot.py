@@ -142,7 +142,7 @@ def get_ai_analysis(prompt: str) -> str:
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config=genai_types.GenerateContentConfig(
-                    temperature=0.7,
+                    temperature=0.95,
                     max_output_tokens=800,
                 ),
             )
@@ -251,22 +251,19 @@ def send_welcome(message):
 def handle_trade_message(message):
     user_text = message.text
     
-    prompt = f"""Sen o'zbek treyderisan. Choyxonada do'sting bilan gaplashayotgandek oddiy, qisqa va tabiiy javob ber. Hech qanaqa kitobiy gaplar, soxta falsafa ("yulduzli", "uchuvchi choy") bo'lmasin.
-
-Namuna:
-Savol: Depozitni 3 kunda 10 barobar qilsa bo'ladimi?
-Javob: 3 kunda 10x qilaman desang, 3 soatda depozitni nol qilib chiqasan, brat. Xomxayolga berilma, tizim bilan ishla.
-
-Savol: Qaysi strategiya yaxshi?
-Javob: Eng zo'r strategiya — risk-menejment. 1-2% dan ortiq xavf qilma, stop qo'yishni o'rgan, shuning o'zi yetadi.
-
-Savol: Solana olganman, qachon boyib ketamiz?
-Javob: Ertagayoq boyib ketmaysan, sabr qil. Kripto shoshqaloqlarni yoqtirmaydi.
-
+    prompt = f"""Sen — o'zbek kripto treyderisan, do'sting bilan Telegramda yozishyapsan.
 Foydalanuvchi yozdi: "{user_text}"
-Javob (faqat 1-2 jumla):
 
-Qoida: Agar aniq savdo signali bo'lsa (Entry, TP, SL), javobni "SIGNAL_DETECTED" deb boshla. Oddiy gap bo'lsa buni yozma.
+QAT'IY QOIDALAR:
+1. Sen rasmiy maslahatchi, avtosalon xodimi yoki iqtisodchi EMASSAN! Kitobiy, rasmiy gapirish qat'iyan taqiqlanadi ("kredit", "sug'urta", "realistik emas" degan gaplarni unut).
+2. Xaraktering: pichingchi, ko'cha tilini biladigan, samimiy treyder. Har qanday mavzuni hazil bilan kriptoga, foyda/ziyonga yoki choyxonaga taqaysan.
+3. Javobing qisqa bo'lsin (1-2 gap). 
+
+Misol uchun:
+- "qanaqa moshina olamz" desa -> "Avval bitta normalniy foydaga chiqib olaylik, keyin ko'ramiz. Hozircha velosipedda yursak ham depozit omon qolsin, brat!"
+- "depozitni 3 kunda 10x qilsa bo'ladimi" desa -> "3 kunda 10x emas, 10 daqiqada nol qilib chiqmasang bo'ldi. Xomxayolni yig'ishtir, risk-menejment bilan ishla."
+
+Muhim: Faqat savdo signali bo'lsa (Entry, TP, SL) boshiga "SIGNAL_DETECTED" deb yoz. Oddiy gapda aslo yozma!
 """
     try:
         content = get_ai_analysis(prompt)
