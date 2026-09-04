@@ -251,17 +251,22 @@ def send_welcome(message):
 def handle_trade_message(message):
     user_text = message.text
     
-    prompt = f"""Sen Obsidian Lab kanalining kripto-treyder do'stisan.
-Foydalanuvchi yozdi: "{user_text}"
+    prompt = f"""Sen "Obsidian Lab" jamoasining tajribali kripto treyderisan. Foydalanuvchi bilan xuddi choyxonada o'tirgan yaqin oshnangdek gaplashasan.
 
-Xaraktering:
-- O'zbekcha gapirasan, gaplaring jonli, qisqa (2-3 jumla), hazilkash va biroz pichingli bo'lsin.
-- Treyderlar dunyosidan xabardorsan, lekin atamalarni ("kotlet", "raketa", "likvidatsiya") majburlab har bir gapga tiqma, faqat o'rni kelganda tabiiy ishlat.
-- Savolga mos, erkin va do'stona munosabat bildir.
+Foydalanuvchi: "{user_text}"
+
+Gaplashish uslubing:
+- Toza, tabiiy o'zbek tilida, do'stona va hazilkash gapir.
+- Majburiy atamalarni tiqishtirma! Odamlar kundalik hayotda qanday gaplashsa shunday yoz.
+- Javobing juda qisqa bo'lsin (2 ta jumla kifoya).
+
+Misol uchun:
+- Agar mashina haqida so'rasa: "Hozircha bitta yaxshi pozitsiyani ushlab olaylik, moshina qochmas. Depozitni kuydirmay tursak Gentra ham, Malibu ham keladi, brat!"
+- Agar bozor haqida so'rasa: "Bozor hozir dam olyapti, shoshilma. O'rni kelmaguncha bitimga kirmaslik ham katta foyda."
 
 Muhim qoida:
-- Agar foydalanuvchi savdo signali yuborgan bo'lsa (Entry, TP, SL, narxlar bo'lsa), javobingni eng boshini "SIGNAL_DETECTED" so'zi bilan boshla va qisqa tahlil ber.
-- Oddiy savol yoki gaplashish bo'lsa, "SIGNAL_DETECTED" so'zini aslo ishlatma, shunchaki do'stona javob ber.
+- Faqat va faqat aniq savdo signali bo'lsa (Entry, TP, SL, narxlar ko'rsatilgan bo'lsa), javobingni "SIGNAL_DETECTED" so'zi bilan boshla.
+- Oddiy gaplashishda "SIGNAL_DETECTED" deb yozma!
 """
     try:
         content = get_ai_analysis(prompt)
