@@ -29,28 +29,35 @@ app = Flask(__name__)
 
 # --- UNIVERSAL AI FUNKSIYASI ---
 def ask_ai(prompt):
+    err_log = []
+    
     # 1. Gemini bilan urinish
     try:
         res = model.generate_content(prompt)
         if res and res.text:
             return res.text.strip()
     except Exception as gemini_err:
-        print(f"⚠️ Gemini ishlamadi: {gemini_err}")
+        err_msg = f"Gemini: {str(gemini_err)[:80]}"
+        print(f"⚠️ {err_msg}")
+        err_log.append(err_msg)
 
     # 2. Groq (Llama-3) bilan urinish
     if groq_client:
         try:
-            print("⚡️ Zaxira: Groq (Llama-3) ishga tushdi...")
+            print("⚡️ Zaxira: Groq ishga tushdi...")
             chat_completion = groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama3-8b-8192",
+                model="llama-3.3-70b-versatile",
             )
             return chat_completion.choices[0].message.content.strip()
         except Exception as groq_err:
-            print(f"⚠️ Groq xatolik: {groq_err}")
+            err_msg = f"Groq: {str(groq_err)[:80]}"
+            print(f"⚠️ {err_msg}")
+            err_log.append(err_msg)
     else:
-        print("⚠️ Groq API kaliti topilmadi!")
+        err_log.append("Groq kaliti Render Environment'da topilmadi!")
 
+    print(f"Barcha AI xatolari: {err_log}")
     return None
 
 # --- 2. NOTION FUNKSIYALARI ---
