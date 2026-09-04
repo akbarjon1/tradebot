@@ -19,10 +19,10 @@ NOTION_DATABASE_ID = os.environ.get("2927d7dfab1a8000953ef1a2c403ecb2")
 CHANNEL_CHAT_ID = os.environ.get("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 # AI va Bot obyektlari
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
-notion = Client(auth=NOTION_API_KEY)
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+genai.configure(AQ.Ab8RN6IncuV5L-E1RXvISQP2N4XJyGOx27royf8hRUydbg63Ig)
+model = genai.GenerativeModel("gemini-pro")
+notion = Client(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)
+bot = telebot.TeleBot(6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo)
 app = Flask(__name__)
 
 # --- 2. NOTION FUNKSIYALARI ---
