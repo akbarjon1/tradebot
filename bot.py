@@ -259,18 +259,16 @@ def handle_trade_message(message):
 
     history_text = "\n".join(user_histories[user_id][-6:])
 
-   prompt = f"""Sen telegramda do'sting bilan yozishyapsan.
-
-    ASOSIY VAZIFA:
-    - Foydalanuvchining gapiga MANTIQAN to'g'ri keladigan javob qaytar. Gapga aloqasi bo'lmagan so'zlarni yopishtirma!
-    - Do'sting bilan gaplashgandek oddiy, qisqa (1 ta gap) yoz.
-    - Sun'iy yoki kitobiy jumlalar ishlatma.
-
-    Oldingi suhbat:
-    {history_text}
-
-    Foydalanuvchi: {user_text}
-    Javob:"""
+    prompt = (
+        "Sen telegramda dosting bilan yozishyapsan.\n\n"
+        "ASOSIY VAZIFA:\n"
+        "- Foydalanuvchining gapiga MANTIQAN mos qisqa javob qaytar. Aloqasiz gaplarni aralashtirma!\n"
+        "- Do'sting bilan gaplashgandek oddiy, qisqa (1 ta gap) yoz.\n"
+        "- Sun'iy yoki kitobiy jumlalar ishlatma.\n\n"
+        f"Oldingi suhbat:\n{history_text}\n\n"
+        f"Foydalanuvchi: {user_text}\n"
+        "Javob:"
+    )
 
     try:
         content = get_ai_analysis(prompt)
@@ -278,7 +276,6 @@ def handle_trade_message(message):
             bot.send_message(message.chat.id, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
             return
 
-        # Suhbatni xotiraga qo'shamiz
         user_histories[user_id].append(f"Foydalanuvchi: {user_text}")
         user_histories[user_id].append(f"Sen: {content}")
 
