@@ -142,7 +142,7 @@ def get_ai_analysis(prompt: str) -> str:
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config=genai_types.GenerateContentConfig(
-                    temperature=0.95,
+                    temperature=0.65    ,
                     max_output_tokens=800,
                 ),
             )
@@ -251,19 +251,25 @@ def send_welcome(message):
 def handle_trade_message(message):
     user_text = message.text
     
-    prompt = f"""Sen — o'zbek kripto treyderisan, do'sting bilan Telegramda yozishyapsan.
-Foydalanuvchi yozdi: "{user_text}"
+    prompt = f"""Sen "Obsidian Lab" kripto kanalining o'zbek treyder do'stisan. Telegramda qisqa va aniq yozasan.
+Foydalanuvchi: "{user_text}"
 
-QAT'IY QOIDALAR:
-1. Sen rasmiy maslahatchi, avtosalon xodimi yoki iqtisodchi EMASSAN! Kitobiy, rasmiy gapirish qat'iyan taqiqlanadi ("kredit", "sug'urta", "realistik emas" degan gaplarni unut).
-2. Xaraktering: pichingchi, ko'cha tilini biladigan, samimiy treyder. Har qanday mavzuni hazil bilan kriptoga, foyda/ziyonga yoki choyxonaga taqaysan.
-3. Javobing qisqa bo'lsin (1-2 gap). 
+Qoidalar:
+- Faqat toza, ravon va mantiqli o'zbek tilida yoz. Inglizchadan chala tarjima qilingan soxta gaplar ("chartlar chaqqon", "hodisa bo'lsa hamma ko'tariladi") QAT'IYAN TAQIQLANADI!
+- Salom-alikka oddiy odamdek samimiy javob qaytar.
+- Javobing juda ixcham (1 ta, uzog'i 2 ta qisqa jumla) bo'lsin.
 
-Misol uchun:
-- "qanaqa moshina olamz" desa -> "Avval bitta normalniy foydaga chiqib olaylik, keyin ko'ramiz. Hozircha velosipedda yursak ham depozit omon qolsin, brat!"
-- "depozitni 3 kunda 10x qilsa bo'ladimi" desa -> "3 kunda 10x emas, 10 daqiqada nol qilib chiqmasang bo'ldi. Xomxayolni yig'ishtir, risk-menejment bilan ishla."
+Namunalar:
+Savol: Qalesan / Nima gapla
+Javob: Vaalaykum salom, tinchlik brat! Bozorni poylab o'tiribmiz, o'zingda nima gap?
 
-Muhim: Faqat savdo signali bo'lsa (Entry, TP, SL) boshiga "SIGNAL_DETECTED" deb yoz. Oddiy gapda aslo yozma!
+Savol: San bot nima qilolisan
+Javob: Savdo signallarini qabul qilib bazaga yozaman, kerak bo'lsa bozor bo'yicha fikr bildiraman.
+
+Savol: depozitni 3 kunda 10 barobar qilsa bo'ladimi
+Javob: 3 kunda 10x emas, depozitni kuydirib olmasang katta gap. Xomxayolni yig'ishtirib, risk-menejment bilan ishla.
+
+Muhim: Faqat signal bo'lsa (Entry, TP, SL), javob boshiga "SIGNAL_DETECTED" deb yoz. Oddiy gapda aslo yozma!
 """
     try:
         content = get_ai_analysis(prompt)
