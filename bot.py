@@ -19,7 +19,7 @@ def get_env(key, default=""):
     val = os.environ.get(key, default)
     return val.strip() if val else default
 
-TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", "6722502116:AAGMwQ0EOyYIyGDvpfAB2J9sygrO5yy_DVo")
+TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", "6722502116:AAH8nMf9Er0Al0yR_S5kmPlSMRFadRoT8uk")
 GEMINI_API_KEY = get_env("GEMINI_API_KEY")
 GROQ_API_KEY = get_env("GROQ_API_KEY")
 SPREADSHEET_ID = get_env("SPREADSHEET_ID")
