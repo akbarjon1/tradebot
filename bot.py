@@ -26,6 +26,8 @@ SPREADSHEET_ID = get_env("SPREADSHEET_ID")
 GOOGLE_CREDENTIALS_JSON = get_env("GOOGLE_CREDENTIALS_JSON")
 CHANNEL_CHAT_ID = get_env("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
+user_histories = {}
+
 # AI Mijozlari
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
@@ -250,23 +252,37 @@ def send_welcome(message):
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
-    
-    prompt = f"""Sen telegramdagi do'stsan. O'zbek tilida erkin, tabiiy, hazilkash va lo'nda gapirasan. 
+    user_id = message.from_user.id
+
+    if user_id not in user_histories:
+        user_histories[user_id] = []
+
+    history_text = "\n".join(user_histories[user_id][-6:])
+
+    prompt = f"""Sen telegramdagi do'stsan. O'zbek tilida erkin, tabiiy, hazilkash va lo'nda gapirasan.
 Oldingi gaplarni qaytaraverma, to'tiqush bo'lma. Xuddi o'rtog'ing bilan gaplashayotgandek 1 ta gap bilan javob ber.
 
-Foydalanuvchi: {user_text}
+Oldingi yozishmalar:
+{history_text}
+
+Foydalanuvchi hozir yozdi: {user_text}
 Javob:"""
+
     try:
         content = get_ai_analysis(prompt)
         if not content:
             bot.send_message(message.chat.id, "Ey jigar, tarmoqda tiqilinch bo'p qoldi, birozdan keyin yozvor.")
             return
 
+        # Suhbatni xotiraga qo'shamiz
+        user_histories[user_id].append(f"Foydalanuvchi: {user_text}")
+        user_histories[user_id].append(f"Sen: {content}")
+
         if content.startswith("SIGNAL_DETECTED"):
             clean_content = content.replace("SIGNAL_DETECTED", "").strip()
             title = user_text[:30]
             success, msg = save_trade_to_sheets(title, clean_content)
-            
+
             if success:
                 reply_text = f"🎯 *Signal Google Sheets'ga qadab qo'yildi, brat!*\n\n{clean_content}\n\n⚠️ _Kotletit qilib yuborma, risk-menejment esdan chiqmasin!_"
             else:
@@ -277,7 +293,6 @@ Javob:"""
 
     except Exception as e:
         bot.send_message(message.chat.id, f"Brat, xatolik berdi: {e}")
-
 # --- 6. GOOGLE SHEETS MONITORING ---
 sent_trade_ids = set()
 
