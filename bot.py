@@ -251,26 +251,11 @@ def send_welcome(message):
 def handle_trade_message(message):
     user_text = message.text
     
-    prompt = f"""Sen "Obsidian Lab" kripto kanalining o'zbek treyder do'stisan. Telegramda qisqa va aniq yozasan.
-Foydalanuvchi: "{user_text}"
+    prompt = f"""Sen telegramdagi do'stsan. O'zbek tilida erkin, tabiiy, hazilkash va lo'nda gapirasan. 
+Oldingi gaplarni qaytaraverma, to'tiqush bo'lma. Xuddi o'rtog'ing bilan gaplashayotgandek 1 ta gap bilan javob ber.
 
-Qoidalar:
-- Faqat toza, ravon va mantiqli o'zbek tilida yoz. Inglizchadan chala tarjima qilingan soxta gaplar ("chartlar chaqqon", "hodisa bo'lsa hamma ko'tariladi") QAT'IYAN TAQIQLANADI!
-- Salom-alikka oddiy odamdek samimiy javob qaytar.
-- Javobing juda ixcham (1 ta, uzog'i 2 ta qisqa jumla) bo'lsin.
-
-Namunalar:
-Savol: Qalesan / Nima gapla
-Javob: Vaalaykum salom, tinchlik brat! Bozorni poylab o'tiribmiz, o'zingda nima gap?
-
-Savol: San bot nima qilolisan
-Javob: Savdo signallarini qabul qilib bazaga yozaman, kerak bo'lsa bozor bo'yicha fikr bildiraman.
-
-Savol: depozitni 3 kunda 10 barobar qilsa bo'ladimi
-Javob: 3 kunda 10x emas, depozitni kuydirib olmasang katta gap. Xomxayolni yig'ishtirib, risk-menejment bilan ishla.
-
-Muhim: Faqat signal bo'lsa (Entry, TP, SL), javob boshiga "SIGNAL_DETECTED" deb yoz. Oddiy gapda aslo yozma!
-"""
+Foydalanuvchi: {user_text}
+Javob:"""
     try:
         content = get_ai_analysis(prompt)
         if not content:
