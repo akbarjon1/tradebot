@@ -259,18 +259,18 @@ def handle_trade_message(message):
 
     history_text = "\n".join(user_histories[user_id][-6:])
 
-   prompt = f"""Sen telegramda do'sting bilan yozishyapsan. 
+   prompt = f"""Sen telegramda do'sting bilan yozishyapsan.
 
-ASOSIY VAZIFA:
-- Foydalanuvchining gapiga MANTIQAN to'g'ri keladigan javob qaytar. Gapga aloqasi bo'lmagan so'zlarni yopishtirma!
-- Do'sting bilan gaplashgandek oddiy, qisqa (1 ta gap) yoz.
-- Sun'iy yoki kitobiy jumlalar ishlatma.
+    ASOSIY VAZIFA:
+    - Foydalanuvchining gapiga MANTIQAN to'g'ri keladigan javob qaytar. Gapga aloqasi bo'lmagan so'zlarni yopishtirma!
+    - Do'sting bilan gaplashgandek oddiy, qisqa (1 ta gap) yoz.
+    - Sun'iy yoki kitobiy jumlalar ishlatma.
 
-Oldingi suhbat:
-{history_text}
+    Oldingi suhbat:
+    {history_text}
 
-Foydalanuvchi: {user_text}
-Javob:"""
+    Foydalanuvchi: {user_text}
+    Javob:"""
 
     try:
         content = get_ai_analysis(prompt)
