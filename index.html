@@ -237,25 +237,38 @@
     }
 
     function openPosition(type) {
-      if (positions[currentAsset]) {
-        alert(`${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'} bo'yicha ochiq savdo bor! Avval uni yoping.`);
-        return;
-      }
-
       const livePrice = prices[currentAsset];
       if (!livePrice || livePrice <= 0) return;
 
       const orderSize = parseFloat(document.getElementById('order-size-input').value) || 0;
 
-      if (orderSize < 10) {
-        alert("Minimal savdo hajmi: $10");
-        return;
-      }
-      if (orderSize > balance) {
-        alert("Mablag' yetarli emas! Balansingiz: $" + balance.toFixed(2));
+      if (orderSize < 10 || orderSize > balance) {
         return;
       }
 
+      const existingPos = positions[currentAsset];
+
+      // 1. Agar bir xil yo'nalish bo'lsa (masalan, yana LONG bosilsa) -> Hajm qo'shiladi va o'rtacha narx hisoblanadi
+      if (existingPos && existingPos.type === type) {
+        const totalSize = existingPos.size + orderSize;
+        const avgEntry = ((existingPos.entryPrice * existingPos.size) + (livePrice * orderSize)) / totalSize;
+
+        existingPos.size = totalSize;
+        existingPos.entryPrice = avgEntry;
+
+        balance -= orderSize;
+        persistData(KEY_BALANCE, balance);
+        persistData(KEY_POSITIONS, positions);
+        applyUI();
+        return;
+      }
+
+      // 2. Agar teskari yo'nalish bosilsa (LONG turganda SHORT) -> Xatolik oldini olish uchun to'xtatadi
+      if (existingPos && existingPos.type !== type) {
+        return;
+      }
+
+      // 3. Noldan yangi pozitsiya ochish
       balance -= orderSize;
       persistData(KEY_BALANCE, balance);
 
