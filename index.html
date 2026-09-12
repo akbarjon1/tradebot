@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Obsidian Lab — Paper Trading</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0e14; color: #e2e8f0; font-family: sans-serif; }
+  </style>
+</head>
+<body class="p-4 flex flex-col min-h-screen justify-between">
+
+  <!-- Header & Balans -->
+  <div>
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <p class="text-xs text-gray-400 font-semibold">OBSIDIAN LAB</p>
+        <h1 class="text-lg font-bold text-white tracking-wide">Paper Trading</h1>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400">Virtual Balans</p>
+        <p id="balance" class="text-xl font-bold text-emerald-400">$10,000.00</p>
+      </div>
+    </div>
+
+    <!-- Aktivni Tanlash (BTC / EUR) -->
+    <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
+      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        BTC / USDT
+      </button>
+      <button id="btn-eur" onclick="switchAsset('EURUSD')" class="py-2 text-sm font-semibold rounded-lg text-gray-400">
+        EUR / USD
+      </button>
+    </div>
+
+    <!-- Narx Ko'rsatkichi -->
+    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-center mb-4 shadow-lg">
+      <p id="pair-label" class="text-xs text-gray-400 uppercase tracking-widest mb-1">BTC/USDT Narxi</p>
+      <div id="price" class="text-3xl font-extrabold text-white tracking-tight">Yuklanmoqda...</div>
+      <span id="price-badge" class="inline-block mt-2 px-2.5 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400">Live Feed</span>
+    </div>
+
+    <!-- Ochiq Pozitsiya Card -->
+    <div id="position-card" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-xl mb-4">
+      <div class="flex justify-between text-xs text-gray-400 mb-2">
+        <span>Ochiq: <b id="pos-type" class="text-white"></b></span>
+        <span>Kirish narxi: <b id="pos-entry" class="text-white"></b></span>
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-gray-400">Jonli PnL:</p>
+          <p id="pos-pnl" class="text-lg font-bold">$0.00 (0.00%)</p>
+        </div>
+        <button onclick="closePosition()" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition">
+          Yopish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buyurtma Boshqaruvi -->
+  <div class="mt-auto">
+    <div class="flex justify-between text-xs text-gray-400 mb-2">
+      <span>Bitim hajmi:</span>
+      <span class="text-white font-medium">$1,000 (10%)</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+        <span class="text-sm">LONG 🟢</span>
+        <span class="text-[10px] opacity-80">O'sishga</span>
+      </button>
+      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+        <span class="text-sm">SHORT 🔴</span>
+        <span class="text-[10px] opacity-80">Tushishga</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.ready(); tg.expand(); }
+
+    let balance = 10000;
+    let currentAsset = 'BTCUSDT';
+    let currentPrice = 0;
+    let btcWs = null;
+    let eurInterval = null;
+    let position = null;
+
+    function startPriceFeeds() {
+      // BTC jonli narxlari (Binance WebSocket)
+      btcWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+      btcWs.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const price = parseFloat(data.p);
+        if (currentAsset === 'BTCUSDT') updatePriceUI(price);
+      };
+
+      // EURUSD narx oqimi
+      let eurBase = 1.0850;
+      eurInterval = setInterval(() => {
+        const delta = (Math.random() - 0.5) * 0.0004;
+        eurBase = +(eurBase + delta).toFixed(4);
+        if (currentAsset === 'EURUSD') updatePriceUI(eurBase);
+      }, 1000);
+    }
+
+    function switchAsset(asset) {
+      if (position) {
+        alert("Avval ochiq pozitsiyangizni yoping!");
+        return;
+      }
+      currentAsset = asset;
+      const btcBtn = document.getElementById('btn-btc');
+      const eurBtn = document.getElementById('btn-eur');
+      const pairLabel = document.getElementById('pair-label');
+
+      if (asset === 'BTCUSDT') {
+        pairLabel.innerText = "BTC/USDT Narxi";
+        btcBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        eurBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400";
+      } else {
+        pairLabel.innerText = "EUR/USD Narxi";
+        eurBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        btcBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400";
+      }
+      document.getElementById('price').innerText = "Yuklanmoqda...";
+    }
+
+    function updatePriceUI(price) {
+      currentPrice = price;
+      const priceEl = document.getElementById('price');
+      priceEl.innerText = currentAsset === 'EURUSD' ? "$" + price.toFixed(4) : "$" + price.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      if (position && position.asset === currentAsset) {
+        calculatePnL();
+      }
+    }
+
+    function openPosition(type) {
+      if (position) {
+        alert("Sizda allaqachon ochiq pozitsiya bor!");
+        return;
+      }
+      if (currentPrice <= 0) return;
+
+      const orderSize = 1000;
+      balance -= orderSize;
+      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
+
+      position = {
+        type: type,
+        entryPrice: currentPrice,
+        size: orderSize,
+        asset: currentAsset
+      };
+
+      document.getElementById('pos-type').innerText = `${position.type} (${position.asset})`;
+      document.getElementById('pos-entry').innerText = "$" + position.entryPrice;
+      document.getElementById('position-card').classList.remove('hidden');
+    }
+
+    function calculatePnL() {
+      let diff = (currentPrice - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = position.size * diff;
+      const pnlPercent = diff * 100;
+      const pnlEl = document.getElementById('pos-pnl');
+
+      pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
+      pnlEl.className = pnlUSD >= 0 ? 'text-lg font-bold text-emerald-400' : 'text-lg font-bold text-rose-400';
+    }
+
+    function closePosition() {
+      if (!position) return;
+      let diff = (currentPrice - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = position.size * diff;
+      balance += (position.size + pnlUSD);
+
+      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
+      document.getElementById('position-card').classList.add('hidden');
+      position = null;
+    }
+
+    startPriceFeeds();
+  </script>
+</body>
+</html>
