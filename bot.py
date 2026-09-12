@@ -302,17 +302,22 @@ def get_leaderboard():
             return jsonify({"status": "success", "leaders": []})
 
         records = ws.get_all_records()
-        
-        # Sonlarni to'g'ri o'qib olish (vergullarni nuqtaga aylantirish)
+        valid_leaders = []
+
         for r in records:
-            raw_bal = str(r.get("Balance", 0)).replace(" ", "").replace(",", ".")
+            raw_bal = str(r.get("Balance", "0")).replace(" ", "").replace("\xa0", "").replace(",", ".")
             try:
-                r["Balance"] = float(raw_bal)
-            except:
-                r["Balance"] = 0.0
+                bal_val = float(raw_bal)
+            except Exception:
+                bal_val = 0.0
 
-        sorted_leaders = sorted(records, key=lambda x: x["Balance"], reverse=True)[:10]
+            valid_leaders.append({
+                "User ID": str(r.get("User ID", "")),
+                "Username": str(r.get("Username", "Trader")),
+                "Balance": bal_val
+            })
 
+        sorted_leaders = sorted(valid_leaders, key=lambda x: x["Balance"], reverse=True)[:10]
         return jsonify({"status": "success", "leaders": sorted_leaders})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
