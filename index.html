@@ -12,7 +12,7 @@
 </head>
 <body class="p-4 flex flex-col min-h-screen justify-between relative">
 
-  <!-- Yuqori qism: Header & Balans -->
+  <!-- Header & Balans -->
   <div>
     <div class="flex justify-between items-center mb-4">
       <div>
@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <!-- Aktivni Tanlash (BTC / ETH) -->
+    <!-- Aktiv Tanlash -->
     <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
       <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition">
         BTC / USDT
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  <!-- Pastki qism: Savdo Hajmi va Tugmalar -->
+  <!-- Savdo Hajmi va Buyurtma Tugmalari -->
   <div class="mt-auto pt-2">
     <div class="bg-slate-900/70 border border-slate-800 p-3 rounded-xl mb-3">
       <div class="flex justify-between items-center mb-2">
@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <!-- Obsidian AI: Likvidatsiya Modali -->
+  <!-- Likvidatsiya Modali -->
   <div id="liquidation-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-rose-500/40 p-6 rounded-2xl max-w-xs text-center shadow-2xl">
       <div class="text-4xl mb-2">💥</div>
@@ -127,42 +127,59 @@
     const prices = { BTCUSDT: 0, ETHUSDT: 0 };
     let position = null;
 
-    // --- BULUTLI XOTIRA (Telegram CloudStorage) ---
-    function saveBalanceToCloud(val) {
+    // --- BULUTLI XOTIRA INTEGRATSIYASI ---
+    function saveStorage(key, value) {
+      const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
       if (tg?.CloudStorage) {
-        tg.CloudStorage.setItem('obsidian_balance', val.toString(), (err, stored) => {
-          if (err) console.error('CloudStorage saqlashda xato:', err);
-        });
+        tg.CloudStorage.setItem(key, valStr);
       } else {
-        localStorage.setItem('obsidian_balance', val.toString());
+        localStorage.setItem(key, valStr);
       }
     }
 
-    function loadBalanceFromCloud() {
+    function loadInitialData() {
       if (tg?.CloudStorage) {
-        tg.CloudStorage.getItem('obsidian_balance', (err, value) => {
-          if (!err && value) {
-            balance = parseFloat(value);
+        tg.CloudStorage.getItems(['obsidian_balance', 'obsidian_position'], (err, values) => {
+          if (!err && values) {
+            balance = values.obsidian_balance ? parseFloat(values.obsidian_balance) : 10000;
+            if (values.obsidian_position) {
+              try { position = JSON.parse(values.obsidian_position); } catch(e) { position = null; }
+            }
           } else {
             balance = 10000;
-            saveBalanceToCloud(balance);
+            position = null;
           }
-          renderBalanceUI();
+          restoreAppState();
         });
       } else {
-        const localVal = localStorage.getItem('obsidian_balance');
-        balance = localVal ? parseFloat(localVal) : 10000;
-        renderBalanceUI();
+        const localBal = localStorage.getItem('obsidian_balance');
+        const localPos = localStorage.getItem('obsidian_position');
+        balance = localBal ? parseFloat(localBal) : 10000;
+        if (localPos) {
+          try { position = JSON.parse(localPos); } catch(e) { position = null; }
+        }
+        restoreAppState();
       }
     }
 
-    function renderBalanceUI() {
+    function restoreAppState() {
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
       setPercentSize(0.1);
       checkLiquidationStatus();
+
+      if (position) {
+        // Agar ochiq pozitsiya bo'lsa, aktiv kartasini o'sha aktivga moslaymiz
+        if (position.asset !== currentAsset) {
+          switchAsset(position.asset);
+        }
+        document.getElementById('pos-type').innerText = `${position.type} (${position.asset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
+        document.getElementById('pos-size').innerText = "$" + position.size.toFixed(2);
+        document.getElementById('pos-entry').innerText = "$" + position.entryPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('position-card').classList.remove('hidden');
+      }
     }
 
-    // --- BINANCE NARX OQIMI ---
+    // --- BINANCE WS STREAM ---
     function startBinanceFeed() {
       const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
       
@@ -184,8 +201,8 @@
     }
 
     function switchAsset(asset) {
-      if (position) {
-        alert("Avval ochiq pozitsiyangizni yoping!");
+      if (position && position.asset !== asset) {
+        alert("Ochiq pozitsiyangiz bor! Avval uni yoping yoki o'sha aktivda qoling.");
         return;
       }
       currentAsset = asset;
@@ -239,7 +256,7 @@
 
     function openPosition(type) {
       if (position) {
-        alert("Sizda allaqachon ochiq pozitsiya bor!");
+        alert("Sizda allaqachon ochiq pozitsiya mavjud!");
         return;
       }
       const livePrice = prices[currentAsset];
@@ -257,7 +274,7 @@
       }
 
       balance -= orderSize;
-      saveBalanceToCloud(balance);
+      saveStorage('obsidian_balance', balance);
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
 
       position = {
@@ -266,6 +283,7 @@
         size: orderSize,
         asset: currentAsset
       };
+      saveStorage('obsidian_position', position);
 
       document.getElementById('pos-type').innerText = `${position.type} (${position.asset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
       document.getElementById('pos-size').innerText = "$" + position.size.toFixed(2);
@@ -295,7 +313,7 @@
       if (isLiquidated) {
         document.getElementById('position-card').classList.add('hidden');
         position = null;
-        saveBalanceToCloud(balance);
+        saveStorage('obsidian_position', '');
         checkLiquidationStatus();
         return;
       }
@@ -306,7 +324,9 @@
 
       const pnlUSD = position.size * diff;
       balance += Math.max(0, (position.size + pnlUSD));
-      saveBalanceToCloud(balance);
+      
+      saveStorage('obsidian_balance', balance);
+      saveStorage('obsidian_position', '');
 
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
       document.getElementById('position-card').classList.add('hidden');
@@ -317,21 +337,22 @@
     }
 
     function checkLiquidationStatus() {
-      if (balance < 10) {
+      if (balance < 10 && !position) {
         document.getElementById('liquidation-modal').classList.remove('hidden');
       }
     }
 
     function resetBalance() {
       balance = 10000;
-      saveBalanceToCloud(balance);
+      position = null;
+      saveStorage('obsidian_balance', balance);
+      saveStorage('obsidian_position', '');
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
       document.getElementById('liquidation-modal').classList.add('hidden');
       setPercentSize(0.1);
     }
 
-    // Ishga tushirish
-    loadBalanceFromCloud();
+    loadInitialData();
     startBinanceFeed();
   </script>
 </body>
