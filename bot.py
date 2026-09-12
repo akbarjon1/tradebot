@@ -302,13 +302,21 @@ def get_leaderboard():
             return jsonify({"status": "success", "leaders": []})
 
         records = ws.get_all_records()
-        sorted_leaders = sorted(records, key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
+        
+        # Sonlarni to'g'ri o'qib olish (vergullarni nuqtaga aylantirish)
+        for r in records:
+            raw_bal = str(r.get("Balance", 0)).replace(" ", "").replace(",", ".")
+            try:
+                r["Balance"] = float(raw_bal)
+            except:
+                r["Balance"] = 0.0
+
+        sorted_leaders = sorted(records, key=lambda x: x["Balance"], reverse=True)[:10]
 
         return jsonify({"status": "success", "leaders": sorted_leaders})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
