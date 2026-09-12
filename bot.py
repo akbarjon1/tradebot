@@ -309,26 +309,6 @@ def get_leaderboard():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route('/api/leaderboard', methods=['GET'])
-def get_leaderboard():
-    try:
-        sheet = get_sheet_client()
-        spreadsheet = sheet.spreadsheet
-
-        try:
-            ws = spreadsheet.worksheet("Leaderboard")
-        except Exception:
-            return jsonify({"status": "success", "leaders": []})
-
-        records = ws.get_all_records()
-        sorted_leaders = sorted(records, key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
-
-        return jsonify({"status": "success", "leaders": sorted_leaders})
-    except Exception as e:
-        print(f"Leaderboard olishda xatolik: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
