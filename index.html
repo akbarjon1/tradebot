@@ -169,45 +169,51 @@
     }
 
     function initData() {
-      const localBal = localStorage.getItem(KEY_BALANCE);
-      const localPos = localStorage.getItem(KEY_POSITION);
+  const localBal = localStorage.getItem(KEY_BALANCE);
+  const localPos = localStorage.getItem(KEY_POSITION);
 
-      if (localBal !== null) {
-        balance = parseFloat(localBal);
-      } else {
-        balance = 10000;
-        persistData(KEY_BALANCE, balance);
-      }
+  if (localBal !== null) {
+    balance = parseFloat(localBal);
+  } else {
+    balance = 10000;
+    persistData(KEY_BALANCE, balance);
+  }
 
-      if (localPos) {
-        try {
-          const parsed = JSON.parse(localPos);
-          if (parsed && parsed.size > 0) position = parsed;
-        } catch (e) {
-          position = null;
-        }
-      }
-
-      if (tg?.CloudStorage) {
-        tg.CloudStorage.getItems([KEY_BALANCE, KEY_POSITION], (err, res) => {
-          if (!err && res) {
-            if (res[KEY_BALANCE]) {
-              balance = parseFloat(res[KEY_BALANCE]);
-              localStorage.setItem(KEY_BALANCE, res[KEY_BALANCE]);
-            }
-            if (res[KEY_POSITION]) {
-              try {
-                position = JSON.parse(res[KEY_POSITION]);
-                localStorage.setItem(KEY_POSITION, res[KEY_POSITION]);
-              } catch(e) {}
-            }
-            applyUI();
-          }
-        });
-      }
-
-      applyUI();
+  if (localPos) {
+    try {
+      const parsed = JSON.parse(localPos);
+      if (parsed && parsed.size > 0) position = parsed;
+    } catch (e) {
+      position = null;
     }
+  }
+
+  // Telegram kutmasdan darhol ekranni chizamiz (Chrome uchun)
+  applyUI();
+
+  // Faqat Telegram ichida va CloudStorage mavjud bo'lsagina ma'lumotni yangilaymiz
+  if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItems === 'function') {
+    try {
+      tg.CloudStorage.getItems([KEY_BALANCE, KEY_POSITION], (err, res) => {
+        if (!err && res) {
+          if (res[KEY_BALANCE]) {
+            balance = parseFloat(res[KEY_BALANCE]);
+            localStorage.setItem(KEY_BALANCE, res[KEY_BALANCE]);
+          }
+          if (res[KEY_POSITION]) {
+            try {
+              position = JSON.parse(res[KEY_POSITION]);
+              localStorage.setItem(KEY_POSITION, res[KEY_POSITION]);
+            } catch(e) {}
+          }
+          applyUI();
+        }
+      });
+    } catch (e) {
+      console.log("CloudStorage xatosi chetlab o'tildi:", e);
+    }
+  }
+}
 
     function applyUI() {
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
