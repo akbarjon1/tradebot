@@ -222,24 +222,24 @@ def add_comment():
     if user_comment:
         uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
         now_time = uzb_time.strftime("%Y-%m-%d %H:%M")
-        
+
         comments_store.insert(0, {
             'text': user_comment,
             'created_at': now_time
         })
         try:
             tg_text = (
-                f"┌ 💬 *OBSIDIAN LAB // FEEDBACK*\n"
-                f"├ ⏱ *Vaqt:* `{now_time}`\n"
-                f"├ 👤 *Manba:* `Web Terminal`\n"
-                f"└ ────────────────────\n\n"
+                f"💬 *OBSIDIAN LAB // FEEDBACK*\n"
+                f"⏱ *Vaqt:* `{now_time}`\n"
+                f"👤 *Manba:* `Web Terminal`\n"
+                f"───────────────────\n\n"
                 f"📝 *Fikr / Izoh:*\n"
                 f"« {user_comment} »\n\n"
                 f"▫️ _Status: Qabul qilindi_"
             )
             bot.send_message(CHANNEL_ID, tg_text, parse_mode="Markdown")
         except Exception as e:
-        print(f"Kanalga yuborishda xatolik: {e}")
+            print(f"Kanalga yuborishda xatolik: {e}")
 
     return redirect(url_for('home'))
 
