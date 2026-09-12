@@ -172,13 +172,14 @@
 
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) { 
-      tg.ready(); 
-      tg.expand(); 
+    if (tg) {
+      tg.ready();
+      tg.expand();
     }
 
     const API_BASE = "https://tradebot-xelo.onrender.com";
 
+    // Telegram profilini olish
     function getTelegramUser() {
       const u = tg?.initDataUnsafe?.user;
       if (u && u.id) {
@@ -195,21 +196,64 @@
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
-    
-    // Asosiy boshlang'ich narxlar (hech qachon bo'sh turmaydi)
     const prices = { BTCUSDT: 64250.00, ETHUSDT: 2450.00 };
-    
-    let positions = {
-      BTCUSDT: null,
-      ETHUSDT: null
-    };
+    let positions = { BTCUSDT: null, ETHUSDT: null };
 
-    function persistData(key, value) {
-      const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
-      localStorage.setItem(key, valStr);
+    // Balansni serverga yuborish
+    async function syncBalanceWithServer() {
+      // Har gal eng so'nggi Telegram ma'lumotlarini tekshiramiz
+      const activeUser = getTelegramUser();
+      
       try {
-        if (tg?.CloudStorage) tg.CloudStorage.setItem(key, valStr);
-      } catch (e) {}
+        await fetch(`${API_BASE}/api/update_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: activeUser.id,
+            username: activeUser.username,
+            balance: Number(balance.toFixed(2))
+          })
+        });
+      } catch (e) {
+        console.error("Sinxronlashda xatolik:", e);
+      }
+    }
+
+    // Leaderboard modalini ochish
+    async function openLeaderboard() {
+      document.getElementById('leaderboard-modal').classList.remove('hidden');
+      const container = document.getElementById('leaderboard-list');
+      container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Yuklanmoqda...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/leaderboard`);
+        const data = await res.json();
+
+        if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
+          container.innerHTML = data.leaders.map((item, idx) => {
+            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+            const balVal = parseFloat(item.Balance) || 0;
+            const displayBal = balVal.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+
+            return `
+              <div class="flex items-center justify-between p-2 rounded-xl ${idx < 3 ? 'bg-amber-50/70 border border-amber-100' : 'bg-slate-50'} text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold font-mono text-slate-500 w-5">${medal}</span>
+                  <span class="font-semibold text-slate-800">${item.Username}</span>
+                </div>
+                <span class="font-bold font-mono text-emerald-600">$${displayBal}</span>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Hozircha reyting bo'sh</p>`;
+        }
+      } catch (e) {
+        container.innerHTML = `<p class="text-xs text-rose-500 text-center py-4">Reytingni yuklab bo'lmadi</p>`;
+      }
     }
 
     function initData() {
