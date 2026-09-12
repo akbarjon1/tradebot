@@ -1,234 +1,311 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian Lab — Trade Smarter, Live Better</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeMind — Trade Smarter, Live Better</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     body {
-      background-color: #f8fafc;
-      color: #0f172a;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      overflow-x: hidden;
+      background-color: #f7f7f8;
+      color: #111827;
+      font-family: 'Inter', sans-serif;
     }
-    .font-handwriting { font-family: 'Caveat', cursive; }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .font-handwriting {
+      font-family: 'Caveat', cursive;
+    }
+    .nav-item-active::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 4px;
+      background: #111827;
+      border-radius: 50%;
+      margin: 4px auto 0 auto;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between selection:bg-slate-900 selection:text-white">
 
-  <!-- 1. Header / Navbar -->
-  <nav class="border-b border-slate-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-black text-sm">
-          ◆
-        </div>
-        <span class="text-base font-extrabold tracking-tight text-slate-900">Obsidian Lab</span>
+  <!-- 1. NAVBAR -->
+  <header class="max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between">
+    <!-- Logotip -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-end gap-0.5 h-5">
+        <span class="w-1 h-3 bg-slate-900 rounded-sm"></span>
+        <span class="w-1 h-5 bg-slate-900 rounded-sm"></span>
+        <span class="w-1 h-4 bg-slate-900 rounded-sm"></span>
       </div>
-
-      <!-- Live Tickers -->
-      <div class="flex items-center gap-3 font-mono text-xs">
-        <div class="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-          <span class="text-slate-500 font-semibold">BTC/USDT</span>
-          <span id="btc-price" class="text-emerald-600 font-bold">Yuklanmoqda...</span>
-        </div>
-        <div class="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
-          <span class="text-slate-500 font-semibold">ETH/USDT</span>
-          <span id="eth-price" class="text-emerald-600 font-bold">Yuklanmoqda...</span>
-        </div>
-        <a href="https://t.me/obsidian_lab_uz" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-full transition active:scale-95">
-          Telegram Kanal ↗
-        </a>
-      </div>
+      <span class="text-xl font-bold tracking-tight text-slate-900">TradeMind</span>
     </div>
-  </nav>
 
-  <!-- 2. Hero Section: Shior, Metrikalar va Jonli Grafik -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-8 pt-8 sm:pt-14 pb-12 w-full">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+    <!-- Menyu Havolalari -->
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+      <a href="#" class="text-slate-900 nav-item-active">Home</a>
+      <a href="#" class="hover:text-slate-900 transition">Learn</a>
+      <a href="#" class="hover:text-slate-900 transition">Markets</a>
+      <a href="#" class="hover:text-slate-900 transition">Tools</a>
+      <a href="#" class="hover:text-slate-900 transition">Community</a>
+      <a href="#" class="hover:text-slate-900 transition">About</a>
+    </nav>
+
+    <!-- O'ng Tugmalar -->
+    <div class="flex items-center gap-5 text-sm">
+      <button class="text-slate-600 hover:text-slate-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </button>
+      <a href="#" class="font-medium text-slate-700 hover:text-slate-900 hidden sm:inline-block">Log in</a>
+      <a href="https://t.me/obsidian_lab_uz" target="_blank" class="bg-slate-950 text-white font-medium px-5 py-2.5 rounded-lg hover:bg-slate-800 transition shadow-sm text-xs">
+        Get Started
+      </a>
+    </div>
+  </header>
+
+  <!-- 2. HERO SECTION -->
+  <main class="max-w-7xl mx-auto w-full px-6 pt-4 pb-12 flex-1 flex flex-col justify-center">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
       
-      <!-- Chap taraf: Shior va Terminal Dispatcher -->
-      <div class="lg:col-span-6 flex flex-col justify-center">
-        <div class="inline-flex items-center gap-2 mb-3">
-          <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400">DISCIPLINE BUILDS FREEDOM</span>
-        </div>
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-4">
+      <!-- Chap Taraf: Shior, Tugmalar va Statistika -->
+      <div class="lg:col-span-5 flex flex-col justify-center">
+        <p class="text-[10px] font-bold tracking-[0.25em] text-slate-400 uppercase mb-4">
+          DISCIPLINE BUILDS FREEDOM
+        </p>
+        <h1 class="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-6">
           Trade Smarter <br>
-          <span class="text-emerald-600">Live Better</span>
+          <span class="text-emerald-700 font-extrabold">Live Better</span>
         </h1>
-        <p class="text-sm sm:text-base text-slate-500 max-w-lg mb-6 leading-relaxed">
-          Learn. Practice. Trade. Grow. <br class="hidden sm:block">
-          Bozorni tushunish, professional signallar va xavf-xatarlarsiz paper-trading amaliyoti — barchasi yagona terminalda.
+        <p class="text-slate-500 text-sm leading-relaxed mb-8 max-w-sm">
+          Learn. Practice. Trade. Grow. <br>
+          All in one place. A simpler way to master the markets and build a brighter future.
         </p>
 
-        <!-- Kanalga Tezkor Dispatcher Formasi -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm mb-8">
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            📢 Telegram Dispatcher (@obsidian_lab_uz)
-          </label>
-          <form method="POST" action="/add_comment" class="flex flex-col gap-2.5">
-            <textarea 
-              name="comment" 
-              rows="2" 
-              placeholder="VIP kanal uchun signal yoki bozor fikrini yozing..." 
-              required
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 transition resize-none"
-            ></textarea>
-            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-2">
-              <span>Kanalga uzatish</span> 🚀
-            </button>
-          </form>
+        <!-- Asosiy CTA Tugmalari -->
+        <div class="flex items-center gap-4 mb-14">
+          <a href="https://akbarjon1.github.io/tradebot/" target="_blank" class="bg-slate-950 hover:bg-slate-800 text-white font-medium text-xs px-6 py-3.5 rounded-lg flex items-center gap-2 transition">
+            Start Your Journey <span>→</span>
+          </a>
+          <button onclick="document.getElementById('feedback-modal').classList.remove('hidden')" class="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 py-3.5 px-4 transition">
+            <span class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px]">▶</span>
+            Watch Video
+          </button>
         </div>
 
-        <!-- 4 Talik Tezkor Statistika -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+        <!-- 4 Talik Statistika Paneli -->
+        <div class="grid grid-cols-4 gap-4 pt-6 border-t border-slate-200">
           <div>
-            <p class="text-lg sm:text-xl font-extrabold text-slate-900">$10,000</p>
-            <p class="text-[11px] text-slate-500">Virtual Balans</p>
+            <p class="text-lg font-bold text-slate-900">100K+</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Traders Worldwide</p>
           </div>
           <div>
-            <p class="text-lg sm:text-xl font-extrabold text-slate-900">Gemini 2.5</p>
-            <p class="text-[11px] text-slate-500">AI Intelligence</p>
+            <p class="text-lg font-bold text-slate-900">500+</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Educational Resources</p>
           </div>
           <div>
-            <p class="text-lg sm:text-xl font-extrabold text-emerald-600">Live</p>
-            <p class="text-[11px] text-slate-500">Binance Stream</p>
+            <p id="live-indicator" class="text-lg font-bold text-emerald-600">Live</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Market Insights</p>
           </div>
           <div>
-            <p class="text-lg sm:text-xl font-extrabold text-slate-900">24/7</p>
-            <p class="text-[11px] text-slate-500">Render Uptime</p>
+            <p class="text-lg font-bold text-slate-900">24/7</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Community Support</p>
           </div>
         </div>
       </div>
 
-      <!-- O'ng taraf: Oqimli TradingView Shamlar Grafigi -->
-      <div class="lg:col-span-6 relative">
-        <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 relative">
-          
-          <div class="flex justify-between items-center mb-3">
-            <div>
-              <span class="text-xs font-bold text-slate-800">BTC / USDT</span>
-              <p class="text-[11px] text-slate-400 font-mono">1m Realtime Feed</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+0.65%</span>
-            </div>
-          </div>
+      <!-- O'ng Taraf: Skrinshotdagi Shamlar Grafigi va Kartalar -->
+      <div class="lg:col-span-7 relative h-[420px] w-full flex items-center justify-center">
+        
+        <!-- Yuqori o'ng matnlar -->
+        <div class="absolute top-0 right-4 text-right hidden sm:block">
+          <p class="text-[8px] tracking-[0.2em] font-semibold text-slate-400 uppercase">BETTER TRADERS</p>
+          <p class="text-[8px] tracking-[0.2em] font-semibold text-slate-400 uppercase">A BRIGHTER TOMORROW</p>
+        </div>
 
-          <div id="chart-container" class="w-full h-72 sm:h-96 rounded-2xl overflow-hidden relative">
-            <div id="chart" class="w-full h-full"></div>
-          </div>
+        <!-- Grafik orqasidagi vertikal yozuvlar -->
+        <div class="absolute top-6 left-1/4 text-center hidden md:block">
+          <p class="text-[8px] tracking-[0.2em] text-slate-400 font-semibold uppercase leading-4">
+            PLAN<br>EXECUTE<br>IMPROVE<br>REPEAT
+          </p>
+        </div>
 
-          <!-- Skrinshotdagi o'ziga xos qo'lyozma elementi -->
-          <div class="absolute -bottom-5 -right-3 hidden sm:block">
-            <p class="font-handwriting text-2xl text-slate-800 transform -rotate-6">Progress over Perfection</p>
+        <!-- Jonli Mini-Badge (EURUSD / BTC) -->
+        <div class="absolute top-16 right-0 bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-xl px-4 py-3 shadow-sm z-10 flex items-center justify-between gap-6 min-w-[170px]">
+          <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BTC/USDT</p>
+            <p id="badge-price" class="text-sm font-extrabold text-slate-900">$64,250</p>
           </div>
+          <div class="text-right">
+            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+0.63%</span>
+            <div class="w-10 h-3 mt-1 stroke-emerald-500">
+              <svg viewBox="0 0 40 12" fill="none" class="w-full h-full"><path d="M1 10L12 7L24 9L39 2" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- TradingView Shamlar Konteyneri -->
+        <div id="chart-container" class="w-full h-[360px] relative">
+          <div id="chart" class="w-full h-full"></div>
+        </div>
+
+        <!-- Qo'lyozma "Progress over Perfection" -->
+        <div class="absolute bottom-6 right-6 hidden sm:block z-10">
+          <p class="font-handwriting text-3xl text-slate-800 transform -rotate-6">Progress over Perfection</p>
+        </div>
+
+        <!-- Slayder Nomeri (01 — 03) -->
+        <div class="absolute bottom-0 right-4 flex items-center gap-3 text-[10px] font-medium text-slate-400">
+          <span class="w-8 h-[1px] bg-slate-400"></span>
+          <span>01 — 03</span>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- 3. Pastki Bo'lim: Radar Signallari Jadvali -->
-  <section class="bg-white border-t border-slate-200/90 py-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-8">
+  <!-- 3. PASTKI 4 TA KARTA VA IQTIBOS BO'LIMI -->
+  <section class="max-w-7xl mx-auto w-full px-6 py-10 border-t border-slate-200">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
       
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">Active Radar Signals</h2>
-          <p class="text-xs text-slate-500">Google Sheets orqali avtomatik yangilanadigan jonli signallar</p>
+      <!-- Karta 1: Learn -->
+      <div class="flex flex-col">
+        <div class="w-5 h-5 mb-3 text-slate-900">
+          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
         </div>
-        <span class="text-xs font-mono bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200">
-          Auto-Sync
-        </span>
+        <h3 class="font-bold text-slate-900 text-sm mb-1">Learn</h3>
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">Clear, practical lessons for real market skills.</p>
+        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Explore Learning →</a>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-slate-200">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-              <th class="py-3 px-4">Sana</th>
-              <th class="py-3 px-4">Aktiv</th>
-              <th class="py-3 px-4">Holat / Entry</th>
-              <th class="py-3 px-4">AI Xulosasi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 font-medium">
-            {% for signal in signals %}
-            <tr class="hover:bg-slate-50/80 transition">
-              <td class="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">{{ signal[0] }}</td>
-              <td class="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">{{ signal[1] }}</td>
-              <td class="py-3.5 px-4 text-emerald-600 font-bold whitespace-nowrap">{{ signal[2] }}</td>
-              <td class="py-3.5 px-4 text-slate-600 max-w-md truncate">{{ signal[5] }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <!-- Karta 2: Analyze -->
+      <div class="flex flex-col">
+        <div class="w-5 h-5 mb-3 text-slate-900">
+          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1">Analyze</h3>
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">Use professional tools and real-time data.</p>
+        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Explore Tools →</a>
       </div>
 
-      <!-- Hamkorlar / Manbalar Tasmasi -->
-      <div class="flex flex-wrap items-center justify-between gap-6 pt-10 mt-8 border-t border-slate-100 text-slate-400 text-xs font-bold tracking-wider uppercase">
-        <span>BINANCE WS</span>
-        <span>TRADINGVIEW CHARTS</span>
-        <span>GOOGLE SHEETS API</span>
-        <span>GEMINI 2.5 FLASH</span>
-        <span>RENDER CLOUD</span>
+      <!-- Karta 3: Join Community -->
+      <div class="flex flex-col">
+        <div class="w-5 h-5 mb-3 text-slate-900">
+          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1">Join Community</h3>
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">Share ideas, ask questions, and grow together.</p>
+        <a href="https://t.me/obsidian_lab_uz" target="_blank" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Join Now →</a>
+      </div>
+
+      <!-- Karta 4: Become Better -->
+      <div class="flex flex-col">
+        <div class="w-5 h-5 mb-3 text-slate-900">
+          <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+        </div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1">Become Better</h3>
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">Track your progress and reach your goals.</p>
+        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Set Your Goals →</a>
+      </div>
+
+      <!-- Iqtibos Ustuni (Skrinshotdagi o'ng chet) -->
+      <div class="flex flex-col justify-center pl-2">
+        <span class="text-2xl text-slate-300 font-serif leading-none select-none">“</span>
+        <blockquote class="text-xs italic font-medium text-slate-700 leading-relaxed my-1">
+          "A disciplined mind trades a brighter future."
+        </blockquote>
+        <p class="text-[11px] font-semibold text-slate-400">— TradeMind</p>
       </div>
 
     </div>
   </section>
 
-  <!-- Realtime Scriptlar (Binance narxlari va engil oqim) -->
+  <!-- 4. FOUTER VA HAMKORLAR LOGOTIPLARI -->
+  <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
+    <div class="flex items-center gap-6 font-bold tracking-wider uppercase text-[10px]">
+      <span class="hover:text-slate-600 transition">BINANCE</span>
+      <span class="hover:text-slate-600 transition">TradingView</span>
+      <span class="hover:text-slate-600 transition">FOREX.com</span>
+      <span class="hover:text-slate-600 transition">Investing.com</span>
+      <span class="hover:text-slate-600 transition">Bloomberg</span>
+    </div>
+    <div class="text-right">
+      <p class="uppercase tracking-widest text-[9px]">MARKETS TODAY</p>
+      <p class="text-slate-500 font-medium">A BRIGHTER TOMORROW</p>
+    </div>
+  </footer>
+
+  <!-- YASHIRIN DISPATCHER MODAL (Kanalga xabar yuborish uchun) -->
+  <div id="feedback-modal" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-slate-900 text-sm">Telegram Dispatcher</h3>
+        <button onclick="document.getElementById('feedback-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <form method="POST" action="/add_comment" class="flex flex-col gap-3">
+        <textarea name="comment" rows="3" placeholder="Kanalga yuboriladigan matn..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 resize-none"></textarea>
+        <button type="submit" class="w-full bg-slate-950 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-slate-800 transition">
+          Yuborish 🚀
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JONLI GRAFIK VA REALTIME SKRIPTI -->
   <script>
-    // 1. Binance Jonli Narxlar
-    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
-    const btcEl = document.getElementById('btc-price');
-    const ethEl = document.getElementById('eth-price');
+    // 1. Jonli Binance Ticker
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+    const badgeEl = document.getElementById('badge-price');
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
       const formatted = '$' + parseFloat(data.p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (data.s === 'BTCUSDT' && btcEl) btcEl.innerText = formatted;
-      if (data.s === 'ETHUSDT' && ethEl) ethEl.innerText = formatted;
+      if (badgeEl) badgeEl.innerText = formatted;
     };
 
-    // 2. Oq fonli TradingView Chart
+    // 2. Skrinshotdagi kabi fon bilan qorishgan toza shamlar grafigi
     const chartContainer = document.getElementById('chart-container');
     const chartEl = document.getElementById('chart');
 
     const chart = LightweightCharts.createChart(chartEl, {
       width: chartContainer.clientWidth,
       height: chartContainer.clientHeight,
-      layout: { 
-        background: { color: 'transparent' }, 
-        textColor: '#64748b',
-        fontSize: 11
+      layout: {
+        background: { color: 'transparent' },
+        textColor: '#94a3b8',
+        fontSize: 10
       },
-      grid: { 
-        vertLines: { color: '#f1f5f9' }, 
-        horzLines: { color: '#f1f5f9' } 
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { visible: false }
       },
-      timeScale: { timeVisible: true, secondsVisible: false }
+      rightPriceScale: {
+        borderVisible: false
+      },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false
+      }
     });
 
+    // Skrinshotdagi o'suvchi yashil/qora shamlar uslubi
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981', 
+      upColor: '#10b981',
       downColor: '#0f172a',
-      borderUpColor: '#10b981', 
+      borderUpColor: '#10b981',
       borderDownColor: '#0f172a',
-      wickUpColor: '#10b981', 
+      wickUpColor: '#10b981',
       wickDownColor: '#0f172a',
     });
 
-    fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=60')
+    fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=55')
       .then(res => res.json())
       .then(data => {
         const formatted = data.map(d => ({
