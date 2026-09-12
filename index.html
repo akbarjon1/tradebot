@@ -6,113 +6,142 @@
   <title>Obsidian Lab — Paper Trading</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    body { background-color: #0b0e14; color: #e2e8f0; font-family: sans-serif; }
+    body { 
+      background-color: #f8fafc; 
+      color: #0f172a; 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body class="p-4 flex flex-col min-h-screen justify-between relative">
+<body class="p-4 sm:p-5 flex flex-col min-h-screen justify-between relative max-w-md mx-auto">
 
-  <!-- Header & Balans -->
+  <!-- Yuqori qism: Brend va Balans -->
   <div>
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <p class="text-xs text-gray-400 font-semibold tracking-wider">OBSIDIAN LAB</p>
-        <h1 class="text-lg font-bold text-white tracking-wide">Paper Trading</h1>
+    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+          ◆
+        </div>
+        <div>
+          <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Obsidian Lab</h1>
+          <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Paper Trading</p>
+        </div>
       </div>
       <div class="text-right">
-        <p class="text-xs text-gray-400">Virtual Balans</p>
-        <p id="balance" class="text-xl font-bold text-emerald-400">$10,000.00</p>
+        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Virtual Balans</p>
+        <p id="balance" class="text-lg font-extrabold text-slate-900 font-mono tracking-tight">$10,000.00</p>
       </div>
     </div>
 
-    <!-- Aktiv Tanlash -->
-    <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
-      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition">
+    <!-- Aktiv Tanlash (Tab) -->
+    <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/70 rounded-xl mb-4 text-xs font-bold">
+      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 rounded-lg bg-white text-slate-900 shadow-sm transition">
         BTC / USDT
       </button>
-      <button id="btn-eth" onclick="switchAsset('ETHUSDT')" class="py-2 text-sm font-semibold rounded-lg text-gray-400 transition">
+      <button id="btn-eth" onclick="switchAsset('ETHUSDT')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition">
         ETH / USDT
       </button>
     </div>
 
-    <!-- Narx Ko'rsatkichi -->
-    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-center mb-4 shadow-lg">
-      <p id="pair-label" class="text-xs text-gray-400 uppercase tracking-widest mb-1">BTC/USDT Narxi</p>
-      <div id="price" class="text-3xl font-extrabold text-white tracking-tight">Yuklanmoqda...</div>
-      <span class="inline-block mt-2 px-2.5 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Binance Live</span>
+    <!-- Jonli Narx Kartasi -->
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center mb-4 shadow-sm relative overflow-hidden">
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 mb-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Binance Live</span>
+      </div>
+      <div id="price" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-mono my-1">
+        Yuklanmoqda...
+      </div>
+      <p id="pair-label" class="text-[11px] font-semibold text-slate-400">BTCUSDT Realtime Index</p>
     </div>
 
     <!-- Ochiq Pozitsiya Card -->
-    <div id="position-card" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-xl mb-4">
-      <div class="flex justify-between text-xs text-gray-400 mb-2">
-        <span>Pozitsiya: <b id="pos-type" class="text-white"></b></span>
-        <span>Hajm: <b id="pos-size" class="text-white"></b></span>
-      </div>
-      <div class="flex justify-between text-xs text-gray-400 mb-2">
-        <span>Kirish narxi: <b id="pos-entry" class="text-white"></b></span>
-      </div>
-      <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800">
+    <div id="position-card" class="hidden bg-white border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
+      <div class="flex justify-between items-center text-xs pb-3 mb-3 border-b border-slate-100">
         <div>
-          <p class="text-xs text-gray-400">Jonli PnL:</p>
-          <p id="pos-pnl" class="text-lg font-bold">$0.00 (0.00%)</p>
+          <span class="text-slate-400 text-[11px]">Pozitsiya:</span>
+          <span id="pos-type" class="font-bold text-slate-900 ml-1"></span>
         </div>
-        <button onclick="closePosition()" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-4 py-2 rounded-lg text-xs font-semibold active:scale-95 transition">
-          Yopish
+        <div>
+          <span class="text-slate-400 text-[11px]">Hajm:</span>
+          <span id="pos-size" class="font-bold text-slate-900 font-mono ml-1"></span>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center text-xs text-slate-500 mb-3">
+        <span>Kirish narxi:</span>
+        <b id="pos-entry" class="text-slate-800 font-mono font-bold"></b>
+      </div>
+
+      <div class="flex justify-between items-center pt-2">
+        <div>
+          <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jonli PnL</p>
+          <p id="pos-pnl" class="text-base font-extrabold font-mono text-emerald-600">$0.00 (0.00%)</p>
+        </div>
+        <button onclick="closePosition()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/70 px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition">
+          Yopish ✕
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Pastki qism: Savdo Hajmi va Tugmalar -->
-  <div class="mt-auto pt-2">
-    <div class="bg-slate-900/70 border border-slate-800 p-3 rounded-xl mb-3">
+  <!-- Pastki qism: Savdo Paneli -->
+  <div class="mt-auto pt-4">
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm mb-3">
       <div class="flex justify-between items-center mb-2">
-        <label class="text-xs text-gray-400 font-medium">Savdo hajmi ($):</label>
-        <span id="size-percent" class="text-[11px] text-gray-500">10% balansdan</span>
+        <label class="text-xs font-bold text-slate-700">Savdo hajmi ($):</label>
+        <span id="size-percent" class="text-[11px] font-semibold text-slate-400">10% balansdan</span>
       </div>
-      
-      <div class="relative mb-2">
-        <span class="absolute left-3 top-2 text-gray-400 font-bold">$</span>
+
+      <div class="relative mb-3">
+        <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
         <input 
           id="order-size-input" 
           type="number" 
           value="1000" 
           min="10" 
           oninput="onManualSizeChange()"
-          class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 pl-8 pr-3 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500"
+          class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-8 pr-3 text-sm text-slate-900 font-bold font-mono focus:outline-none focus:border-slate-900 transition"
         />
       </div>
 
-      <div class="grid grid-cols-4 gap-1.5">
-        <button onclick="setPercentSize(0.1)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">10%</button>
-        <button onclick="setPercentSize(0.25)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">25%</button>
-        <button onclick="setPercentSize(0.5)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">50%</button>
-        <button onclick="setPercentSize(1.0)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-amber-400 font-semibold active:scale-95 transition">100%</button>
+      <div class="grid grid-cols-4 gap-1.5 font-mono text-xs">
+        <button onclick="setPercentSize(0.1)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">10%</button>
+        <button onclick="setPercentSize(0.25)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">25%</button>
+        <button onclick="setPercentSize(0.5)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">50%</button>
+        <button onclick="setPercentSize(1.0)" class="py-1.5 bg-slate-900 hover:bg-slate-800 rounded-lg text-white font-bold active:scale-95 transition">MAX</button>
       </div>
     </div>
 
+    <!-- Long / Short Tugmalari -->
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+      <button onclick="openPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm">
         <span class="text-sm">LONG 🟢</span>
-        <span class="text-[10px] opacity-80">O'sishga</span>
+        <span class="text-[10px] text-emerald-100 font-normal">O'sishga</span>
       </button>
-      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+      <button onclick="openPosition('SHORT')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm">
         <span class="text-sm">SHORT 🔴</span>
-        <span class="text-[10px] opacity-80">Tushishga</span>
+        <span class="text-[10px] text-rose-100 font-normal">Tushishga</span>
       </button>
     </div>
   </div>
 
   <!-- Likvidatsiya Modali -->
-  <div id="liquidation-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-rose-500/40 p-6 rounded-2xl max-w-xs text-center shadow-2xl">
-      <div class="text-4xl mb-2">💥</div>
-      <h2 class="text-rose-500 font-extrabold text-xl tracking-wider uppercase mb-2">Likvidatsiya!</h2>
-      <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+  <div id="liquidation-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white border border-slate-200 p-6 rounded-3xl max-w-xs text-center shadow-xl">
+      <div class="text-3xl mb-2">💥</div>
+      <h2 class="text-slate-900 font-extrabold text-lg tracking-tight mb-2">Likvidatsiya!</h2>
+      <p class="text-xs text-slate-500 mb-5 leading-relaxed">
         Obsidian AI: <br>
-        <span class="italic text-gray-400">"Jigar, depozit toza bo'ldi. Risk-menejmentsiz bozor xomxayollarni kechirmaydi!"</span>
+        <span class="italic text-slate-700 font-medium">"Jigar, risk-menejmentsiz bozor hisobni tozalab qo'ydi. Xatoni tushunib, yangidan boshlaymiz!"</span>
       </p>
-      <button onclick="resetBalance()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl text-sm transition active:scale-95">
+      <button onclick="resetBalance()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs transition active:scale-95">
         Qayta urinish ($10,000 olish) 🔄
       </button>
     </div>
@@ -122,7 +151,6 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
 
-    // Foydalanuvchi prefiksi (qurilmalar va foydalanuvchilar aralashib ketmasligi uchun)
     const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
     const KEY_BALANCE = `obs_bal_${userId}`;
     const KEY_POSITION = `obs_pos_${userId}`;
@@ -132,7 +160,6 @@
     const prices = { BTCUSDT: 0, ETHUSDT: 0 };
     let position = null;
 
-    // Doimiy xotiraga yozish (Ikkala joyga ham)
     function persistData(key, value) {
       const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
       localStorage.setItem(key, valStr);
@@ -141,7 +168,6 @@
       } catch (e) {}
     }
 
-    // Xotiradan o'qish
     function initData() {
       const localBal = localStorage.getItem(KEY_BALANCE);
       const localPos = localStorage.getItem(KEY_POSITION);
@@ -162,7 +188,6 @@
         }
       }
 
-      // CloudStorage orqali yangiroq ma'lumot bo'lsa tekshirib olish
       if (tg?.CloudStorage) {
         tg.CloudStorage.getItems([KEY_BALANCE, KEY_POSITION], (err, res) => {
           if (!err && res) {
@@ -200,19 +225,44 @@
       }
     }
 
+    async function fetchFallbackPrices() {
+      try {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","ETHUSDT"]');
+        const data = await res.json();
+        data.forEach(item => {
+          prices[item.symbol] = parseFloat(item.price);
+        });
+        if (prices[currentAsset]) {
+          updatePriceUI(prices[currentAsset]);
+        }
+      } catch (err) {}
+    }
+
     function startBinanceFeed() {
+      fetchFallbackPrices();
+
       const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
       
       ws.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        const symbol = data.s;
-        const price = parseFloat(data.p);
+        try {
+          const data = JSON.parse(e.data);
+          const symbol = data.s;
+          const price = parseFloat(data.p);
 
-        prices[symbol] = price;
+          prices[symbol] = price;
 
-        if (currentAsset === symbol) {
-          updatePriceUI(price);
-        }
+          if (currentAsset === symbol) {
+            updatePriceUI(price);
+          }
+        } catch (err) {}
+      };
+
+      ws.onerror = () => {
+        fetchFallbackPrices();
+      };
+
+      ws.onclose = () => {
+        setTimeout(startBinanceFeed, 3000);
       };
     }
 
@@ -227,13 +277,13 @@
       const pairLabel = document.getElementById('pair-label');
 
       if (asset === 'BTCUSDT') {
-        pairLabel.innerText = "BTC/USDT Narxi";
-        btcBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition";
-        ethBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400 transition";
+        pairLabel.innerText = "BTCUSDT Realtime Index";
+        btcBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+        ethBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
       } else {
-        pairLabel.innerText = "ETH/USDT Narxi";
-        ethBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition";
-        btcBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400 transition";
+        pairLabel.innerText = "ETHUSDT Realtime Index";
+        ethBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+        btcBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
       }
 
       if (prices[currentAsset] > 0) updatePriceUI(prices[currentAsset]);
@@ -307,7 +357,7 @@
       const pnlEl = document.getElementById('pos-pnl');
 
       pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
-      pnlEl.className = pnlUSD >= 0 ? 'text-lg font-bold text-emerald-400' : 'text-lg font-bold text-rose-400';
+      pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
 
       if (pnlPercent <= -100) {
         closePosition(true);
