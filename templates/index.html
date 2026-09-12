@@ -1,218 +1,169 @@
 <!DOCTYPE html>
-<html lang="uz" class="dark">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Obsidian Lab — Cyber Terminal</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Obsidian Lab — Terminal</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700;800&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      background-color: #030712;
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.15), transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1), transparent 40%),
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-      font-family: 'Chakra Petch', sans-serif;
-      color: #f3f4f6;
-    }
-
-    .font-pixel { font-family: 'Press Start 2P', monospace; }
-    .font-mono-code { font-family: 'Space Mono', monospace; }
-
-    .neon-cyan-box {
-      border: 1px solid rgba(6, 182, 212, 0.4);
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.15), inset 0 0 15px rgba(6, 182, 212, 0.05);
-    }
-    .neon-purple-box {
-      border: 1px solid rgba(168, 85, 247, 0.4);
-      box-shadow: 0 0 15px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(168, 85, 247, 0.05);
-    }
-    .neon-emerald-box {
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.15), inset 0 0 15px rgba(16, 185, 129, 0.05);
-    }
-
-    .arcade-btn {
-      position: relative;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 0 #059669;
-    }
-    .arcade-btn:active {
-      transform: translateY(4px);
-      box-shadow: 0 0 0 #059669;
-    }
+    body { background-color: #0b0e14; color: #cbd5e1; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .card { background: #111622; border: 1px solid #1e2638; }
   </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+<body class="p-3 sm:p-5 md:p-6 min-h-screen flex flex-col justify-between max-w-7xl mx-auto w-full">
 
-  <!-- HUD Header -->
-  <header class="neon-purple-box bg-slate-950/80 backdrop-blur-md rounded-2xl p-4 md:p-5 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-xl shadow-lg shadow-purple-500/30">
-        👾
+  <!-- Header -->
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6 pb-4 border-b border-slate-800/80 w-full">
+    <div class="flex items-center gap-2.5">
+      <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm">
+        ◆
       </div>
       <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-pixel text-xs md:text-sm text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400">
-            OBSIDIAN_ARCADE
-          </h1>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono-code font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">V2.4</span>
-        </div>
-        <p class="text-xs text-gray-400 tracking-wider">AI POWERED CRYPTO ARENA</p>
+        <h1 class="text-sm sm:text-base font-bold text-white tracking-wide">OBSIDIAN LAB</h1>
+        <p class="text-[10px] sm:text-[11px] text-slate-500">Market Intelligence & Signal Hub</p>
       </div>
     </div>
 
-    <!-- Jonli Tickerlar -->
-    <div class="flex items-center gap-3 w-full md:w-auto">
-      <div class="neon-cyan-box bg-slate-900/90 px-4 py-2 rounded-xl flex items-center gap-3 flex-1 md:flex-initial">
-        <span class="text-xs font-mono-code text-cyan-400 font-bold">BTC/USDT</span>
-        <span id="btc-price" class="text-sm font-mono-code font-bold text-white tracking-wider">Loading...</span>
+    <!-- Jonli Narxlar Tasmasi -->
+    <div class="grid grid-cols-2 gap-2 w-full sm:w-auto font-mono text-xs">
+      <div class="card px-3 py-1.5 rounded-lg flex items-center justify-between sm:justify-start gap-2">
+        <span class="text-slate-400 text-[11px]">BTC</span>
+        <span id="btc-price" class="font-bold text-emerald-400 text-xs">...</span>
       </div>
-      <div class="neon-emerald-box bg-slate-900/90 px-4 py-2 rounded-xl flex items-center gap-3 flex-1 md:flex-initial">
-        <span class="text-xs font-mono-code text-emerald-400 font-bold">ETH/USDT</span>
-        <span id="eth-price" class="text-sm font-mono-code font-bold text-white tracking-wider">Loading...</span>
+      <div class="card px-3 py-1.5 rounded-lg flex items-center justify-between sm:justify-start gap-2">
+        <span class="text-slate-400 text-[11px]">ETH</span>
+        <span id="eth-price" class="font-bold text-emerald-400 text-xs">...</span>
       </div>
     </div>
   </header>
 
-  <!-- Asosiy Arena: Jonli Grafik & Boshqaruv Markazi -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+  <!-- Asosiy Qism: Grafik va Dispatcher -->
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6 w-full">
 
-    <!-- Jonli Shamlar Ekrani (Chart Canvas) -->
-    <div class="lg:col-span-2 neon-cyan-box bg-slate-950/80 backdrop-blur-md rounded-2xl p-5 flex flex-col">
-      <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
-        <div class="flex items-center gap-3">
-          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-          <span class="font-pixel text-[11px] text-cyan-300 uppercase tracking-widest">LIVE MATRIX RADAR</span>
+    <!-- Jonli Shamlar Grafigi -->
+    <div class="lg:col-span-2 card rounded-xl p-3 sm:p-4 flex flex-col w-full overflow-hidden">
+      <div class="flex justify-between items-center mb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-semibold text-white">BTC / USDT</span>
+          <span class="text-[10px] text-slate-500 font-mono">1m</span>
         </div>
-        <div class="text-xs font-mono-code text-gray-400">
-          FEED: <span class="text-emerald-400">BINANCE 1M WS</span>
-        </div>
+        <span class="text-[10px] text-slate-500 font-mono">Binance Feed</span>
       </div>
-      <div id="chart" class="w-full h-88 rounded-xl overflow-hidden bg-black/50 border border-slate-900"></div>
+      <div id="chart-container" class="w-full h-64 sm:h-80 md:h-96 rounded-lg overflow-hidden bg-slate-950/40 relative">
+        <div id="chart" class="w-full h-full"></div>
+      </div>
     </div>
 
-    <!-- O'ng Boshqaruv Paneli: Dispatcher & Statistika -->
-    <div class="flex flex-col gap-6">
-
-      <!-- Signal Dispatcher Moduli -->
-      <div class="neon-emerald-box bg-slate-950/80 backdrop-blur-md rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
-          <h2 class="font-pixel text-[10px] text-emerald-400">DISPATCH CONSOLE</h2>
-          <span class="text-[10px] font-mono-code text-gray-400">@obsidian_lab_uz</span>
+    <!-- O'ng Panel: Dispatcher & Server Info -->
+    <div class="flex flex-col gap-4 w-full">
+      
+      <!-- Telegram Kanalga Post Yuborish -->
+      <div class="card rounded-xl p-3.5 sm:p-4">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-semibold text-white">Telegram Dispatcher</span>
+          <span class="text-[10px] text-slate-500 font-mono">@obsidian_lab_uz</span>
         </div>
-        <form method="POST" action="/dispatch" class="flex flex-col gap-3">
+        <form method="POST" action="/dispatch" class="flex flex-col gap-2">
           <textarea 
             name="post_content" 
             rows="3" 
-            placeholder="VIP Kanal uchun signal parametrlarini kiriting..." 
-            class="w-full bg-black/60 border border-slate-800 rounded-xl p-3 text-xs font-mono-code text-emerald-300 placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition resize-none"
+            placeholder="Kanalga xabar yuboring..." 
+            class="w-full bg-[#0b0e14] border border-slate-800 rounded-lg p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition resize-none"
           ></textarea>
-          <button 
-            type="submit" 
-            class="arcade-btn w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-3 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 font-pixel"
-          >
-            TRANSMIT ⚡️
+          <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold py-2 rounded-lg text-xs transition">
+            Kanalga yuborish 🚀
           </button>
         </form>
       </div>
 
-      <!-- Sistema Ko'rsatkichlari (Cyber Stats) -->
-      <div class="neon-purple-box bg-slate-950/80 backdrop-blur-md rounded-2xl p-5 flex-1 flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-          <span class="font-pixel text-[10px] text-purple-400">SYSTEM STATS</span>
-          <span class="text-xs text-purple-300 font-mono-code">READY</span>
+      <!-- Tizim Holati -->
+      <div class="card rounded-xl p-3.5 sm:p-4 text-xs space-y-2">
+        <span class="text-xs font-semibold text-white block mb-1">Infratuzilma</span>
+        <div class="flex justify-between text-slate-400">
+          <span>AI Engine:</span>
+          <span class="text-white font-mono">Gemini 2.5 Flash</span>
         </div>
-        <div class="space-y-3 font-mono-code text-xs">
-          <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
-            <span class="text-gray-400">CORE ENGINE:</span>
-            <span class="text-cyan-300 font-bold">Gemini 2.5 Flash</span>
-          </div>
-          <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
-            <span class="text-gray-400">DATABASE:</span>
-            <span class="text-emerald-400 font-bold">Google Sheets</span>
-          </div>
-          <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
-            <span class="text-gray-400">HOST STATUS:</span>
-            <span class="text-purple-300 font-bold">Render 24/7 Live</span>
-          </div>
+        <div class="flex justify-between text-slate-400">
+          <span>Database:</span>
+          <span class="text-white font-mono">Google Sheets</span>
         </div>
-        <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-center text-gray-500 font-mono-code">
-          OBSIDIAN SECURE PROTOCOL ACTIVE
+        <div class="flex justify-between text-slate-400">
+          <span>Server:</span>
+          <span class="text-emerald-400 font-mono">Render Live</span>
         </div>
       </div>
 
     </div>
-  </div>
+  </main>
 
-  <!-- Pastki Radar: Kiber Signallar Kartalari -->
-  <section class="neon-purple-box bg-slate-950/80 backdrop-blur-md rounded-2xl p-5">
-    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
-      <div class="flex items-center gap-3">
-        <span class="text-xl">🕹️</span>
-        <h2 class="font-pixel text-xs text-white">ACTIVE SIGNALS DATABASE</h2>
-      </div>
-      <span class="text-xs font-mono-code text-gray-400">AUTO-SYNC ENABLED</span>
+  <!-- Pastki Qism: Signallar Tarixi -->
+  <section class="card rounded-xl p-3.5 sm:p-4 w-full">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-xs font-semibold text-white">Oxirgi Signallar</h2>
+      <span class="text-[10px] text-slate-500 font-mono">Google Sheets Sync</span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {% for signal in signals %}
-      <div class="bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-4 rounded-xl transition duration-300 flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-mono-code text-[11px] text-purple-400 font-bold">{{ signal[0] }}</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono-code bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              {{ signal[2] }}
-            </span>
-          </div>
-          <h3 class="text-base font-black text-white mb-2">{{ signal[1] }}</h3>
-          <p class="text-xs text-gray-400 font-mono-code line-clamp-3 leading-relaxed mb-3">
-            {{ signal[5] }}
-          </p>
-        </div>
-        <div class="text-[10px] text-gray-500 font-mono-code pt-2 border-t border-slate-800 flex justify-between">
-          <span>SOURCE: AI RADAR</span>
-          <span>VERIFIED</span>
-        </div>
-      </div>
-      {% endfor %}
+    <!-- Mobil uchun gorizontal skroll qobig'i -->
+    <div class="overflow-x-auto -mx-3.5 sm:mx-0 px-3.5 sm:px-0">
+      <table class="w-full text-left border-collapse text-xs font-mono min-w-[500px]">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-500">
+            <th class="py-2 px-2.5">Sana</th>
+            <th class="py-2 px-2.5">Aktiv</th>
+            <th class="py-2 px-2.5">Turi / Entry</th>
+            <th class="py-2 px-2.5">AI Xulosasi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60">
+          {% for signal in signals %}
+          <tr class="hover:bg-slate-800/20 transition">
+            <td class="py-2.5 px-2.5 text-slate-500 whitespace-nowrap">{{ signal[0] }}</td>
+            <td class="py-2.5 px-2.5 text-white font-bold whitespace-nowrap">{{ signal[1] }}</td>
+            <td class="py-2.5 px-2.5 text-emerald-400 whitespace-nowrap">{{ signal[2] }}</td>
+            <td class="py-2.5 px-2.5 text-slate-400 font-sans truncate max-w-xs">{{ signal[5] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </section>
 
   <!-- Realtime Scriptlar -->
   <script>
-    // Binance WebSocket Narxlar Tasmasi
+    // 1. Binance WebSocket
     const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
     const btcEl = document.getElementById('btc-price');
     const ethEl = document.getElementById('eth-price');
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      const formatted = parseFloat(data.p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (data.s === 'BTCUSDT') btcEl.innerText = '$' + formatted;
-      if (data.s === 'ETHUSDT') ethEl.innerText = '$' + formatted;
+      const formatted = '$' + parseFloat(data.p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (data.s === 'BTCUSDT') btcEl.innerText = formatted;
+      if (data.s === 'ETHUSDT') ethEl.innerText = formatted;
     };
 
-    // Lightweight Charts O'rnatish
-    const chartContainer = document.getElementById('chart');
-    const chart = LightweightCharts.createChart(chartContainer, {
-      layout: { background: { color: 'transparent' }, textColor: '#94a3b8' },
-      grid: { vertLines: { color: '#0f172a' }, horzLines: { color: '#0f172a' } },
+    // 2. Moslashuvchan TradingView Charts
+    const chartContainer = document.getElementById('chart-container');
+    const chartEl = document.getElementById('chart');
+
+    const chart = LightweightCharts.createChart(chartEl, {
+      width: chartContainer.clientWidth,
+      height: chartContainer.clientHeight,
+      layout: { background: { color: 'transparent' }, textColor: '#64748b' },
+      grid: { vertLines: { color: '#161c2b' }, horzLines: { color: '#161c2b' } },
       timeScale: { timeVisible: true, secondsVisible: false }
     });
 
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981', downColor: '#f43f5e',
-      borderUpColor: '#10b981', borderDownColor: '#f43f5e',
-      wickUpColor: '#10b981', wickDownColor: '#f43f5e',
+      upColor: '#10b981', downColor: '#ef4444',
+      borderUpColor: '#10b981', borderDownColor: '#ef4444',
+      wickUpColor: '#10b981', wickDownColor: '#ef4444',
     });
 
     fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=60')
@@ -228,10 +179,13 @@
         candleSeries.setData(formatted);
       });
 
-    window.addEventListener('resize', () => {
-      chart.applyOptions({ width: chartContainer.clientWidth });
+    // Ekran o'lchami o'zgarganda (ayniqsa mobil qurilmalarda) grafikni to'g'rilash
+    const resizeObserver = new ResizeObserver(entries => {
+      if (!entries || !entries.length) return;
+      const { width, height } = entries[0].contentRect;
+      chart.applyOptions({ width, height });
     });
-    chart.applyOptions({ width: chartContainer.clientWidth });
+    resizeObserver.observe(chartContainer);
   </script>
 </body>
 </html>
