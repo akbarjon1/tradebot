@@ -10,7 +10,7 @@
     body { background-color: #0b0e14; color: #e2e8f0; font-family: sans-serif; }
   </style>
 </head>
-<body class="p-4 flex flex-col min-h-screen justify-between">
+<body class="p-4 flex flex-col min-h-screen justify-between relative">
 
   <!-- Yuqori qism: Header & Balans -->
   <div>
@@ -21,7 +21,7 @@
       </div>
       <div class="text-right">
         <p class="text-xs text-gray-400">Virtual Balans</p>
-        <p id="balance" class="text-xl font-bold text-emerald-400">$10,000.00</p>
+        <p id="balance" class="text-xl font-bold text-emerald-400">Yuklanmoqda...</p>
       </div>
     </div>
 
@@ -63,17 +63,14 @@
     </div>
   </div>
 
-  <!-- Pastki qism: Savdo Hajmi va Buyurtma Boshqaruvi -->
+  <!-- Pastki qism: Savdo Hajmi va Tugmalar -->
   <div class="mt-auto pt-2">
-    
-    <!-- Savdo Hajmi Sozlamalari -->
     <div class="bg-slate-900/70 border border-slate-800 p-3 rounded-xl mb-3">
       <div class="flex justify-between items-center mb-2">
         <label class="text-xs text-gray-400 font-medium">Savdo hajmi ($):</label>
         <span id="size-percent" class="text-[11px] text-gray-500">10% balansdan</span>
       </div>
       
-      <!-- Hajm kiritish maydoni -->
       <div class="relative mb-2">
         <span class="absolute left-3 top-2 text-gray-400 font-bold">$</span>
         <input 
@@ -86,7 +83,6 @@
         />
       </div>
 
-      <!-- Tezkor foiz tugmalari -->
       <div class="grid grid-cols-4 gap-1.5">
         <button onclick="setPercentSize(0.1)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">10%</button>
         <button onclick="setPercentSize(0.25)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">25%</button>
@@ -95,15 +91,29 @@
       </div>
     </div>
 
-    <!-- Long / Short Tugmalari -->
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-500/10">
+      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
         <span class="text-sm">LONG 🟢</span>
         <span class="text-[10px] opacity-80">O'sishga</span>
       </button>
-      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-rose-500/10">
+      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
         <span class="text-sm">SHORT 🔴</span>
         <span class="text-[10px] opacity-80">Tushishga</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Obsidian AI: Likvidatsiya Modali -->
+  <div id="liquidation-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-rose-500/40 p-6 rounded-2xl max-w-xs text-center shadow-2xl">
+      <div class="text-4xl mb-2">💥</div>
+      <h2 class="text-rose-500 font-extrabold text-xl tracking-wider uppercase mb-2">Likvidatsiya!</h2>
+      <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+        Obsidian AI: <br>
+        <span class="italic text-gray-400">"Jigar, depozit toza bo'ldi. Risk-menejmentsiz bozor xomxayollarni kechirmaydi!"</span>
+      </p>
+      <button onclick="resetBalance()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl text-sm transition active:scale-95">
+        Qayta urinish ($10,000 olish) 🔄
       </button>
     </div>
   </div>
@@ -117,7 +127,42 @@
     const prices = { BTCUSDT: 0, ETHUSDT: 0 };
     let position = null;
 
-    // Binance WebSocket jonli ulanishi
+    // --- BULUTLI XOTIRA (Telegram CloudStorage) ---
+    function saveBalanceToCloud(val) {
+      if (tg?.CloudStorage) {
+        tg.CloudStorage.setItem('obsidian_balance', val.toString(), (err, stored) => {
+          if (err) console.error('CloudStorage saqlashda xato:', err);
+        });
+      } else {
+        localStorage.setItem('obsidian_balance', val.toString());
+      }
+    }
+
+    function loadBalanceFromCloud() {
+      if (tg?.CloudStorage) {
+        tg.CloudStorage.getItem('obsidian_balance', (err, value) => {
+          if (!err && value) {
+            balance = parseFloat(value);
+          } else {
+            balance = 10000;
+            saveBalanceToCloud(balance);
+          }
+          renderBalanceUI();
+        });
+      } else {
+        const localVal = localStorage.getItem('obsidian_balance');
+        balance = localVal ? parseFloat(localVal) : 10000;
+        renderBalanceUI();
+      }
+    }
+
+    function renderBalanceUI() {
+      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
+      setPercentSize(0.1);
+      checkLiquidationStatus();
+    }
+
+    // --- BINANCE NARX OQIMI ---
     function startBinanceFeed() {
       const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
       
@@ -177,7 +222,6 @@
       }
     }
 
-    // Savdo hajmini foiz orqali belgilash
     function setPercentSize(ratio) {
       const calculated = Math.floor(balance * ratio);
       const inputEl = document.getElementById('order-size-input');
@@ -203,8 +247,8 @@
 
       const orderSize = parseFloat(document.getElementById('order-size-input').value) || 0;
 
-      if (orderSize <= 0) {
-        alert("Iltimos, to'g'ri savdo hajmini kiriting!");
+      if (orderSize < 10) {
+        alert("Minimal savdo hajmi: $10");
         return;
       }
       if (orderSize > balance) {
@@ -213,6 +257,7 @@
       }
 
       balance -= orderSize;
+      saveBalanceToCloud(balance);
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
 
       position = {
@@ -238,25 +283,55 @@
 
       pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
       pnlEl.className = pnlUSD >= 0 ? 'text-lg font-bold text-emerald-400' : 'text-lg font-bold text-rose-400';
+
+      if (pnlPercent <= -100) {
+        closePosition(true);
+      }
     }
 
-    function closePosition() {
+    function closePosition(isLiquidated = false) {
       if (!position) return;
+      
+      if (isLiquidated) {
+        document.getElementById('position-card').classList.add('hidden');
+        position = null;
+        saveBalanceToCloud(balance);
+        checkLiquidationStatus();
+        return;
+      }
+
       const livePrice = prices[position.asset];
       let diff = (livePrice - position.entryPrice) / position.entryPrice;
       if (position.type === 'SHORT') diff = -diff;
 
       const pnlUSD = position.size * diff;
-      balance += (position.size + pnlUSD);
+      balance += Math.max(0, (position.size + pnlUSD));
+      saveBalanceToCloud(balance);
 
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
       document.getElementById('position-card').classList.add('hidden');
       position = null;
-      
-      // Hajm maydonini yangi balansga moslashtirish (default 10%)
+
+      setPercentSize(0.1);
+      checkLiquidationStatus();
+    }
+
+    function checkLiquidationStatus() {
+      if (balance < 10) {
+        document.getElementById('liquidation-modal').classList.remove('hidden');
+      }
+    }
+
+    function resetBalance() {
+      balance = 10000;
+      saveBalanceToCloud(balance);
+      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
+      document.getElementById('liquidation-modal').classList.add('hidden');
       setPercentSize(0.1);
     }
 
+    // Ishga tushirish
+    loadBalanceFromCloud();
     startBinanceFeed();
   </script>
 </body>
