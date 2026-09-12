@@ -521,46 +521,68 @@
       }
     }
 
-    // NARXLARNI OLISH (REST + WebSocket)
-    async function fetchFallbackPrices() {
+    // Global narx olish (Binance bloklangan bo'lsa Bybit va CoinGecko avtomat ishlaydi)
+    async function fetchLivePrices() {
+      const sym = currentAsset; // BTCUSDT yoki ETHUSDT
+
+      // 1-urinish: Bybit API (O'zbekistonda ochiq va o'ta tezkor)
       try {
-        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","ETHUSDT"]');
+        const res = await fetch(`https://api.bybit.com/v5/market/tickers?category=spot&symbol=${sym}`);
         const data = await res.json();
-        data.forEach(item => {
-          prices[item.symbol] = parseFloat(item.price);
-        });
-        if (prices[currentAsset]) updatePriceUI(prices[currentAsset]);
-      } catch (err) {}
+        const price = parseFloat(data?.result?.list?.[0]?.lastPrice);
+        if (price > 0) {
+          applyNewPrice(sym, price);
+          return;
+        }
+      } catch (e) {}
+
+      // 2-urinish: CoinGecko API (Hech qachon bloklanmaydigan global zaxira)
+      try {
+        const coinId = sym === 'BTCUSDT' ? 'bitcoin' : 'ethereum';
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
+        const data = await res.json();
+        const price = parseFloat(data?.[coinId]?.usd);
+        if (price > 0) {
+          applyNewPrice(sym, price);
+          return;
+        }
+      } catch (e) {}
+
+      // 3-urinish: Binance REST API
+      try {
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}`);
+        const data = await res.json();
+        const price = parseFloat(data?.price);
+        if (price > 0) {
+          applyNewPrice(sym, price);
+          return;
+        }
+      } catch (e) {}
     }
 
-    function startBinanceFeed() {
-      fetchFallbackPrices();
-      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
+    function applyNewPrice(symbol, price) {
+      prices[symbol] = price;
+      if (currentAsset === symbol) {
+        updatePriceUI(price);
+      }
+      if (positions[symbol]) {
+        calculatePnL(symbol, price);
+      }
+    }
 
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          const symbol = data.s;
-          const price = parseFloat(data.p);
-
-          prices[symbol] = price;
-
-          if (currentAsset === symbol) {
-            updatePriceUI(price);
-          }
-
-          if (positions[symbol]) {
-            calculatePnL(symbol, price);
-          }
-        } catch (err) {}
-      };
+    function startPriceFeed() {
+      // Dastur ochilishi bilan darhol narxni yuklaydi
+      fetchLivePrices();
+      // Har 2 soniyada narxni yangilab turadi
+      setInterval(fetchLivePrices, 2000);
+    }
 
       ws.onerror = () => fetchFallbackPrices();
       ws.onclose = () => setTimeout(startBinanceFeed, 3000);
     }
 
     initData();
-    startBinanceFeed();
+    startPriceFeed();
   </script>
 </body>
 </html>
