@@ -151,14 +151,18 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); }
 
-    const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
+   const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
     const KEY_BALANCE = `obs_bal_${userId}`;
-    const KEY_POSITION = `obs_pos_${userId}`;
+    const KEY_POSITIONS = `obs_pos_v2_${userId}`;
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
     const prices = { BTCUSDT: 0, ETHUSDT: 0 };
-    let position = null;
+    
+    let positions = {
+      BTCUSDT: null,
+      ETHUSDT: null
+    };
 
     function persistData(key, value) {
       const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
@@ -169,114 +173,43 @@
     }
 
     function initData() {
-  const localBal = localStorage.getItem(KEY_BALANCE);
-  const localPos = localStorage.getItem(KEY_POSITION);
+      const localBal = localStorage.getItem(KEY_BALANCE);
+      const localPos = localStorage.getItem(KEY_POSITIONS);
 
-  if (localBal !== null) {
-    balance = parseFloat(localBal);
-  } else {
-    balance = 10000;
-    persistData(KEY_BALANCE, balance);
-  }
+      if (localBal !== null) {
+        balance = parseFloat(localBal);
+      } else {
+        balance = 10000;
+        persistData(KEY_BALANCE, balance);
+      }
 
-  if (localPos) {
-    try {
-      const parsed = JSON.parse(localPos);
-      if (parsed && parsed.size > 0) position = parsed;
-    } catch (e) {
-      position = null;
-    }
-  }
-
-  // Telegram kutmasdan darhol ekranni chizamiz (Chrome uchun)
-  applyUI();
-
-  // Faqat Telegram ichida va CloudStorage mavjud bo'lsagina ma'lumotni yangilaymiz
-  if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItems === 'function') {
-    try {
-      tg.CloudStorage.getItems([KEY_BALANCE, KEY_POSITION], (err, res) => {
-        if (!err && res) {
-          if (res[KEY_BALANCE]) {
-            balance = parseFloat(res[KEY_BALANCE]);
-            localStorage.setItem(KEY_BALANCE, res[KEY_BALANCE]);
-          }
-          if (res[KEY_POSITION]) {
-            try {
-              position = JSON.parse(res[KEY_POSITION]);
-              localStorage.setItem(KEY_POSITION, res[KEY_POSITION]);
-            } catch(e) {}
-          }
-          applyUI();
+      if (localPos) {
+        try {
+          positions = JSON.parse(localPos);
+        } catch (e) {
+          positions = { BTCUSDT: null, ETHUSDT: null };
         }
-      });
-    } catch (e) {
-      console.log("CloudStorage xatosi chetlab o'tildi:", e);
+      }
+
+      applyUI();
     }
-  }
-}
 
     function applyUI() {
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
-      setPercentSize(0.1);
       checkLiquidationStatus();
 
-      if (position) {
-        if (position.asset !== currentAsset) switchAsset(position.asset);
-        document.getElementById('pos-type').innerText = `${position.type} (${position.asset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
-        document.getElementById('pos-size').innerText = "$" + position.size.toFixed(2);
-        document.getElementById('pos-entry').innerText = "$" + position.entryPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
+      const currentPos = positions[currentAsset];
+      if (currentPos) {
+        document.getElementById('pos-type').innerText = `${currentPos.type} (${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
+        document.getElementById('pos-size').innerText = "$" + currentPos.size.toFixed(2);
+        document.getElementById('pos-entry').innerText = "$" + currentPos.entryPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('position-card').classList.remove('hidden');
       } else {
         document.getElementById('position-card').classList.add('hidden');
       }
     }
 
-    async function fetchFallbackPrices() {
-      try {
-        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","ETHUSDT"]');
-        const data = await res.json();
-        data.forEach(item => {
-          prices[item.symbol] = parseFloat(item.price);
-        });
-        if (prices[currentAsset]) {
-          updatePriceUI(prices[currentAsset]);
-        }
-      } catch (err) {}
-    }
-
-    function startBinanceFeed() {
-      fetchFallbackPrices();
-
-      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
-      
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          const symbol = data.s;
-          const price = parseFloat(data.p);
-
-          prices[symbol] = price;
-
-          if (currentAsset === symbol) {
-            updatePriceUI(price);
-          }
-        } catch (err) {}
-      };
-
-      ws.onerror = () => {
-        fetchFallbackPrices();
-      };
-
-      ws.onclose = () => {
-        setTimeout(startBinanceFeed, 3000);
-      };
-    }
-
     function switchAsset(asset) {
-      if (position && position.asset !== asset) {
-        alert("Ochiq pozitsiyangiz mavjud! Avval uni yoping.");
-        return;
-      }
       currentAsset = asset;
       const btcBtn = document.getElementById('btn-btc');
       const ethBtn = document.getElementById('btn-eth');
@@ -292,6 +225,7 @@
         btcBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
       }
 
+      applyUI();
       if (prices[currentAsset] > 0) updatePriceUI(prices[currentAsset]);
     }
 
@@ -300,31 +234,14 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
-
-      if (position && position.asset === currentAsset) {
-        calculatePnL(price);
-      }
-    }
-
-    function setPercentSize(ratio) {
-      const calculated = Math.floor(balance * ratio);
-      document.getElementById('order-size-input').value = calculated;
-      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
-    }
-
-    function onManualSizeChange() {
-      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
-      if (balance > 0) {
-        const pct = ((inputVal / balance) * 100).toFixed(0);
-        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
-      }
     }
 
     function openPosition(type) {
-      if (position) {
-        alert("Sizda allaqachon ochiq pozitsiya bor!");
+      if (positions[currentAsset]) {
+        alert(`${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'} bo'yicha ochiq savdo bor! Avval uni yoping.`);
         return;
       }
+
       const livePrice = prices[currentAsset];
       if (!livePrice || livePrice <= 0) return;
 
@@ -341,73 +258,123 @@
 
       balance -= orderSize;
       persistData(KEY_BALANCE, balance);
-      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
 
-      position = {
+      positions[currentAsset] = {
         type: type,
         entryPrice: livePrice,
         size: orderSize,
         asset: currentAsset
       };
-      persistData(KEY_POSITION, position);
+      persistData(KEY_POSITIONS, positions);
 
       applyUI();
     }
 
-    function calculatePnL(currentPrice) {
-      let diff = (currentPrice - position.entryPrice) / position.entryPrice;
-      if (position.type === 'SHORT') diff = -diff;
+    function calculatePnL(symbol, currentPrice) {
+      const pos = positions[symbol];
+      if (!pos) return;
 
-      const pnlUSD = position.size * diff;
+      let diff = (currentPrice - pos.entryPrice) / pos.entryPrice;
+      if (pos.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = pos.size * diff;
       const pnlPercent = diff * 100;
-      const pnlEl = document.getElementById('pos-pnl');
 
-      pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
-      pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
+      if (currentAsset === symbol) {
+        const pnlEl = document.getElementById('pos-pnl');
+        pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
+        pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
+      }
 
       if (pnlPercent <= -100) {
-        closePosition(true);
+        closePosition(symbol, true);
       }
     }
 
-    function closePosition(isLiquidated = false) {
-      if (!position) return;
-      
-      if (isLiquidated) {
-        position = null;
-        persistData(KEY_POSITION, '');
-        persistData(KEY_BALANCE, balance);
-        applyUI();
-        return;
+    function closePosition(symbol = currentAsset, isLiquidated = false) {
+      const pos = positions[symbol];
+      if (!pos) return;
+
+      if (!isLiquidated) {
+        const livePrice = prices[symbol];
+        let diff = (livePrice - pos.entryPrice) / pos.entryPrice;
+        if (pos.type === 'SHORT') diff = -diff;
+
+        const pnlUSD = pos.size * diff;
+        balance += Math.max(0, (pos.size + pnlUSD));
       }
 
-      const livePrice = prices[position.asset];
-      let diff = (livePrice - position.entryPrice) / position.entryPrice;
-      if (position.type === 'SHORT') diff = -diff;
-
-      const pnlUSD = position.size * diff;
-      balance += Math.max(0, (position.size + pnlUSD));
-      
-      position = null;
-      persistData(KEY_POSITION, '');
+      positions[symbol] = null;
+      persistData(KEY_POSITIONS, positions);
       persistData(KEY_BALANCE, balance);
 
       applyUI();
     }
 
+    function setPercentSize(ratio) {
+      const calculated = Math.floor(balance * ratio);
+      document.getElementById('order-size-input').value = calculated;
+      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
+    }
+
+    function onManualSizeChange() {
+      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
+      if (balance > 0) {
+        const pct = ((inputVal / balance) * 100).toFixed(0);
+        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
+      }
+    }
+
     function checkLiquidationStatus() {
-      if (balance < 10 && !position) {
+      if (balance < 10 && !positions.BTCUSDT && !positions.ETHUSDT) {
         document.getElementById('liquidation-modal').classList.remove('hidden');
       }
     }
 
     function resetBalance() {
       balance = 10000;
-      position = null;
+      positions = { BTCUSDT: null, ETHUSDT: null };
       persistData(KEY_BALANCE, balance);
-      persistData(KEY_POSITION, '');
+      persistData(KEY_POSITIONS, positions);
       document.getElementById('liquidation-modal').classList.add('hidden');
       applyUI();
+    }
+
+    async function fetchFallbackPrices() {
+      try {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","ETHUSDT"]');
+        const data = await res.json();
+        data.forEach(item => {
+          prices[item.symbol] = parseFloat(item.price);
+        });
+        if (prices[currentAsset]) updatePriceUI(prices[currentAsset]);
+      } catch (err) {}
+    }
+
+    function startBinanceFeed() {
+      fetchFallbackPrices();
+      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
+
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          const symbol = data.s;
+          const price = parseFloat(data.p);
+
+          prices[symbol] = price;
+
+          if (currentAsset === symbol) {
+            updatePriceUI(price);
+          }
+
+          if (positions[symbol]) {
+            calculatePnL(symbol, price);
+          }
+        } catch (err) {}
+      };
+
+      ws.onerror = () => fetchFallbackPrices();
+      ws.onclose = () => setTimeout(startBinanceFeed, 3000);
     }
 
     initData();
