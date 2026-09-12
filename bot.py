@@ -9,7 +9,7 @@ import feedparser
 import telebot
 import gspread
 from google.oauth2.service_account import Credentials
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
@@ -242,6 +242,73 @@ def add_comment():
             print(f"Kanalga yuborishda xatolik: {e}")
 
     return redirect(url_for('home'))
+
+# ----------------------------------------------------
+# LEADERBOARD API ENDPOINTS
+# ----------------------------------------------------
+
+@app.route('/api/update_balance', methods=['POST'])
+def update_leaderboard():
+    try:
+        data = request.get_json() or {}
+        user_id = str(data.get('user_id', ''))
+        username = data.get('username') or f"Trader_{user_id[:4]}"
+        balance = float(data.get('balance', 10000))
+
+        sheet = get_sheet_client()
+        spreadsheet = sheet.spreadsheet
+
+        try:
+            ws = spreadsheet.worksheet("Leaderboard")
+        except Exception:
+            ws = spreadsheet.add_worksheet(title="Leaderboard", rows="100", cols="3")
+            ws.append_row(["User ID", "Username", "Balance"])
+
+        records = ws.get_all_records()
+        row_idx = None
+
+        for i, row in enumerate(records, start=2):
+            if str(row.get("User ID")) == user_id:
+                row_idx = i
+                break
+
+        if row_idx:
+            current_best = float(records[row_idx - 2].get("Balance", 0))
+            if balance > current_best:
+                ws.update_cell(row_idx, 3, balance)
+                ws.update_cell(row_idx, 2, username)
+        else:
+            ws.append_row([user_id, username, balance])
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Leaderboard yangilashda xatolik: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    try:
+        sheet = get_sheet_client()
+        spreadsheet = sheet.spreadsheet
+
+        try:
+            ws = spreadsheet.worksheet("Leaderboard")
+        except Exception:
+            return jsonify({"status": "success", "leaders": []})
+
+        records = ws.get_all_records()
+        sorted_leaders = sorted(records, key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
+
+        return jsonify({"status": "success", "leaders": sorted_leaders})
+    except Exception as e:
+        print(f"Leaderboard olishda xatolik: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
