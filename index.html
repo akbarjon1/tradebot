@@ -12,11 +12,11 @@
 </head>
 <body class="p-4 flex flex-col min-h-screen justify-between">
 
-  <!-- Header & Balans -->
+  <!-- Yuqori qism: Header & Balans -->
   <div>
     <div class="flex justify-between items-center mb-4">
       <div>
-        <p class="text-xs text-gray-400 font-semibold">OBSIDIAN LAB</p>
+        <p class="text-xs text-gray-400 font-semibold tracking-wider">OBSIDIAN LAB</p>
         <h1 class="text-lg font-bold text-white tracking-wide">Paper Trading</h1>
       </div>
       <div class="text-right">
@@ -25,13 +25,13 @@
       </div>
     </div>
 
-    <!-- Aktivni Tanlash (BTC / EUR) -->
+    <!-- Aktivni Tanlash (BTC / ETH) -->
     <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
-      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition">
         BTC / USDT
       </button>
-      <button id="btn-eur" onclick="switchAsset('EURUSD')" class="py-2 text-sm font-semibold rounded-lg text-gray-400">
-        EUR / USD
+      <button id="btn-eth" onclick="switchAsset('ETHUSDT')" class="py-2 text-sm font-semibold rounded-lg text-gray-400 transition">
+        ETH / USDT
       </button>
     </div>
 
@@ -39,39 +39,69 @@
     <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-center mb-4 shadow-lg">
       <p id="pair-label" class="text-xs text-gray-400 uppercase tracking-widest mb-1">BTC/USDT Narxi</p>
       <div id="price" class="text-3xl font-extrabold text-white tracking-tight">Yuklanmoqda...</div>
-      <span id="price-badge" class="inline-block mt-2 px-2.5 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400">Live Feed</span>
+      <span class="inline-block mt-2 px-2.5 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Binance Live</span>
     </div>
 
     <!-- Ochiq Pozitsiya Card -->
     <div id="position-card" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-xl mb-4">
       <div class="flex justify-between text-xs text-gray-400 mb-2">
-        <span>Ochiq: <b id="pos-type" class="text-white"></b></span>
+        <span>Pozitsiya: <b id="pos-type" class="text-white"></b></span>
+        <span>Hajm: <b id="pos-size" class="text-white"></b></span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-400 mb-2">
         <span>Kirish narxi: <b id="pos-entry" class="text-white"></b></span>
       </div>
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800">
         <div>
           <p class="text-xs text-gray-400">Jonli PnL:</p>
           <p id="pos-pnl" class="text-lg font-bold">$0.00 (0.00%)</p>
         </div>
-        <button onclick="closePosition()" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition">
+        <button onclick="closePosition()" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-4 py-2 rounded-lg text-xs font-semibold active:scale-95 transition">
           Yopish
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Buyurtma Boshqaruvi -->
-  <div class="mt-auto">
-    <div class="flex justify-between text-xs text-gray-400 mb-2">
-      <span>Bitim hajmi:</span>
-      <span class="text-white font-medium">$1,000 (10%)</span>
+  <!-- Pastki qism: Savdo Hajmi va Buyurtma Boshqaruvi -->
+  <div class="mt-auto pt-2">
+    
+    <!-- Savdo Hajmi Sozlamalari -->
+    <div class="bg-slate-900/70 border border-slate-800 p-3 rounded-xl mb-3">
+      <div class="flex justify-between items-center mb-2">
+        <label class="text-xs text-gray-400 font-medium">Savdo hajmi ($):</label>
+        <span id="size-percent" class="text-[11px] text-gray-500">10% balansdan</span>
+      </div>
+      
+      <!-- Hajm kiritish maydoni -->
+      <div class="relative mb-2">
+        <span class="absolute left-3 top-2 text-gray-400 font-bold">$</span>
+        <input 
+          id="order-size-input" 
+          type="number" 
+          value="1000" 
+          min="10" 
+          oninput="onManualSizeChange()"
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 pl-8 pr-3 text-sm text-white font-semibold focus:outline-none focus:border-emerald-500"
+        />
+      </div>
+
+      <!-- Tezkor foiz tugmalari -->
+      <div class="grid grid-cols-4 gap-1.5">
+        <button onclick="setPercentSize(0.1)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">10%</button>
+        <button onclick="setPercentSize(0.25)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">25%</button>
+        <button onclick="setPercentSize(0.5)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-gray-300 active:scale-95 transition">50%</button>
+        <button onclick="setPercentSize(1.0)" class="py-1 bg-slate-800 hover:bg-slate-700 text-xs rounded text-amber-400 font-semibold active:scale-95 transition">100%</button>
+      </div>
     </div>
+
+    <!-- Long / Short Tugmalari -->
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+      <button onclick="openPosition('LONG')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-500/10">
         <span class="text-sm">LONG 🟢</span>
         <span class="text-[10px] opacity-80">O'sishga</span>
       </button>
-      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center">
+      <button onclick="openPosition('SHORT')" class="bg-rose-500 hover:bg-rose-600 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-rose-500/10">
         <span class="text-sm">SHORT 🔴</span>
         <span class="text-[10px] opacity-80">Tushishga</span>
       </button>
@@ -84,27 +114,28 @@
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
-    let currentPrice = 0;
-    let btcWs = null;
-    let eurInterval = null;
+    const prices = { BTCUSDT: 0, ETHUSDT: 0 };
     let position = null;
 
-    function startPriceFeeds() {
-      // BTC jonli narxlari (Binance WebSocket)
-      btcWs = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
-      btcWs.onmessage = (e) => {
+    // Binance WebSocket jonli ulanishi
+    function startBinanceFeed() {
+      const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
+      
+      ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        const symbol = data.s;
         const price = parseFloat(data.p);
-        if (currentAsset === 'BTCUSDT') updatePriceUI(price);
+
+        prices[symbol] = price;
+
+        if (currentAsset === symbol) {
+          updatePriceUI(price);
+        }
       };
 
-      // EURUSD narx oqimi
-      let eurBase = 1.0850;
-      eurInterval = setInterval(() => {
-        const delta = (Math.random() - 0.5) * 0.0004;
-        eurBase = +(eurBase + delta).toFixed(4);
-        if (currentAsset === 'EURUSD') updatePriceUI(eurBase);
-      }, 1000);
+      ws.onerror = () => {
+        document.getElementById('price').innerText = "Aloqa uzildi";
+      };
     }
 
     function switchAsset(asset) {
@@ -114,28 +145,51 @@
       }
       currentAsset = asset;
       const btcBtn = document.getElementById('btn-btc');
-      const eurBtn = document.getElementById('btn-eur');
+      const ethBtn = document.getElementById('btn-eth');
       const pairLabel = document.getElementById('pair-label');
 
       if (asset === 'BTCUSDT') {
         pairLabel.innerText = "BTC/USDT Narxi";
-        btcBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        eurBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400";
+        btcBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition";
+        ethBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400 transition";
       } else {
-        pairLabel.innerText = "EUR/USD Narxi";
-        eurBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        btcBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400";
+        pairLabel.innerText = "ETH/USDT Narxi";
+        ethBtn.className = "py-2 text-sm font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition";
+        btcBtn.className = "py-2 text-sm font-semibold rounded-lg text-gray-400 transition";
       }
-      document.getElementById('price').innerText = "Yuklanmoqda...";
+
+      if (prices[currentAsset] > 0) {
+        updatePriceUI(prices[currentAsset]);
+      } else {
+        document.getElementById('price').innerText = "Yuklanmoqda...";
+      }
     }
 
     function updatePriceUI(price) {
-      currentPrice = price;
       const priceEl = document.getElementById('price');
-      priceEl.innerText = currentAsset === 'EURUSD' ? "$" + price.toFixed(4) : "$" + price.toLocaleString(undefined, {minimumFractionDigits: 2});
+      priceEl.innerText = "$" + price.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
 
       if (position && position.asset === currentAsset) {
-        calculatePnL();
+        calculatePnL(price);
+      }
+    }
+
+    // Savdo hajmini foiz orqali belgilash
+    function setPercentSize(ratio) {
+      const calculated = Math.floor(balance * ratio);
+      const inputEl = document.getElementById('order-size-input');
+      inputEl.value = calculated;
+      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
+    }
+
+    function onManualSizeChange() {
+      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
+      if (balance > 0) {
+        const pct = ((inputVal / balance) * 100).toFixed(0);
+        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
       }
     }
 
@@ -144,25 +198,37 @@
         alert("Sizda allaqachon ochiq pozitsiya bor!");
         return;
       }
-      if (currentPrice <= 0) return;
+      const livePrice = prices[currentAsset];
+      if (!livePrice || livePrice <= 0) return;
 
-      const orderSize = 1000;
+      const orderSize = parseFloat(document.getElementById('order-size-input').value) || 0;
+
+      if (orderSize <= 0) {
+        alert("Iltimos, to'g'ri savdo hajmini kiriting!");
+        return;
+      }
+      if (orderSize > balance) {
+        alert("Mablag' yetarli emas! Balansingiz: $" + balance.toFixed(2));
+        return;
+      }
+
       balance -= orderSize;
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
 
       position = {
         type: type,
-        entryPrice: currentPrice,
+        entryPrice: livePrice,
         size: orderSize,
         asset: currentAsset
       };
 
-      document.getElementById('pos-type').innerText = `${position.type} (${position.asset})`;
-      document.getElementById('pos-entry').innerText = "$" + position.entryPrice;
+      document.getElementById('pos-type').innerText = `${position.type} (${position.asset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
+      document.getElementById('pos-size').innerText = "$" + position.size.toFixed(2);
+      document.getElementById('pos-entry').innerText = "$" + position.entryPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
       document.getElementById('position-card').classList.remove('hidden');
     }
 
-    function calculatePnL() {
+    function calculatePnL(currentPrice) {
       let diff = (currentPrice - position.entryPrice) / position.entryPrice;
       if (position.type === 'SHORT') diff = -diff;
 
@@ -176,7 +242,8 @@
 
     function closePosition() {
       if (!position) return;
-      let diff = (currentPrice - position.entryPrice) / position.entryPrice;
+      const livePrice = prices[position.asset];
+      let diff = (livePrice - position.entryPrice) / position.entryPrice;
       if (position.type === 'SHORT') diff = -diff;
 
       const pnlUSD = position.size * diff;
@@ -185,9 +252,12 @@
       document.getElementById('balance').innerText = "$" + balance.toFixed(2);
       document.getElementById('position-card').classList.add('hidden');
       position = null;
+      
+      // Hajm maydonini yangi balansga moslashtirish (default 10%)
+      setPercentSize(0.1);
     }
 
-    startPriceFeeds();
+    startBinanceFeed();
   </script>
 </body>
 </html>
