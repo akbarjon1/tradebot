@@ -173,12 +173,27 @@
 
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) { tg.ready(); tg.expand(); }
+    if (tg) { 
+      tg.ready(); 
+      tg.expand(); 
+    }
 
-    const userId = tg?.initDataUnsafe?.user?.id || 'default_user';
-    const KEY_BALANCE = `obs_bal_${userId}`;
-    const KEY_POSITIONS = `obs_pos_v2_${userId}`;
     const API_BASE = "https://tradebot-xelo.onrender.com";
+
+    // Telegram profilini aniq va xatosiz olish
+    function getTelegramUser() {
+      const u = tg?.initDataUnsafe?.user;
+      if (u && u.id) {
+        let uname = u.username ? `@${u.username}` : (u.first_name || `Trader_${String(u.id).slice(-4)}`);
+        return { id: String(u.id), username: uname };
+      }
+      return { id: 'default_user', username: 'Trader_Guest' };
+    }
+
+    let currentUser = getTelegramUser();
+    let userId = currentUser.id;
+    let KEY_BALANCE = `obs_bal_${userId}`;
+    let KEY_POSITIONS = `obs_pos_v2_${userId}`;
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
@@ -198,6 +213,12 @@
     }
 
     function initData() {
+      // Qayta tekshirib, agar Telegram yuklangan bo'lsa yangilab olamiz
+      currentUser = getTelegramUser();
+      userId = currentUser.id;
+      KEY_BALANCE = `obs_bal_${userId}`;
+      KEY_POSITIONS = `obs_pos_v2_${userId}`;
+
       const localBal = localStorage.getItem(KEY_BALANCE);
       const localPos = localStorage.getItem(KEY_POSITIONS);
 
@@ -217,6 +238,7 @@
       }
 
       applyUI();
+    }
 
       if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItems === 'function') {
         try {
@@ -402,17 +424,13 @@
     }
 
    // Balansni jo'natish (Haqiqiy Telegram ma'lumotlari bilan)
-    async function syncBalanceWithServer() {
-      const tgUser = tg?.initDataUnsafe?.user;
-      const currentUserId = tgUser?.id || userId;
+   async function syncBalanceWithServer() {
+      const activeUser = getTelegramUser();
       
-      let currentUsername = "Trader";
-      if (tgUser?.username) {
-        currentUsername = `@${tgUser.username}`;
-      } else if (tgUser?.first_name) {
-        currentUsername = tgUser.first_name;
-      } else {
-        currentUsername = `Trader_${currentUserId.toString().slice(-4)}`;
+      // Agar baribir default_user bo'lsa, jadvalni buzmaslik uchun jo'natmaymiz
+      if (activeUser.id === 'default_user') {
+        console.log("Telegram ma'lumotlari topilmadi");
+        return;
       }
 
       try {
@@ -420,12 +438,14 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: String(currentUserId),
-            username: currentUsername,
-            balance: Number(balance.toFixed(2)) // Aniq 2 xonali son
+            user_id: activeUser.id,
+            username: activeUser.username,
+            balance: Number(balance.toFixed(2))
           })
         });
-      } catch (e) {}
+      } catch (e) {
+        console.error("Sinxronlash xatosi:", e);
+      }
     }
 
     // Modalda ko'rsatish
