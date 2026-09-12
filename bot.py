@@ -9,7 +9,7 @@ import feedparser
 import telebot
 import gspread
 from google.oauth2.service_account import Credentials
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
@@ -239,8 +239,9 @@ def add_comment():
             )
             bot.send_message(CHANNEL_ID, tg_text, parse_mode="Markdown")
         except Exception as e:
-            print(f"Kanalga yuborishda xatolik: {e}")
-    return home()
+        print(f"Kanalga yuborishda xatolik: {e}")
+
+    return redirect(url_for('home'))
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
