@@ -14,6 +14,7 @@ from google import genai
 from google.genai import types as genai_types
 from groq import Groq
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from flask_cors import CORS
 
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
@@ -137,6 +138,7 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
+CORS(app)  # Brauzer so'roviga ruxsat beradi
 
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
 def get_ai_analysis(prompt: str) -> str:
@@ -250,13 +252,14 @@ def add_comment():
 @app.route('/api/update_balance', methods=['POST'])
 def update_leaderboard():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(force=True) or {}
         user_id = str(data.get('user_id', ''))
         username = data.get('username') or f"Trader_{user_id[:4]}"
         balance = float(data.get('balance', 10000))
 
-        sheet = get_sheet_client()
-        spreadsheet = sheet.spreadsheet
+        # Jadvalni (sheet1 ni emas, butun faylni) olamiz
+        sheet_obj = get_sheet_client() #[cite: 3]
+        spreadsheet = getattr(sheet_obj, 'spreadsheet', sheet_obj)
 
         try:
             ws = spreadsheet.worksheet("Leaderboard")
@@ -283,6 +286,26 @@ def update_leaderboard():
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Leaderboard yangilashda xatolik: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    try:
+        sheet_obj = get_sheet_client() #[cite: 3]
+        spreadsheet = getattr(sheet_obj, 'spreadsheet', sheet_obj)
+
+        try:
+            ws = spreadsheet.worksheet("Leaderboard")
+        except Exception:
+            return jsonify({"status": "success", "leaders": []})
+
+        records = ws.get_all_records()
+        sorted_leaders = sorted(records, key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
+
+        return jsonify({"status": "success", "leaders": sorted_leaders})
+    except Exception as e:
+        print(f"Leaderboard olishda xatolik: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
