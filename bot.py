@@ -13,6 +13,8 @@ from flask import Flask, render_template, request
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
 def get_env(key, default=""):
@@ -246,9 +248,23 @@ def run_flask():
 
 # --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.send_message(message.chat.id, "Salom bratva! Obsidian Radar yonizda. Bozor qon yig'layaptimi yo yashil shamlar bormi? Signal bo'lsa tashlang bazaga tiqamiz, savol bo'lsa bemalol — gaplashamiz!")
+def handle_start(message):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    
+    # Yangi Mini App havolasi
+    tma_button = KeyboardButton(
+        text="🚀 Savdo Terminalini ochish", 
+        web_app=WebAppInfo(url="https://akbarjon1.github.io/tradebot/")
+    )
+    markup.add(tma_button)
 
+    bot.reply_to(
+        message, 
+        "⚡️ *Obsidian Lab Paper-Trading platformasiga xush kelibsiz!*\n\n"
+        "Virtual $10,000 balans bilan savdo qilish uchun quyidagi tugmani bosing:",
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
