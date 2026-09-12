@@ -138,7 +138,7 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
-CORS(app)  # Brauzer so'roviga ruxsat beradi
+CORS(app)  # Brauzer so'roviga to'liq ruxsat beradi
 
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
 def get_ai_analysis(prompt: str) -> str:
@@ -148,7 +148,7 @@ def get_ai_analysis(prompt: str) -> str:
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config=genai_types.GenerateContentConfig(
-                    temperature=0.65    ,
+                    temperature=0.65,
                     max_output_tokens=800,
                 ),
             )
@@ -246,20 +246,20 @@ def add_comment():
     return redirect(url_for('home'))
 
 # ----------------------------------------------------
-# LEADERBOARD API ENDPOINTS
+# LEADERBOARD API ENDPOINTS (Google Sheets bilan bog'langan)
 # ----------------------------------------------------
 
 @app.route('/api/update_balance', methods=['POST'])
 def update_leaderboard():
+    global spreadsheet
     try:
         data = request.get_json(force=True) or {}
         user_id = str(data.get('user_id', ''))
         username = data.get('username') or f"Trader_{user_id[:4]}"
         balance = float(data.get('balance', 10000))
 
-        # Jadvalni (sheet1 ni emas, butun faylni) olamiz
-        sheet_obj = get_sheet_client() #[cite: 3]
-        spreadsheet = getattr(sheet_obj, 'spreadsheet', sheet_obj)
+        if not spreadsheet:
+            return jsonify({"status": "error", "message": "Spreadsheet ulanmagan"}), 500
 
         try:
             ws = spreadsheet.worksheet("Leaderboard")
@@ -291,9 +291,10 @@ def update_leaderboard():
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
+    global spreadsheet
     try:
-        sheet_obj = get_sheet_client() #[cite: 3]
-        spreadsheet = getattr(sheet_obj, 'spreadsheet', sheet_obj)
+        if not spreadsheet:
+            return jsonify({"status": "success", "leaders": []})
 
         try:
             ws = spreadsheet.worksheet("Leaderboard")
@@ -313,16 +314,11 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
 # --- 5. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     
-    # Yangi Mini App havolasi
     tma_button = KeyboardButton(
         text="🚀 Savdo Terminalini ochish", 
         web_app=WebAppInfo(url="https://akbarjon1.github.io/tradebot/")
@@ -336,6 +332,7 @@ def handle_start(message):
         reply_markup=markup,
         parse_mode="Markdown"
     )
+
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
     user_text = message.text
@@ -384,6 +381,7 @@ def handle_trade_message(message):
 
     except Exception as e:
         bot.send_message(message.chat.id, f"Brat, xatolik berdi: {e}")
+
 # --- 6. GOOGLE SHEETS MONITORING ---
 sent_trade_ids = set()
 
