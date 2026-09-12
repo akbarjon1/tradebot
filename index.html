@@ -424,28 +424,65 @@
     }
 
    // Balansni jo'natish (Haqiqiy Telegram ma'lumotlari bilan)
-   async function syncBalanceWithServer() {
-      const activeUser = getTelegramUser();
-      
-      // Agar baribir default_user bo'lsa, jadvalni buzmaslik uchun jo'natmaymiz
-      if (activeUser.id === 'default_user') {
-        console.log("Telegram ma'lumotlari topilmadi");
-        return;
+   // Tezkor narx olish (REST API)
+    async function fetchFallbackPrices() {
+      try {
+        const symbol = currentAsset; // BTCUSDT yoki ETHUSDT
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+        const data = await res.json();
+        const price = parseFloat(data.price);
+        if (price > 0) {
+          prices[symbol] = price;
+          updatePriceUI(price);
+          if (positions[symbol]) {
+            calculatePnL(symbol, price);
+          }
+        }
+      } catch (err) {
+        console.error("Narx olishda xatolik:", err);
+      }
+    }
+
+    // Jonli narx oqimi (WebSocket + Avtomatik zaxira)
+    function startBinanceFeed() {
+      // 1. Ochilishi bilanoq zaxiradan narxni darhol tortadi (Yuklanmoqda qotib qolmasligi uchun)
+      fetchFallbackPrices();
+
+      // 2. WebSocket oqimi
+      try {
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
+
+        ws.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            const symbol = data.s;
+            const price = parseFloat(data.p);
+
+            prices[symbol] = price;
+
+            if (currentAsset === symbol) {
+              updatePriceUI(price);
+            }
+
+            if (positions[symbol]) {
+              calculatePnL(symbol, price);
+            }
+          } catch (err) {}
+        };
+
+        ws.onerror = () => {
+          fetchFallbackPrices();
+        };
+
+        ws.onclose = () => {
+          setTimeout(startBinanceFeed, 3000);
+        };
+      } catch (e) {
+        fetchFallbackPrices();
       }
 
-      try {
-        await fetch(`${API_BASE}/api/update_balance`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: activeUser.id,
-            username: activeUser.username,
-            balance: Number(balance.toFixed(2))
-          })
-        });
-      } catch (e) {
-        console.error("Sinxronlash xatosi:", e);
-      }
+      // 3. Har 3 soniyada narxni tekshirib turish (WebSocket uzilib qolsa ham narx yurishi uchun)
+      setInterval(fetchFallbackPrices, 3000);
     }
 
     // Modalda ko'rsatish
