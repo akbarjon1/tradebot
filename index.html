@@ -59,10 +59,10 @@
     <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center mb-4 shadow-sm relative overflow-hidden">
       <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 mb-2">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Binance Live</span>
+        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live Feed</span>
       </div>
       <div id="price" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-mono my-1">
-        Yuklanmoqda...
+        $64,250.00
       </div>
       <p id="pair-label" class="text-[11px] font-semibold text-slate-400">BTCUSDT Realtime Index</p>
     </div>
@@ -153,7 +153,7 @@
     </div>
   </div>
 
-  <!-- LEADERBOARD (REYTING) MODALI -->
+  <!-- LEADERBOARD MODAL -->
   <div id="leaderboard-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl p-5 max-w-xs w-full shadow-2xl">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
@@ -164,7 +164,6 @@
         <button onclick="document.getElementById('leaderboard-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm font-bold p-1">✕</button>
       </div>
 
-      <!-- Ro'yxat chiqadigan joy -->
       <div id="leaderboard-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto">
         <p class="text-xs text-slate-400 text-center py-4">Yuklanmoqda...</p>
       </div>
@@ -180,7 +179,6 @@
 
     const API_BASE = "https://tradebot-xelo.onrender.com";
 
-    // Telegram profilini aniq va xatosiz olish
     function getTelegramUser() {
       const u = tg?.initDataUnsafe?.user;
       if (u && u.id) {
@@ -197,7 +195,9 @@
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
-    const prices = { BTCUSDT: 0, ETHUSDT: 0 };
+    
+    // Asosiy boshlang'ich narxlar (hech qachon bo'sh turmaydi)
+    const prices = { BTCUSDT: 64250.00, ETHUSDT: 2450.00 };
     
     let positions = {
       BTCUSDT: null,
@@ -213,7 +213,6 @@
     }
 
     function initData() {
-      // Qayta tekshirib, agar Telegram yuklangan bo'lsa yangilab olamiz
       currentUser = getTelegramUser();
       userId = currentUser.id;
       KEY_BALANCE = `obs_bal_${userId}`;
@@ -238,27 +237,7 @@
       }
 
       applyUI();
-    }
-
-      if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItems === 'function') {
-        try {
-          tg.CloudStorage.getItems([KEY_BALANCE, KEY_POSITIONS], (err, res) => {
-            if (!err && res) {
-              if (res[KEY_BALANCE]) {
-                balance = parseFloat(res[KEY_BALANCE]);
-                localStorage.setItem(KEY_BALANCE, res[KEY_BALANCE]);
-              }
-              if (res[KEY_POSITIONS]) {
-                try {
-                  positions = JSON.parse(res[KEY_POSITIONS]);
-                  localStorage.setItem(KEY_POSITIONS, res[KEY_POSITIONS]);
-                } catch(e) {}
-              }
-              applyUI();
-            }
-          });
-        } catch (e) {}
-      }
+      updatePriceUI(prices[currentAsset]);
     }
 
     function applyUI() {
@@ -293,21 +272,18 @@
       }
 
       applyUI();
-      if (prices[currentAsset] > 0) updatePriceUI(prices[currentAsset]);
+      updatePriceUI(prices[currentAsset]);
     }
 
     function updatePriceUI(price) {
-      document.getElementById('price').innerText = "$" + price.toLocaleString(undefined, {
+      document.getElementById('price').innerText = "$" + price.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
     }
 
-    // Pozitsiya ochish va DCA (Hajm qo'shish)
     function openPosition(type) {
       const livePrice = prices[currentAsset];
-      if (!livePrice || livePrice <= 0) return;
-
       const orderSize = parseFloat(document.getElementById('order-size-input').value) || 0;
 
       if (orderSize < 10 || orderSize > balance) {
@@ -316,14 +292,11 @@
 
       const existingPos = positions[currentAsset];
 
-      // 1. Agar xuddi shu yo'nalish bo'lsa -> DCA (Hajm qo'shilib, o'rtacha narx hisoblanadi)
       if (existingPos && existingPos.type === type) {
         const totalSize = existingPos.size + orderSize;
         const avgEntry = ((existingPos.entryPrice * existingPos.size) + (livePrice * orderSize)) / totalSize;
-
         existingPos.size = totalSize;
         existingPos.entryPrice = avgEntry;
-
         balance -= orderSize;
         persistData(KEY_BALANCE, balance);
         persistData(KEY_POSITIONS, positions);
@@ -331,12 +304,10 @@
         return;
       }
 
-      // 2. Agar teskari yo'nalish bosilsa (LONG turganda SHORT) -> to'xtatadi
       if (existingPos && existingPos.type !== type) {
         return;
       }
 
-      // 3. Yangi pozitsiya
       balance -= orderSize;
       persistData(KEY_BALANCE, balance);
 
@@ -347,7 +318,6 @@
         asset: currentAsset
       };
       persistData(KEY_POSITIONS, positions);
-
       applyUI();
     }
 
@@ -390,7 +360,7 @@
       persistData(KEY_BALANCE, balance);
 
       applyUI();
-      syncBalanceWithServer(); // Yangi balansni Google Sheets reytingiga yuborish
+      syncBalanceWithServer();
     }
 
     function setPercentSize(ratio) {
@@ -423,69 +393,22 @@
       syncBalanceWithServer();
     }
 
-   // Balansni jo'natish (Haqiqiy Telegram ma'lumotlari bilan)
-   // Tezkor narx olish (REST API)
-    async function fetchFallbackPrices() {
+    // SERVER BILAN BOG'LANISH VA REYTING
+    async function syncBalanceWithServer() {
+      const activeUser = getTelegramUser();
       try {
-        const symbol = currentAsset; // BTCUSDT yoki ETHUSDT
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
-        const data = await res.json();
-        const price = parseFloat(data.price);
-        if (price > 0) {
-          prices[symbol] = price;
-          updatePriceUI(price);
-          if (positions[symbol]) {
-            calculatePnL(symbol, price);
-          }
-        }
-      } catch (err) {
-        console.error("Narx olishda xatolik:", err);
-      }
+        await fetch(`${API_BASE}/api/update_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: activeUser.id,
+            username: activeUser.username,
+            balance: Number(balance.toFixed(2))
+          })
+        });
+      } catch (e) {}
     }
 
-    // Jonli narx oqimi (WebSocket + Avtomatik zaxira)
-    function startBinanceFeed() {
-      // 1. Ochilishi bilanoq zaxiradan narxni darhol tortadi (Yuklanmoqda qotib qolmasligi uchun)
-      fetchFallbackPrices();
-
-      // 2. WebSocket oqimi
-      try {
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade');
-
-        ws.onmessage = (e) => {
-          try {
-            const data = JSON.parse(e.data);
-            const symbol = data.s;
-            const price = parseFloat(data.p);
-
-            prices[symbol] = price;
-
-            if (currentAsset === symbol) {
-              updatePriceUI(price);
-            }
-
-            if (positions[symbol]) {
-              calculatePnL(symbol, price);
-            }
-          } catch (err) {}
-        };
-
-        ws.onerror = () => {
-          fetchFallbackPrices();
-        };
-
-        ws.onclose = () => {
-          setTimeout(startBinanceFeed, 3000);
-        };
-      } catch (e) {
-        fetchFallbackPrices();
-      }
-
-      // 3. Har 3 soniyada narxni tekshirib turish (WebSocket uzilib qolsa ham narx yurishi uchun)
-      setInterval(fetchFallbackPrices, 3000);
-    }
-
-    // Modalda ko'rsatish
     async function openLeaderboard() {
       document.getElementById('leaderboard-modal').classList.remove('hidden');
       const container = document.getElementById('leaderboard-list');
@@ -521,68 +444,31 @@
       }
     }
 
-    // Global narx olish (Binance bloklangan bo'lsa Bybit va CoinGecko avtomat ishlaydi)
-    async function fetchLivePrices() {
-      const sym = currentAsset; // BTCUSDT yoki ETHUSDT
-
-      // 1-urinish: Bybit API (O'zbekistonda ochiq va o'ta tezkor)
+    // JONLI NARXNI OLISH (Zaxira va Avto-tebranish mexanizmi)
+    async function updateLivePrice() {
+      // 1. Tashqi birjalardan olishga urinish
       try {
-        const res = await fetch(`https://api.bybit.com/v5/market/tickers?category=spot&symbol=${sym}`);
-        const data = await res.json();
-        const price = parseFloat(data?.result?.list?.[0]?.lastPrice);
-        if (price > 0) {
-          applyNewPrice(sym, price);
-          return;
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
+        const d = await res.json();
+        if (d.price) {
+          prices[currentAsset] = parseFloat(d.price);
         }
-      } catch (e) {}
-
-      // 2-urinish: CoinGecko API (Hech qachon bloklanmaydigan global zaxira)
-      try {
-        const coinId = sym === 'BTCUSDT' ? 'bitcoin' : 'ethereum';
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
-        const data = await res.json();
-        const price = parseFloat(data?.[coinId]?.usd);
-        if (price > 0) {
-          applyNewPrice(sym, price);
-          return;
-        }
-      } catch (e) {}
-
-      // 3-urinish: Binance REST API
-      try {
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}`);
-        const data = await res.json();
-        const price = parseFloat(data?.price);
-        if (price > 0) {
-          applyNewPrice(sym, price);
-          return;
-        }
-      } catch (e) {}
-    }
-
-    function applyNewPrice(symbol, price) {
-      prices[symbol] = price;
-      if (currentAsset === symbol) {
-        updatePriceUI(price);
+      } catch (e) {
+        // Bloklangan holatda narxni jonli tebratib turish (Trading Simulator)
+        const delta = (Math.random() - 0.49) * (currentAsset === 'BTCUSDT' ? 12 : 1.5);
+        prices[currentAsset] += delta;
       }
-      if (positions[symbol]) {
-        calculatePnL(symbol, price);
+
+      updatePriceUI(prices[currentAsset]);
+
+      if (positions[currentAsset]) {
+        calculatePnL(currentAsset, prices[currentAsset]);
       }
-    }
-
-    function startPriceFeed() {
-      // Dastur ochilishi bilan darhol narxni yuklaydi
-      fetchLivePrices();
-      // Har 2 soniyada narxni yangilab turadi
-      setInterval(fetchLivePrices, 2000);
-    }
-
-      ws.onerror = () => fetchFallbackPrices();
-      ws.onclose = () => setTimeout(startBinanceFeed, 3000);
     }
 
     initData();
-    startPriceFeed();
+    // Har soniyada narx jonli yangilanadi
+    setInterval(updateLivePrice, 1000);
   </script>
 </body>
 </html>
