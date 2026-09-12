@@ -401,22 +401,34 @@
       syncBalanceWithServer();
     }
 
-    // SERVER BILAN REYTING ALOQASI
+   // Balansni jo'natish (Haqiqiy Telegram ma'lumotlari bilan)
     async function syncBalanceWithServer() {
-      const username = tg?.initDataUnsafe?.user?.username || tg?.initDataUnsafe?.user?.first_name || `Trader_${userId.toString().slice(-4)}`;
+      const tgUser = tg?.initDataUnsafe?.user;
+      const currentUserId = tgUser?.id || userId;
+      
+      let currentUsername = "Trader";
+      if (tgUser?.username) {
+        currentUsername = `@${tgUser.username}`;
+      } else if (tgUser?.first_name) {
+        currentUsername = tgUser.first_name;
+      } else {
+        currentUsername = `Trader_${currentUserId.toString().slice(-4)}`;
+      }
+
       try {
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: userId,
-            username: username,
-            balance: balance
+            user_id: String(currentUserId),
+            username: currentUsername,
+            balance: Number(balance.toFixed(2)) // Aniq 2 xonali son
           })
         });
       } catch (e) {}
     }
 
+    // Modalda ko'rsatish
     async function openLeaderboard() {
       document.getElementById('leaderboard-modal').classList.remove('hidden');
       const container = document.getElementById('leaderboard-list');
@@ -429,13 +441,18 @@
         if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
           container.innerHTML = data.leaders.map((item, idx) => {
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+            const displayBal = Number(item.Balance).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+
             return `
               <div class="flex items-center justify-between p-2 rounded-xl ${idx < 3 ? 'bg-amber-50/70 border border-amber-100' : 'bg-slate-50'} text-xs">
                 <div class="flex items-center gap-2">
                   <span class="font-bold font-mono text-slate-500 w-5">${medal}</span>
-                  <span class="font-semibold text-slate-800">${item.Username.startsWith('@') ? item.Username : '@' + item.Username}</span>
+                  <span class="font-semibold text-slate-800">${item.Username}</span>
                 </div>
-                <span class="font-bold font-mono text-emerald-600">$${parseFloat(item.Balance).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span class="font-bold font-mono text-emerald-600">$${displayBal}</span>
               </div>
             `;
           }).join('');
