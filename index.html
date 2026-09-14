@@ -21,6 +21,36 @@
 </head>
 <body class="p-4 sm:p-5 flex flex-col min-h-screen justify-between relative max-w-md mx-auto">
 
+  <!-- 1. MAJBURIY LOGIN (KIRISH) OYNASI -->
+  <div id="login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-5">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-xs shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xl font-black mx-auto mb-3 shadow-md">
+        ◆
+      </div>
+      <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Obsidian Terminal</h2>
+      <p class="text-xs text-slate-400 mt-1 mb-5">Savdoni boshlash va reytingda qatnashish uchun ismingizni kiriting</p>
+
+      <div class="mb-4 text-left">
+        <label class="text-[11px] font-bold text-slate-600 block mb-1">Telegram Nik yoki Ism:</label>
+        <input 
+          id="login-username-input" 
+          type="text" 
+          placeholder="@sizning_nik yoki Ismingiz"
+          maxlength="20"
+          class="w-full bg-slate-50 border border-slate-300 focus:border-slate-900 rounded-xl py-2.5 px-3 text-xs font-bold text-slate-900 outline-none transition"
+        />
+      </div>
+
+      <button 
+        type="button" 
+        onclick="submitLogin()" 
+        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm cursor-pointer"
+      >
+        Terminalga kirish 🚀
+      </button>
+    </div>
+  </div>
+
   <!-- Yuqori qism: Brend, Nik va Balans -->
   <div>
     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200">
@@ -30,10 +60,10 @@
         </div>
         <div>
           <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Obsidian Lab</h1>
-          <!-- Telegram Nik va Tahrirlash -->
-          <div onclick="editMyUsername()" class="flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition">
-            <span id="display-username" class="text-xs font-bold text-slate-800">@username</span>
-            <span class="text-[10px] text-slate-400">✏️</span>
+          <!-- Foydalanuvchi Nikini tahrirlash -->
+          <div onclick="editMyUsername()" class="flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition">
+            <span id="display-username" class="text-[11px] font-bold text-slate-700">Yuklanmoqda...</span>
+            <span class="text-[9px] text-slate-400">✏️</span>
           </div>
         </div>
       </div>
@@ -193,7 +223,6 @@
       try { localStorage.setItem(key, val); } catch (e) {}
     }
 
-    // Foydalanuvchi identifikatorini olish
     function getUserId() {
       const u = tg?.initDataUnsafe?.user;
       if (u && u.id) return String(u.id);
@@ -206,47 +235,8 @@
       return localId;
     }
 
-    // Foydalanuvchi Telegram nikini aniqlash
-    function initUsername() {
-      let saved = safeGetItem('obs_tg_username');
-      if (saved && saved !== 'Trader' && saved !== 'Trader_Guest') {
-        return saved;
-      }
-
-      const u = tg?.initDataUnsafe?.user;
-      if (u?.username) {
-        saved = `@${u.username}`;
-      } else if (u?.first_name) {
-        saved = `${u.first_name || ''} ${u.last_name || ''}`.trim();
-      }
-
-      // Agar Telegram'dan topilmasa, bir marta so'raymiz
-      if (!saved || saved === 'Trader' || saved === 'Trader_Guest') {
-        const entered = prompt("Leaderboard'da ko'rinishi uchun Telegram @username'ingizni kiriting:", "@");
-        if (entered && entered.trim().length > 1) {
-          saved = entered.trim().startsWith('@') ? entered.trim() : `@${entered.trim()}`;
-        } else {
-          saved = `@trader_${getUserId().slice(-4)}`;
-        }
-      }
-
-      safeSetItem('obs_tg_username', saved);
-      return saved;
-    }
-
-    function editMyUsername() {
-      const current = safeGetItem('obs_tg_username') || myUsername;
-      const entered = prompt("Telegram @username'ingizni o'zgartiring:", current);
-      if (entered && entered.trim().length > 1) {
-        myUsername = entered.trim().startsWith('@') ? entered.trim() : `@${entered.trim()}`;
-        safeSetItem('obs_tg_username', myUsername);
-        document.getElementById('display-username').innerText = myUsername;
-        syncBalanceWithServer();
-      }
-    }
-
     let userId = getUserId();
-    let myUsername = initUsername();
+    let myUsername = safeGetItem('obs_confirmed_username');
 
     let KEY_BALANCE = `obs_bal_${userId}`;
     let KEY_POSITIONS = `obs_pos_v2_${userId}`;
@@ -255,6 +245,61 @@
     let currentAsset = 'BTCUSDT';
     const prices = { BTCUSDT: 78100.00, ETHUSDT: 2500.00 };
     let positions = { BTCUSDT: null, ETHUSDT: null };
+
+    // LOGIN TEKSHIRUVI
+    function checkLoginStatus() {
+      const modal = document.getElementById('login-modal');
+      // Agar avval ism kiritgan bo'lsa modalni yopamiz
+      if (myUsername && myUsername.trim() !== '' && myUsername !== 'Trader') {
+        modal.classList.add('hidden');
+        document.getElementById('display-username').innerText = myUsername;
+        initData();
+      } else {
+        // Avtomatik Telegram nikini inputga taklif sifatida yozib turamiz
+        const u = tg?.initDataUnsafe?.user;
+        const defaultName = u?.username ? `@${u.username}` : (u?.first_name || '');
+        const input = document.getElementById('login-username-input');
+        if (input && defaultName) input.value = defaultName;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    // KIRISH TUGMASI BOSILGANDA
+    function submitLogin() {
+      const input = document.getElementById('login-username-input');
+      let entered = input.value.trim();
+
+      if (!entered || entered.length < 2) {
+        alert("Iltimos, ismingiz yoki @username'ingizni kiriting!");
+        return;
+      }
+
+      // Agar birinchi belgisi @ bo'lmasa, o'zimiz qo'shamiz
+      if (!entered.startsWith('@')) {
+        entered = '@' + entered;
+      }
+
+      myUsername = entered;
+      safeSetItem('obs_confirmed_username', myUsername);
+
+      document.getElementById('login-modal').classList.add('hidden');
+      document.getElementById('display-username').innerText = myUsername;
+
+      initData();
+      syncBalanceWithServer();
+    }
+
+    function editMyUsername() {
+      const newName = prompt("Telegram @username'ingizni o'zgartiring:", myUsername);
+      if (newName && newName.trim().length > 1) {
+        let clean = newName.trim();
+        if (!clean.startsWith('@')) clean = '@' + clean;
+        myUsername = clean;
+        safeSetItem('obs_confirmed_username', myUsername);
+        document.getElementById('display-username').innerText = myUsername;
+        syncBalanceWithServer();
+      }
+    }
 
     function persistData(key, value) {
       const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
@@ -283,13 +328,9 @@
         }
       }
 
-      document.getElementById('display-username').innerText = myUsername;
       setPercentSize(0.1);
       applyUI();
       updatePriceUI(prices[currentAsset]);
-      
-      // Birinchi kirishdayoq o'z nikini jadvalga ro'yxatdan o'tkazadi
-      syncBalanceWithServer();
     }
 
     function applyUI() {
@@ -456,7 +497,10 @@
       syncBalanceWithServer();
     }
 
+    // Google Sheets jadvaliga yuborish
     async function syncBalanceWithServer() {
+      if (!myUsername || myUsername === 'Trader') return;
+
       try {
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
@@ -525,7 +569,8 @@
       }
     }
 
-    initData();
+    // Ishga tushirish
+    checkLoginStatus();
     setInterval(updateLivePrice, 1000);
   </script>
 </body>
