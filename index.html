@@ -30,9 +30,9 @@
         </div>
         <div>
           <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Obsidian Lab</h1>
-          <div onclick="changeNickname()" class="flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition">
-            <span id="display-username" class="text-[11px] font-bold text-slate-700">@Trader</span>
-            <span class="text-[9px] text-slate-400">✏️</span>
+          <!-- Telegram Profil Nomi -->
+          <div class="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
+            <span id="display-username" class="text-[11px] font-bold text-slate-700">Yuklanmoqda...</span>
           </div>
         </div>
       </div>
@@ -174,39 +174,59 @@
   </div>
 
   <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) { 
-      try {
-        tg.ready(); 
-        tg.expand(); 
-      } catch(e){}
-    }
+    let tg = null;
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+      }
+    } catch (e) {}
 
     const API_BASE = "https://tradebot-xelo.onrender.com";
+
+    const memoryStore = {};
+    function safeGetItem(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return memoryStore[key] || null;
+      }
+    }
+
+    function safeSetItem(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {
+        memoryStore[key] = val;
+      }
+    }
+
+    // Haqiqiy Telegram @username yoki Ismini olish
+    function getTelegramProfile() {
+      const u = tg?.initDataUnsafe?.user;
+      if (u) {
+        if (u.username) return `@${u.username}`;
+        if (u.first_name || u.last_name) return `${u.first_name || ''} ${u.last_name || ''}`.trim();
+      }
+      const saved = safeGetItem('obs_custom_username');
+      if (saved) return saved;
+      return "Trader";
+    }
 
     function getUserId() {
       const u = tg?.initDataUnsafe?.user;
       if (u && u.id) return String(u.id);
-      let localId = localStorage.getItem('obs_local_uid');
+      let localId = safeGetItem('obs_local_uid');
       if (!localId) {
         localId = 'user_' + Math.floor(Math.random() * 899999 + 100000);
-        localStorage.setItem('obs_local_uid', localId);
+        safeSetItem('obs_local_uid', localId);
       }
       return localId;
     }
 
-    function getSavedUsername() {
-      const saved = localStorage.getItem('obs_custom_username');
-      if (saved) return saved;
-
-      const u = tg?.initDataUnsafe?.user;
-      if (u?.username) return `@${u.username}`;
-      if (u?.first_name) return u.first_name;
-      return `Trader_${getUserId().slice(-4)}`;
-    }
-
     let userId = getUserId();
-    let myUsername = getSavedUsername();
+    let myUsername = getTelegramProfile();
 
     let KEY_BALANCE = `obs_bal_${userId}`;
     let KEY_POSITIONS = `obs_pos_v2_${userId}`;
@@ -222,15 +242,18 @@
 
     function persistData(key, value) {
       const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
-      localStorage.setItem(key, valStr);
+      safeSetItem(key, valStr);
       try {
         if (tg?.CloudStorage) tg.CloudStorage.setItem(key, valStr);
       } catch (e) {}
     }
 
     function initData() {
-      const localBal = localStorage.getItem(KEY_BALANCE);
-      const localPos = localStorage.getItem(KEY_POSITIONS);
+      myUsername = getTelegramProfile();
+      userId = getUserId();
+
+      const localBal = safeGetItem(KEY_BALANCE);
+      const localPos = safeGetItem(KEY_POSITIONS);
 
       if (localBal !== null) {
         balance = parseFloat(localBal);
@@ -253,17 +276,6 @@
       setPercentSize(0.1);
       applyUI();
       updatePriceUI(prices[currentAsset]);
-    }
-
-    function changeNickname() {
-      const newName = prompt("O'yindagi ismingizni yoki taxallusingizni kiriting:", myUsername);
-      if (newName && newName.trim().length > 0) {
-        myUsername = newName.trim().slice(0, 16);
-        localStorage.setItem('obs_custom_username', myUsername);
-        const nameEl = document.getElementById('display-username');
-        if (nameEl) nameEl.innerText = myUsername;
-        syncBalanceWithServer();
-      }
     }
 
     function applyUI() {
@@ -329,7 +341,6 @@
         return;
       }
 
-      // Agar avval teskari pozitsiya bo'lsa, uni avtomatik yopib yangisini ochadi
       if (positions[currentAsset] && positions[currentAsset].type !== type) {
         closePosition(currentAsset);
       }
@@ -431,7 +442,9 @@
       syncBalanceWithServer();
     }
 
+    // Google Sheets'ga aniq Telegram username bilan yuborish
     async function syncBalanceWithServer() {
+      myUsername = getTelegramProfile();
       try {
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
