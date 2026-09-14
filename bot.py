@@ -209,14 +209,23 @@ def save_trade_to_sheets(title, content):
         print(f"Google Sheets'ga yozishda xatolik: {err_msg}")
         return False, err_msg
 
-# --- 4. FLASK WEB SAYTI ---
+# --- 4. FLASK WEB SAYTI (LANDING PAGE) ---
 CHANNEL_ID = "-5436696482"
 comments_store = []
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
+    """Asosiy rasmiy landing page va veb terminalni ochish"""
     trades = get_trades_from_sheets()
-    return render_template('index.html', trades=trades, comments=comments_store)
+    return render_template(
+        'index.html',
+        title="Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.",
+        username="@trader",
+        api_base="https://tradebot-xelo.onrender.com",
+        bot_url="https://t.me/your_bot_username",  # O'zingizning Telegram bot useringizni yozing
+        trades=trades,
+        comments=comments_store
+    )
 
 @app.route('/add_comment', methods=['POST'])
 def add_comment():
