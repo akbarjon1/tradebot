@@ -497,7 +497,33 @@
       syncBalanceWithServer();
     }
 
-    // Google Sheets jadvaliga yuborish
+    // 1. Foydalanuvchi nikini o'zgartirish funksiyasi
+    async function editMyUsername() {
+      const current = safeGetItem('obs_confirmed_username') || myUsername;
+      const entered = prompt("Telegram @username yoki ismingizni kiriting:", current);
+      
+      if (entered && entered.trim().length > 1) {
+        let clean = entered.trim();
+        if (!clean.startsWith('@')) clean = '@' + clean;
+        
+        myUsername = clean;
+        safeSetItem('obs_confirmed_username', myUsername);
+        
+        const nameEl = document.getElementById('display-username');
+        if (nameEl) nameEl.innerText = myUsername;
+
+        // Yangi nikni darhol Google Sheets'ga jo'natamiz
+        await syncBalanceWithServer();
+
+        // Agar Leaderboard ochiq bo'lsa, uni ham yangilab olamiz
+        const modal = document.getElementById('leaderboard-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+          openLeaderboard();
+        }
+      }
+    }
+
+    // 2. Google Sheets jadvaliga yuborish (Skrinshotdagi funksiyangiz o'rniga)
     async function syncBalanceWithServer() {
       if (!myUsername || myUsername === 'Trader') return;
 
@@ -511,7 +537,9 @@
             balance: Number(balance.toFixed(2))
           })
         });
-      } catch (e) {}
+      } catch (e) {
+        console.error("Sinxronlashda xatolik:", e);
+      }
     }
 
     async function openLeaderboard() {
