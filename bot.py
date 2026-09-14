@@ -250,42 +250,41 @@ def add_comment():
 # ----------------------------------------------------
 
 @app.route('/api/update_balance', methods=['POST'])
-def update_leaderboard():
+def update_balance():
     global spreadsheet
     try:
         data = request.get_json(force=True) or {}
-        user_id = str(data.get('user_id', ''))
-        username = data.get('username') or f"Trader_{user_id[:4]}"
-        balance = float(data.get('balance', 10000))
+        user_id = str(data.get("user_id", "")).strip()
+        username = str(data.get("username", "Trader")).strip()
+        balance = float(data.get("balance", 10000.0))
 
-        if not spreadsheet:
-            return jsonify({"status": "error", "message": "Spreadsheet ulanmagan"}), 500
+        if not spreadsheet or not user_id:
+            return jsonify({"status": "error", "message": "Noto'g'ri ma'lumot"}), 400
 
-        try:
-            ws = spreadsheet.worksheet("Leaderboard")
-        except Exception:
-            ws = spreadsheet.add_worksheet(title="Leaderboard", rows="100", cols="3")
-            ws.append_row(["User ID", "Username", "Balance"])
+        ws = spreadsheet.worksheet("Leaderboard")
+        all_vals = ws.get_all_values()
 
-        records = ws.get_all_records()
-        row_idx = None
+        row_to_update = None
+        for i, row in enumerate(all_vals[1:], start=2):
+            if len(row) >= 1:
+                # Asosiy kalit: foydalanuvchi ID si
+                if row[0].strip() == user_id:
+                    row_to_update = i
+                    break
 
-        for i, row in enumerate(records, start=2):
-            if str(row.get("User ID")) == user_id:
-                row_idx = i
-                break
+        formatted_bal = f"{balance:.2f}"
 
-        if row_idx:
-            current_best = float(records[row_idx - 2].get("Balance", 0))
-            if balance > current_best:
-                ws.update_cell(row_idx, 3, balance)
-                ws.update_cell(row_idx, 2, username)
+        if row_to_update:
+            # Nik o'zgargan bo'lsa uni ham, balansni ham yangilaymiz
+            ws.update_cell(row_to_update, 2, username)
+            ws.update_cell(row_to_update, 3, formatted_bal)
         else:
-            ws.append_row([user_id, username, balance])
+            # Yangi foydalanuvchi bo'lsa qo'shamiz
+            ws.append_row([user_id, username, formatted_bal])
 
-        return jsonify({"status": "success"})
+        return jsonify({"status": "success", "updated_row": row_to_update})
     except Exception as e:
-        print(f"Leaderboard yangilashda xatolik: {e}")
+        print(f"Xatolik update_balance: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
