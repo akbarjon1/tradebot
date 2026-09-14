@@ -1,329 +1,435 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TradeMind — Trade Smarter, Live Better</title>
-  
+  <title>{{ title | default('Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.') }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              bg: '#f8fafc',
+              border: '#e2e8f0',
+              accent: '#4f46e5'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body {
-      background-color: #f7f7f8;
-      color: #111827;
-      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    .font-handwriting {
-      font-family: 'Caveat', cursive;
-    }
-    .nav-item-active::after {
-      content: '';
-      display: block;
-      width: 4px;
-      height: 4px;
-      background: #111827;
-      border-radius: 50%;
-      margin: 4px auto 0 auto;
-    }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-slate-900 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-  <!-- 1. NAVBAR -->
-  <header class="max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between">
-    <!-- Logotip -->
-    <div class="flex items-center gap-2">
-      <div class="flex items-end gap-0.5 h-5">
-        <span class="w-1 h-3 bg-slate-900 rounded-sm"></span>
-        <span class="w-1 h-5 bg-slate-900 rounded-sm"></span>
-        <span class="w-1 h-4 bg-slate-900 rounded-sm"></span>
+  <!-- NAVIGATION BAR -->
+  <header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-indigo-200">
+          ◆
+        </div>
+        <span class="font-extrabold text-slate-900 text-lg tracking-tight">Obsidian Lab</span>
       </div>
-      <span class="text-xl font-bold tracking-tight text-slate-900">TradeMind</span>
-    </div>
 
-    <!-- Menyu Havolalari -->
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-      <a href="#" class="text-slate-900 nav-item-active">Home</a>
-      <a href="#" class="hover:text-slate-900 transition">Learn</a>
-      <a href="#" class="hover:text-slate-900 transition">Markets</a>
-      <a href="#" class="hover:text-slate-900 transition">Tools</a>
-      <a href="#" class="hover:text-slate-900 transition">Community</a>
-      <a href="#" class="hover:text-slate-900 transition">About</a>
-    </nav>
+      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
+        <a href="#terminal" class="text-slate-900 font-bold border-b-2 border-indigo-600 pb-1">Trade</a>
+        <a href="#terminal" class="hover:text-slate-900 transition">Markets</a>
+        <a href="#leaderboard" class="hover:text-slate-900 transition">Leaderboard</a>
+      </nav>
 
-    <!-- O'ng Tugmalar -->
-    <div class="flex items-center gap-5 text-sm">
-      <button class="text-slate-600 hover:text-slate-900">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-      </button>
-      <a href="#" class="font-medium text-slate-700 hover:text-slate-900 hidden sm:inline-block">Log in</a>
-      <a href="https://t.me/obsidian_lab_uz" target="_blank" class="bg-slate-950 text-white font-medium px-5 py-2.5 rounded-lg hover:bg-slate-800 transition shadow-sm text-xs">
-        Get Started
-      </a>
+      <div class="flex items-center gap-4">
+        <button onclick="editMyUsername()" class="hidden sm:flex items-center gap-2 text-xs font-mono font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="nav-username">{{ username | default('@trader') }}</span> ✏️
+        </button>
+        <a href="#terminal" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm active:scale-95">
+          Get Started
+        </a>
+      </div>
     </div>
   </header>
 
-  <!-- 2. HERO SECTION -->
-  <main class="max-w-7xl mx-auto w-full px-6 pt-4 pb-12 flex-1 flex flex-col justify-center">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-      
-      <!-- Chap Taraf: Shior, Tugmalar va Statistika -->
-      <div class="lg:col-span-5 flex flex-col justify-center">
-        <p class="text-[10px] font-bold tracking-[0.25em] text-slate-400 uppercase mb-4">
-          DISCIPLINE BUILDS FREEDOM
-        </p>
-        <h1 class="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-6">
-          Trade Smarter <br>
-          <span class="text-emerald-700 font-extrabold">Live Better</span>
-        </h1>
-        <p class="text-slate-500 text-sm leading-relaxed mb-8 max-w-sm">
-          Learn. Practice. Trade. Grow. <br>
-          All in one place. A simpler way to master the markets and build a brighter future.
-        </p>
+  <!-- HERO SECTION -->
+  <section class="pt-16 pb-12 px-4 sm:px-8 max-w-5xl mx-auto text-center relative">
+    <p class="text-[11px] font-extrabold tracking-[0.2em] text-slate-400 uppercase mb-3">Crypto Trading Platform</p>
+    <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-5">
+      Trade Smarter.<br>
+      <span class="text-slate-900">Real Markets.</span> <span class="text-slate-400">Zero Risk.</span>
+    </h1>
+    <p class="text-sm sm:text-base text-slate-500 max-w-xl mx-auto mb-8 font-normal leading-relaxed">
+      A next-generation crypto trading platform. Real market data, advanced tools, and a risk-free environment to sharpen your edge.
+    </p>
 
-        <!-- Asosiy CTA Tugmalari -->
-        <div class="flex items-center gap-4 mb-14">
-          <a href="https://akbarjon1.github.io/tradebot/" target="_blank" class="bg-slate-950 hover:bg-slate-800 text-white font-medium text-xs px-6 py-3.5 rounded-lg flex items-center gap-2 transition">
-            Start Your Journey <span>→</span>
-          </a>
-          <button onclick="document.getElementById('feedback-modal').classList.remove('hidden')" class="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 py-3.5 px-4 transition">
-            <span class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px]">▶</span>
-            Watch Video
-          </button>
-        </div>
-
-        <!-- 4 Talik Statistika Paneli -->
-        <div class="grid grid-cols-4 gap-4 pt-6 border-t border-slate-200">
-          <div>
-            <p class="text-lg font-bold text-slate-900">100K+</p>
-            <p class="text-[11px] text-slate-400 leading-tight">Traders Worldwide</p>
-          </div>
-          <div>
-            <p class="text-lg font-bold text-slate-900">500+</p>
-            <p class="text-[11px] text-slate-400 leading-tight">Educational Resources</p>
-          </div>
-          <div>
-            <p id="live-indicator" class="text-lg font-bold text-emerald-600">Live</p>
-            <p class="text-[11px] text-slate-400 leading-tight">Market Insights</p>
-          </div>
-          <div>
-            <p class="text-lg font-bold text-slate-900">24/7</p>
-            <p class="text-[11px] text-slate-400 leading-tight">Community Support</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- O'ng Taraf: Skrinshotdagi Shamlar Grafigi va Kartalar -->
-      <div class="lg:col-span-7 relative h-[420px] w-full flex items-center justify-center">
-        
-        <!-- Yuqori o'ng matnlar -->
-        <div class="absolute top-0 right-4 text-right hidden sm:block">
-          <p class="text-[8px] tracking-[0.2em] font-semibold text-slate-400 uppercase">BETTER TRADERS</p>
-          <p class="text-[8px] tracking-[0.2em] font-semibold text-slate-400 uppercase">A BRIGHTER TOMORROW</p>
-        </div>
-
-        <!-- Grafik orqasidagi vertikal yozuvlar -->
-        <div class="absolute top-6 left-1/4 text-center hidden md:block">
-          <p class="text-[8px] tracking-[0.2em] text-slate-400 font-semibold uppercase leading-4">
-            PLAN<br>EXECUTE<br>IMPROVE<br>REPEAT
-          </p>
-        </div>
-
-        <!-- Jonli Mini-Badge (EURUSD / BTC) -->
-        <div class="absolute top-16 right-0 bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-xl px-4 py-3 shadow-sm z-10 flex items-center justify-between gap-6 min-w-[170px]">
-          <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BTC/USDT</p>
-            <p id="badge-price" class="text-sm font-extrabold text-slate-900">$64,250</p>
-          </div>
-          <div class="text-right">
-            <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+0.63%</span>
-            <div class="w-10 h-3 mt-1 stroke-emerald-500">
-              <svg viewBox="0 0 40 12" fill="none" class="w-full h-full"><path d="M1 10L12 7L24 9L39 2" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- TradingView Shamlar Konteyneri -->
-        <div id="chart-container" class="w-full h-[360px] relative">
-          <div id="chart" class="w-full h-full"></div>
-        </div>
-
-        <!-- Qo'lyozma "Progress over Perfection" -->
-        <div class="absolute bottom-6 right-6 hidden sm:block z-10">
-          <p class="font-handwriting text-3xl text-slate-800 transform -rotate-6">Progress over Perfection</p>
-        </div>
-
-        <!-- Slayder Nomeri (01 — 03) -->
-        <div class="absolute bottom-0 right-4 flex items-center gap-3 text-[10px] font-medium text-slate-400">
-          <span class="w-8 h-[1px] bg-slate-400"></span>
-          <span>01 — 03</span>
-        </div>
-      </div>
-
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-12">
+      <a href="#terminal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 active:scale-95 transition flex items-center gap-2">
+        Launch App <span>→</span>
+      </a>
+      <a href="{{ bot_url | default('https://t.me/') }}" target="_blank" class="bg-white hover:bg-slate-50 text-slate-800 border border-brand-border font-bold text-sm px-6 py-3.5 rounded-2xl shadow-sm active:scale-95 transition flex items-center gap-2">
+        <svg class="w-4 h-4 fill-current text-sky-500" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+        Telegram Bot
+      </a>
     </div>
-  </main>
 
-  <!-- 3. PASTKI 4 TA KARTA VA IQTIBOS BO'LIMI -->
-  <section class="max-w-7xl mx-auto w-full px-6 py-10 border-t border-slate-200">
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
-      
-      <!-- Karta 1: Learn -->
-      <div class="flex flex-col">
-        <div class="w-5 h-5 mb-3 text-slate-900">
-          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
-        </div>
-        <h3 class="font-bold text-slate-900 text-sm mb-1">Learn</h3>
-        <p class="text-xs text-slate-500 leading-relaxed mb-4">Clear, practical lessons for real market skills.</p>
-        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Explore Learning →</a>
+    <div class="grid grid-cols-3 max-w-xs mx-auto text-center border-t border-brand-border pt-6 text-xs font-mono">
+      <div>
+        <b class="text-slate-900 text-sm block font-extrabold">100K+</b>
+        <span class="text-slate-400 text-[10px]">Traders</span>
       </div>
-
-      <!-- Karta 2: Analyze -->
-      <div class="flex flex-col">
-        <div class="w-5 h-5 mb-3 text-slate-900">
-          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
-        </div>
-        <h3 class="font-bold text-slate-900 text-sm mb-1">Analyze</h3>
-        <p class="text-xs text-slate-500 leading-relaxed mb-4">Use professional tools and real-time data.</p>
-        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Explore Tools →</a>
+      <div>
+        <b class="text-slate-900 text-sm block font-extrabold">$2.4B+</b>
+        <span class="text-slate-400 text-[10px]">Volume</span>
       </div>
-
-      <!-- Karta 3: Join Community -->
-      <div class="flex flex-col">
-        <div class="w-5 h-5 mb-3 text-slate-900">
-          <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-        </div>
-        <h3 class="font-bold text-slate-900 text-sm mb-1">Join Community</h3>
-        <p class="text-xs text-slate-500 leading-relaxed mb-4">Share ideas, ask questions, and grow together.</p>
-        <a href="https://t.me/obsidian_lab_uz" target="_blank" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Join Now →</a>
+      <div>
+        <b class="text-slate-900 text-sm block font-extrabold">150+</b>
+        <span class="text-slate-400 text-[10px]">Countries</span>
       </div>
-
-      <!-- Karta 4: Become Better -->
-      <div class="flex flex-col">
-        <div class="w-5 h-5 mb-3 text-slate-900">
-          <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
-        </div>
-        <h3 class="font-bold text-slate-900 text-sm mb-1">Become Better</h3>
-        <p class="text-xs text-slate-500 leading-relaxed mb-4">Track your progress and reach your goals.</p>
-        <a href="#" class="text-xs font-semibold text-slate-900 hover:text-emerald-700 mt-auto inline-flex items-center gap-1">Set Your Goals →</a>
-      </div>
-
-      <!-- Iqtibos Ustuni (Skrinshotdagi o'ng chet) -->
-      <div class="flex flex-col justify-center pl-2">
-        <span class="text-2xl text-slate-300 font-serif leading-none select-none">“</span>
-        <blockquote class="text-xs italic font-medium text-slate-700 leading-relaxed my-1">
-          "A disciplined mind trades a brighter future."
-        </blockquote>
-        <p class="text-[11px] font-semibold text-slate-400">— TradeMind</p>
-      </div>
-
     </div>
   </section>
 
-  <!-- 4. FOUTER VA HAMKORLAR LOGOTIPLARI -->
-  <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
-    <div class="flex items-center gap-6 font-bold tracking-wider uppercase text-[10px]">
-      <span class="hover:text-slate-600 transition">BINANCE</span>
-      <span class="hover:text-slate-600 transition">TradingView</span>
-      <span class="hover:text-slate-600 transition">FOREX.com</span>
-      <span class="hover:text-slate-600 transition">Investing.com</span>
-      <span class="hover:text-slate-600 transition">Bloomberg</span>
+  <!-- FLOATING TERMINAL SECTION -->
+  <section id="terminal" class="max-w-7xl mx-auto px-4 sm:px-8 pb-16 w-full">
+    <div class="bg-white border border-brand-border rounded-3xl p-4 sm:p-6 shadow-2xl shadow-slate-200/80">
+      
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 mb-5 border-b border-brand-border">
+        <div class="flex items-center gap-3">
+          <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">
+            BTC / USDT
+          </button>
+          <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">
+            ETH / USDT
+          </button>
+          <span class="text-xs font-mono text-emerald-600 font-bold ml-2 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="live-price">$78,100.00</span>
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400 font-bold">Virtual Depozit:</span>
+          <span id="balance-val" class="font-mono text-xs font-extrabold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl">$10,000.00</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Candlestick Chart -->
+        <div class="lg:col-span-6 h-[460px] rounded-2xl overflow-hidden border border-brand-border bg-slate-50">
+          <iframe 
+            id="tradingview-frame"
+            class="w-full h-full border-0"
+            src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
+          ></iframe>
+        </div>
+
+        <!-- Order Box -->
+        <div class="lg:col-span-3 bg-slate-50 border border-brand-border rounded-2xl p-5 flex flex-col justify-between h-[460px]">
+          <div>
+            <div class="grid grid-cols-2 gap-1 bg-slate-200/70 p-1 rounded-xl mb-4 font-bold text-xs text-center">
+              <button class="py-1.5 rounded-lg bg-white shadow-sm text-slate-900">Market</button>
+              <button class="py-1.5 rounded-lg text-slate-500 hover:text-slate-900">Limit</button>
+            </div>
+
+            <div class="mb-4">
+              <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
+                <input 
+                  id="trade-amount" 
+                  type="number" 
+                  value="1000" 
+                  class="w-full bg-white border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"
+                />
+              </div>
+              <div class="grid grid-cols-4 gap-1 mt-2 text-[10px] font-mono">
+                <button onclick="setPercent(0.1)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">10%</button>
+                <button onclick="setPercent(0.25)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">25%</button>
+                <button onclick="setPercent(0.5)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">50%</button>
+                <button onclick="setPercent(1.0)" class="py-1 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg">MAX</button>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
+                <span>Leverage:</span>
+                <span id="lev-val" class="text-indigo-600 font-mono">10x</span>
+              </div>
+              <div class="grid grid-cols-4 gap-1 text-[11px] font-mono">
+                <button onclick="setLev(1)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="1">1x</button>
+                <button onclick="setLev(5)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="5">5x</button>
+                <button onclick="setLev(10)" class="lev-btn py-1 rounded bg-slate-900 font-bold text-white" data-l="10">10x</button>
+                <button onclick="setLev(20)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="20">20x</button>
+              </div>
+            </div>
+
+            <div id="position-info" class="hidden bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 text-xs font-mono mb-2">
+              <div class="flex justify-between font-bold">
+                <span id="pos-dir" class="text-emerald-600">LONG</span>
+                <span id="pos-pnl" class="text-emerald-600">$0.00</span>
+              </div>
+              <button onclick="closeCurrentPosition()" class="mt-2 w-full py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[10px]">
+                Bitimni yopish
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2">
+            <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">
+              Long 🟢
+            </button>
+            <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">
+              Short 🔴
+            </button>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard" class="lg:col-span-3 bg-slate-50 border border-brand-border rounded-2xl p-5 flex flex-col h-[460px]">
+          <div class="flex justify-between items-center pb-3 border-b border-brand-border mb-3">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders</h3>
+            <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
+          </div>
+          <div id="top-traders-list" class="flex-1 overflow-y-auto custom-scroll space-y-2 text-xs">
+            <p class="text-slate-400 text-center py-10 font-mono">Yuklanmoqda...</p>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <div class="text-right">
-      <p class="uppercase tracking-widest text-[9px]">MARKETS TODAY</p>
-      <p class="text-slate-500 font-medium">A BRIGHTER TOMORROW</p>
+  </section>
+
+  <!-- FEATURE STRIP -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-8 py-8 border-t border-brand-border">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
+      <div>
+        <b class="text-slate-900 block font-bold mb-1">📊 Real Market Data</b>
+        <p class="text-slate-500 text-[11px]">Binance API orqali jonli narxlar va aniq kotirovkalar oqimi.</p>
+      </div>
+      <div>
+        <b class="text-slate-900 block font-bold mb-1">🛡️ Zero-Risk Trading</b>
+        <p class="text-slate-500 text-[11px]">Haqiqiy pullarni xavf ostiga qo‘ymay, virtual depozitda mahorat oshiring.</p>
+      </div>
+      <div>
+        <b class="text-slate-900 block font-bold mb-1">⚡ Advanced Tools</b>
+        <p class="text-slate-500 text-[11px]">Kredit yelkasi (leverage) va birja darajasidagi tahliliy vositalar.</p>
+      </div>
+      <div>
+        <b class="text-slate-900 block font-bold mb-1">👥 Global Community</b>
+        <p class="text-slate-500 text-[11px]">Google Sheets bilan avtomatik sinxronlanadigan umumiy reyting.</p>
+      </div>
     </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-brand-border bg-white py-6 text-center text-xs text-slate-400 font-mono">
+    © 2026 Obsidian Lab. All rights reserved. Powered by Swiss Minimalist UI.
   </footer>
 
-  <!-- YASHIRIN DISPATCHER MODAL (Kanalga xabar yuborish uchun) -->
-  <div id="feedback-modal" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-slate-900 text-sm">Telegram Dispatcher</h3>
-        <button onclick="document.getElementById('feedback-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
-      </div>
-      <form method="POST" action="/add_comment" class="flex flex-col gap-3">
-        <textarea name="comment" rows="3" placeholder="Kanalga yuboriladigan matn..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 resize-none"></textarea>
-        <button type="submit" class="w-full bg-slate-950 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-slate-800 transition">
-          Yuborish 🚀
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- JONLI GRAFIK VA REALTIME SKRIPTI -->
+  <!-- SCRIPT LOGIC -->
   <script>
-    // 1. Jonli Binance Ticker
-    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
-    const badgeEl = document.getElementById('badge-price');
+    const API_BASE = "{{ api_base | default('https://tradebot-xelo.onrender.com') }}";
 
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      const formatted = '$' + parseFloat(data.p).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (badgeEl) badgeEl.innerText = formatted;
-    };
+    function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+    function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
 
-    // 2. Skrinshotdagi kabi fon bilan qorishgan toza shamlar grafigi
-    const chartContainer = document.getElementById('chart-container');
-    const chartEl = document.getElementById('chart');
-
-    const chart = LightweightCharts.createChart(chartEl, {
-      width: chartContainer.clientWidth,
-      height: chartContainer.clientHeight,
-      layout: {
-        background: { color: 'transparent' },
-        textColor: '#94a3b8',
-        fontSize: 10
-      },
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false }
-      },
-      rightPriceScale: {
-        borderVisible: false
-      },
-      timeScale: {
-        borderVisible: false,
-        timeVisible: true,
-        secondsVisible: false
+    function getUID() {
+      let id = safeGet('obs_web_uid');
+      if (!id) {
+        id = 'user_' + Math.floor(Math.random() * 899999 + 100000);
+        safeSet('obs_web_uid', id);
       }
-    });
+      return id;
+    }
 
-    // Skrinshotdagi o'suvchi yashil/qora shamlar uslubi
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981',
-      downColor: '#0f172a',
-      borderUpColor: '#10b981',
-      borderDownColor: '#0f172a',
-      wickUpColor: '#10b981',
-      wickDownColor: '#0f172a',
-    });
+    let userId = getUID();
+    let myUsername = safeGet('obs_confirmed_username') || "{{ username | default('@trader') }}";
+    let balance = parseFloat("{{ initial_balance | default(10000) }}");
+    let currentAsset = "BTCUSDT";
+    let currentLeverage = 10;
+    const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
+    let position = null;
 
-    fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=55')
-      .then(res => res.json())
-      .then(data => {
-        const formatted = data.map(d => ({
-          time: d[0] / 1000,
-          open: parseFloat(d[1]),
-          high: parseFloat(d[2]),
-          low: parseFloat(d[3]),
-          close: parseFloat(d[4])
-        }));
-        candleSeries.setData(formatted);
+    function init() {
+      const savedBal = safeGet(`obs_bal_${userId}`);
+      if (savedBal !== null) balance = parseFloat(savedBal);
+
+      document.getElementById('nav-username').innerText = myUsername;
+      updateUI();
+      fetchLeaderboard();
+      setPercent(0.1);
+    }
+
+    function updateUI() {
+      const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('balance-val').innerText = bStr;
+      
+      const posCard = document.getElementById('position-info');
+      if (position) {
+        posCard.classList.remove('hidden');
+        document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
+      } else {
+        posCard.classList.add('hidden');
+      }
+    }
+
+    function editMyUsername() {
+      const val = prompt("Telegram @username yoki ismingizni kiriting:", myUsername);
+      if (val && val.trim().length > 1) {
+        let clean = val.trim();
+        if (!clean.startsWith('@')) clean = '@' + clean;
+        myUsername = clean;
+        safeSet('obs_confirmed_username', myUsername);
+        document.getElementById('nav-username').innerText = myUsername;
+        syncWithSheets();
+      }
+    }
+
+    function setLev(l) {
+      currentLeverage = l;
+      document.getElementById('lev-val').innerText = `${l}x`;
+      document.querySelectorAll('.lev-btn').forEach(b => {
+        if (parseInt(b.getAttribute('data-l')) === l) {
+          b.className = "lev-btn py-1 rounded bg-slate-900 font-bold text-white";
+        } else {
+          b.className = "lev-btn py-1 rounded bg-white border border-brand-border text-slate-600";
+        }
       });
+    }
 
-    const resizeObserver = new ResizeObserver(entries => {
-      if (!entries || !entries.length) return;
-      const { width, height } = entries[0].contentRect;
-      chart.applyOptions({ width, height });
-    });
-    resizeObserver.observe(chartContainer);
+    function setPercent(p) {
+      const val = Math.max(10, Math.floor(balance * p));
+      document.getElementById('trade-amount').value = val;
+    }
+
+    function switchAsset(sym) {
+      currentAsset = sym;
+      const btcBtn = document.getElementById('btn-tab-btc');
+      const ethBtn = document.getElementById('btn-tab-eth');
+      const frame = document.getElementById('tradingview-frame');
+
+      if (sym === 'BTCUSDT') {
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
+      } else {
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
+      }
+    }
+
+    function executeOrder(type) {
+      const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
+      if (amount < 10) return alert("Minimal savdo miqdori $10!");
+      if (amount > balance) return alert("Balansda mablag' yetarli emas!");
+
+      if (position) closeCurrentPosition();
+
+      balance -= amount;
+      position = {
+        type: type,
+        size: amount,
+        leverage: currentLeverage,
+        entryPrice: prices[currentAsset]
+      };
+
+      safeSet(`obs_bal_${userId}`, balance);
+      updateUI();
+    }
+
+    function closeCurrentPosition() {
+      if (!position) return;
+      const live = prices[currentAsset];
+      let diff = (live - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = position.size * diff * position.leverage;
+      balance += Math.max(0, position.size + pnlUSD);
+
+      position = null;
+      safeSet(`obs_bal_${userId}`, balance);
+      updateUI();
+      syncWithSheets();
+    }
+
+    async function syncWithSheets() {
+      try {
+        await fetch(`${API_BASE}/api/update_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            username: myUsername,
+            balance: Number(balance.toFixed(2))
+          })
+        });
+        fetchLeaderboard();
+      } catch (e) {}
+    }
+
+    async function fetchLeaderboard() {
+      const list = document.getElementById('top-traders-list');
+      try {
+        const res = await fetch(`${API_BASE}/api/leaderboard?t=${Date.now()}`);
+        const data = await res.json();
+        if (data.status === 'success' && data.leaders.length > 0) {
+          list.innerHTML = data.leaders.map((u, i) => `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-brand-border">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
+                <span class="font-semibold text-slate-800">${u.Username}</span>
+              </div>
+              <span class="font-mono font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = `<p class="text-slate-400 text-center py-10 font-mono">Reyting bo'sh</p>`;
+        }
+      } catch (e) {
+        list.innerHTML = `<p class="text-rose-500 text-center py-10 font-mono">Yuklab bo'lmadi</p>`;
+      }
+    }
+
+    async function updateTicker() {
+      try {
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
+        const d = await res.json();
+        if (d.price) prices[currentAsset] = parseFloat(d.price);
+      } catch (e) {
+        prices[currentAsset] += (Math.random() - 0.49) * 10;
+      }
+
+      document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+      if (position) {
+        let diff = (prices[currentAsset] - position.entryPrice) / position.entryPrice;
+        if (position.type === 'SHORT') diff = -diff;
+        const pnl = position.size * diff * position.leverage;
+        const pnlEl = document.getElementById('pos-pnl');
+        pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+        pnlEl.className = pnl >= 0 ? 'text-emerald-600' : 'text-rose-600';
+      }
+    }
+
+    init();
+    setInterval(updateTicker, 1000);
   </script>
 </body>
 </html>
