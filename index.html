@@ -21,7 +21,7 @@
 </head>
 <body class="p-4 sm:p-5 flex flex-col min-h-screen justify-between relative max-w-md mx-auto">
 
-  <!-- Yuqori qism: Brend, Reyting va Balans -->
+  <!-- Yuqori qism: Brend, Nik va Balans -->
   <div>
     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200">
       <div class="flex items-center gap-2.5">
@@ -30,17 +30,20 @@
         </div>
         <div>
           <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Obsidian Lab</h1>
-          <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Paper Trading</p>
+          <div onclick="changeNickname()" class="flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition">
+            <span id="display-username" class="text-[11px] font-bold text-slate-700">@Trader</span>
+            <span class="text-[9px] text-slate-400">✏️</span>
+          </div>
         </div>
       </div>
       
-      <div class="text-right flex items-center gap-3">
+      <div class="text-right flex items-center gap-2.5">
         <button onclick="openLeaderboard()" class="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-600 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-xl text-xs font-bold active:scale-95 transition">
           <span>🏆</span> Reyting
         </button>
         <div>
           <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Virtual Balans</p>
-          <p id="balance" class="text-lg font-extrabold text-slate-900 font-mono tracking-tight">$10,000.00</p>
+          <p id="balance" class="text-base font-extrabold text-slate-900 font-mono tracking-tight">$10,000.00</p>
         </div>
       </div>
     </div>
@@ -62,7 +65,7 @@
         <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live Feed</span>
       </div>
       <div id="price" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-mono my-1">
-        $64,250.00
+        $78,100.00
       </div>
       <p id="pair-label" class="text-[11px] font-semibold text-slate-400">BTCUSDT Realtime Index</p>
     </div>
@@ -118,20 +121,20 @@
       </div>
 
       <div class="grid grid-cols-4 gap-1.5 font-mono text-xs">
-        <button onclick="setPercentSize(0.1)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">10%</button>
-        <button onclick="setPercentSize(0.25)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">25%</button>
-        <button onclick="setPercentSize(0.5)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">50%</button>
-        <button onclick="setPercentSize(1.0)" class="py-1.5 bg-slate-900 hover:bg-slate-800 rounded-lg text-white font-bold active:scale-95 transition">MAX</button>
+        <button type="button" onclick="setPercentSize(0.1)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">10%</button>
+        <button type="button" onclick="setPercentSize(0.25)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">25%</button>
+        <button type="button" onclick="setPercentSize(0.5)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">50%</button>
+        <button type="button" onclick="setPercentSize(1.0)" class="py-1.5 bg-slate-900 hover:bg-slate-800 rounded-lg text-white font-bold active:scale-95 transition">MAX</button>
       </div>
     </div>
 
     <!-- Long / Short Tugmalari -->
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="openPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm">
+      <button type="button" id="btn-long" onclick="openPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm cursor-pointer">
         <span class="text-sm">LONG 🟢</span>
         <span class="text-[10px] text-emerald-100 font-normal">O'sishga</span>
       </button>
-      <button onclick="openPosition('SHORT')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm">
+      <button type="button" id="btn-short" onclick="openPosition('SHORT')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm cursor-pointer">
         <span class="text-sm">SHORT 🔴</span>
         <span class="text-[10px] text-rose-100 font-normal">Tushishga</span>
       </button>
@@ -172,54 +175,276 @@
 
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
+    if (tg) { 
+      try {
+        tg.ready(); 
+        tg.expand(); 
+      } catch(e){}
     }
 
     const API_BASE = "https://tradebot-xelo.onrender.com";
 
-    // Telegram profilini olish
-    function getTelegramUser() {
+    function getUserId() {
       const u = tg?.initDataUnsafe?.user;
-      if (u && u.id) {
-        let uname = u.username ? `@${u.username}` : (u.first_name || `Trader_${String(u.id).slice(-4)}`);
-        return { id: String(u.id), username: uname };
+      if (u && u.id) return String(u.id);
+      let localId = localStorage.getItem('obs_local_uid');
+      if (!localId) {
+        localId = 'user_' + Math.floor(Math.random() * 899999 + 100000);
+        localStorage.setItem('obs_local_uid', localId);
       }
-      return { id: 'default_user', username: 'Trader_Guest' };
+      return localId;
     }
 
-    let currentUser = getTelegramUser();
-    let userId = currentUser.id;
+    function getSavedUsername() {
+      const saved = localStorage.getItem('obs_custom_username');
+      if (saved) return saved;
+
+      const u = tg?.initDataUnsafe?.user;
+      if (u?.username) return `@${u.username}`;
+      if (u?.first_name) return u.first_name;
+      return `Trader_${getUserId().slice(-4)}`;
+    }
+
+    let userId = getUserId();
+    let myUsername = getSavedUsername();
+
     let KEY_BALANCE = `obs_bal_${userId}`;
     let KEY_POSITIONS = `obs_pos_v2_${userId}`;
 
     let balance = 10000;
     let currentAsset = 'BTCUSDT';
-    const prices = { BTCUSDT: 64250.00, ETHUSDT: 2450.00 };
-    let positions = { BTCUSDT: null, ETHUSDT: null };
+    const prices = { BTCUSDT: 78100.00, ETHUSDT: 2500.00 };
+    
+    let positions = {
+      BTCUSDT: null,
+      ETHUSDT: null
+    };
 
-    // Balansni serverga yuborish
+    function persistData(key, value) {
+      const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
+      localStorage.setItem(key, valStr);
+      try {
+        if (tg?.CloudStorage) tg.CloudStorage.setItem(key, valStr);
+      } catch (e) {}
+    }
+
+    function initData() {
+      const localBal = localStorage.getItem(KEY_BALANCE);
+      const localPos = localStorage.getItem(KEY_POSITIONS);
+
+      if (localBal !== null) {
+        balance = parseFloat(localBal);
+      } else {
+        balance = 10000;
+        persistData(KEY_BALANCE, balance);
+      }
+
+      if (localPos) {
+        try {
+          positions = JSON.parse(localPos);
+        } catch (e) {
+          positions = { BTCUSDT: null, ETHUSDT: null };
+        }
+      }
+
+      const nameEl = document.getElementById('display-username');
+      if (nameEl) nameEl.innerText = myUsername;
+
+      setPercentSize(0.1);
+      applyUI();
+      updatePriceUI(prices[currentAsset]);
+    }
+
+    function changeNickname() {
+      const newName = prompt("O'yindagi ismingizni yoki taxallusingizni kiriting:", myUsername);
+      if (newName && newName.trim().length > 0) {
+        myUsername = newName.trim().slice(0, 16);
+        localStorage.setItem('obs_custom_username', myUsername);
+        const nameEl = document.getElementById('display-username');
+        if (nameEl) nameEl.innerText = myUsername;
+        syncBalanceWithServer();
+      }
+    }
+
+    function applyUI() {
+      document.getElementById('balance').innerText = "$" + balance.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      checkLiquidationStatus();
+
+      const currentPos = positions[currentAsset];
+      if (currentPos) {
+        document.getElementById('pos-type').innerText = `${currentPos.type} (${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
+        document.getElementById('pos-size').innerText = "$" + currentPos.size.toFixed(2);
+        document.getElementById('pos-entry').innerText = "$" + currentPos.entryPrice.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('position-card').classList.remove('hidden');
+      } else {
+        document.getElementById('position-card').classList.add('hidden');
+      }
+    }
+
+    function switchAsset(asset) {
+      currentAsset = asset;
+      const btcBtn = document.getElementById('btn-btc');
+      const ethBtn = document.getElementById('btn-eth');
+      const pairLabel = document.getElementById('pair-label');
+
+      if (asset === 'BTCUSDT') {
+        pairLabel.innerText = "BTCUSDT Realtime Index";
+        btcBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+        ethBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      } else {
+        pairLabel.innerText = "ETHUSDT Realtime Index";
+        ethBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+        btcBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      }
+
+      applyUI();
+      updatePriceUI(prices[currentAsset]);
+    }
+
+    function updatePriceUI(price) {
+      document.getElementById('price').innerText = "$" + price.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function openPosition(type) {
+      try {
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      } catch(e){}
+
+      const livePrice = prices[currentAsset] || (currentAsset === 'BTCUSDT' ? 78100 : 2500);
+      const inputEl = document.getElementById('order-size-input');
+      const orderSize = parseFloat(inputEl.value) || 0;
+
+      if (orderSize < 10) {
+        alert("Minimal savdo hajmi $10!");
+        return;
+      }
+      if (orderSize > balance) {
+        alert("Balansingizda mablag' yetarli emas!");
+        return;
+      }
+
+      // Agar avval teskari pozitsiya bo'lsa, uni avtomatik yopib yangisini ochadi
+      if (positions[currentAsset] && positions[currentAsset].type !== type) {
+        closePosition(currentAsset);
+      }
+
+      const existingPos = positions[currentAsset];
+      if (existingPos && existingPos.type === type) {
+        const totalSize = existingPos.size + orderSize;
+        const avgEntry = ((existingPos.entryPrice * existingPos.size) + (livePrice * orderSize)) / totalSize;
+        existingPos.size = totalSize;
+        existingPos.entryPrice = avgEntry;
+        balance -= orderSize;
+      } else {
+        balance -= orderSize;
+        positions[currentAsset] = {
+          type: type,
+          entryPrice: livePrice,
+          size: orderSize,
+          asset: currentAsset
+        };
+      }
+
+      persistData(KEY_BALANCE, balance);
+      persistData(KEY_POSITIONS, positions);
+      applyUI();
+      calculatePnL(currentAsset, livePrice);
+    }
+
+    function calculatePnL(symbol, currentPrice) {
+      const pos = positions[symbol];
+      if (!pos) return;
+
+      let diff = (currentPrice - pos.entryPrice) / pos.entryPrice;
+      if (pos.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = pos.size * diff;
+      const pnlPercent = diff * 100;
+
+      if (currentAsset === symbol) {
+        const pnlEl = document.getElementById('pos-pnl');
+        if (pnlEl) {
+          pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
+          pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
+        }
+      }
+
+      if (pnlPercent <= -100) {
+        closePosition(symbol, true);
+      }
+    }
+
+    function closePosition(symbol = currentAsset, isLiquidated = false) {
+      const pos = positions[symbol];
+      if (!pos) return;
+
+      if (!isLiquidated) {
+        const livePrice = prices[symbol];
+        let diff = (livePrice - pos.entryPrice) / pos.entryPrice;
+        if (pos.type === 'SHORT') diff = -diff;
+
+        const pnlUSD = pos.size * diff;
+        balance += Math.max(0, (pos.size + pnlUSD));
+      }
+
+      positions[symbol] = null;
+      persistData(KEY_POSITIONS, positions);
+      persistData(KEY_BALANCE, balance);
+
+      applyUI();
+      syncBalanceWithServer();
+    }
+
+    function setPercentSize(ratio) {
+      const calculated = Math.max(10, Math.floor(balance * ratio));
+      document.getElementById('order-size-input').value = calculated;
+      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
+    }
+
+    function onManualSizeChange() {
+      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
+      if (balance > 0) {
+        const pct = ((inputVal / balance) * 100).toFixed(0);
+        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
+      }
+    }
+
+    function checkLiquidationStatus() {
+      if (balance < 10 && !positions.BTCUSDT && !positions.ETHUSDT) {
+        document.getElementById('liquidation-modal').classList.remove('hidden');
+      }
+    }
+
+    function resetBalance() {
+      balance = 10000;
+      positions = { BTCUSDT: null, ETHUSDT: null };
+      persistData(KEY_BALANCE, balance);
+      persistData(KEY_POSITIONS, positions);
+      document.getElementById('liquidation-modal').classList.add('hidden');
+      applyUI();
+      syncBalanceWithServer();
+    }
+
     async function syncBalanceWithServer() {
-      // Har gal eng so'nggi Telegram ma'lumotlarini tekshiramiz
-      const activeUser = getTelegramUser();
-      
       try {
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: activeUser.id,
-            username: activeUser.username,
+            user_id: userId,
+            username: myUsername,
             balance: Number(balance.toFixed(2))
           })
         });
-      } catch (e) {
-        console.error("Sinxronlashda xatolik:", e);
-      }
+      } catch (e) {}
     }
 
-    // Leaderboard modalini ochish
     async function openLeaderboard() {
       document.getElementById('leaderboard-modal').classList.remove('hidden');
       const container = document.getElementById('leaderboard-list');
@@ -256,241 +481,7 @@
       }
     }
 
-    function initData() {
-      currentUser = getTelegramUser();
-      userId = currentUser.id;
-      KEY_BALANCE = `obs_bal_${userId}`;
-      KEY_POSITIONS = `obs_pos_v2_${userId}`;
-
-      const localBal = localStorage.getItem(KEY_BALANCE);
-      const localPos = localStorage.getItem(KEY_POSITIONS);
-
-      if (localBal !== null) {
-        balance = parseFloat(localBal);
-      } else {
-        balance = 10000;
-        persistData(KEY_BALANCE, balance);
-      }
-
-      if (localPos) {
-        try {
-          positions = JSON.parse(localPos);
-        } catch (e) {
-          positions = { BTCUSDT: null, ETHUSDT: null };
-        }
-      }
-
-      applyUI();
-      updatePriceUI(prices[currentAsset]);
-    }
-
-    function applyUI() {
-      document.getElementById('balance').innerText = "$" + balance.toFixed(2);
-      checkLiquidationStatus();
-
-      const currentPos = positions[currentAsset];
-      if (currentPos) {
-        document.getElementById('pos-type').innerText = `${currentPos.type} (${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
-        document.getElementById('pos-size').innerText = "$" + currentPos.size.toFixed(2);
-        document.getElementById('pos-entry').innerText = "$" + currentPos.entryPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('position-card').classList.remove('hidden');
-      } else {
-        document.getElementById('position-card').classList.add('hidden');
-      }
-    }
-
-    function switchAsset(asset) {
-      currentAsset = asset;
-      const btcBtn = document.getElementById('btn-btc');
-      const ethBtn = document.getElementById('btn-eth');
-      const pairLabel = document.getElementById('pair-label');
-
-      if (asset === 'BTCUSDT') {
-        pairLabel.innerText = "BTCUSDT Realtime Index";
-        btcBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
-        ethBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
-      } else {
-        pairLabel.innerText = "ETHUSDT Realtime Index";
-        ethBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
-        btcBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
-      }
-
-      applyUI();
-      updatePriceUI(prices[currentAsset]);
-    }
-
-    function updatePriceUI(price) {
-      document.getElementById('price').innerText = "$" + price.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    function openPosition(type) {
-      const livePrice = prices[currentAsset];
-      const orderSize = parseFloat(document.getElementById('order-size-input').value) || 0;
-
-      if (orderSize < 10 || orderSize > balance) {
-        return;
-      }
-
-      const existingPos = positions[currentAsset];
-
-      if (existingPos && existingPos.type === type) {
-        const totalSize = existingPos.size + orderSize;
-        const avgEntry = ((existingPos.entryPrice * existingPos.size) + (livePrice * orderSize)) / totalSize;
-        existingPos.size = totalSize;
-        existingPos.entryPrice = avgEntry;
-        balance -= orderSize;
-        persistData(KEY_BALANCE, balance);
-        persistData(KEY_POSITIONS, positions);
-        applyUI();
-        return;
-      }
-
-      if (existingPos && existingPos.type !== type) {
-        return;
-      }
-
-      balance -= orderSize;
-      persistData(KEY_BALANCE, balance);
-
-      positions[currentAsset] = {
-        type: type,
-        entryPrice: livePrice,
-        size: orderSize,
-        asset: currentAsset
-      };
-      persistData(KEY_POSITIONS, positions);
-      applyUI();
-    }
-
-    function calculatePnL(symbol, currentPrice) {
-      const pos = positions[symbol];
-      if (!pos) return;
-
-      let diff = (currentPrice - pos.entryPrice) / pos.entryPrice;
-      if (pos.type === 'SHORT') diff = -diff;
-
-      const pnlUSD = pos.size * diff;
-      const pnlPercent = diff * 100;
-
-      if (currentAsset === symbol) {
-        const pnlEl = document.getElementById('pos-pnl');
-        pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
-        pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
-      }
-
-      if (pnlPercent <= -100) {
-        closePosition(symbol, true);
-      }
-    }
-
-    function closePosition(symbol = currentAsset, isLiquidated = false) {
-      const pos = positions[symbol];
-      if (!pos) return;
-
-      if (!isLiquidated) {
-        const livePrice = prices[symbol];
-        let diff = (livePrice - pos.entryPrice) / pos.entryPrice;
-        if (pos.type === 'SHORT') diff = -diff;
-
-        const pnlUSD = pos.size * diff;
-        balance += Math.max(0, (pos.size + pnlUSD));
-      }
-
-      positions[symbol] = null;
-      persistData(KEY_POSITIONS, positions);
-      persistData(KEY_BALANCE, balance);
-
-      applyUI();
-      syncBalanceWithServer();
-    }
-
-    function setPercentSize(ratio) {
-      const calculated = Math.floor(balance * ratio);
-      document.getElementById('order-size-input').value = calculated;
-      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
-    }
-
-    function onManualSizeChange() {
-      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
-      if (balance > 0) {
-        const pct = ((inputVal / balance) * 100).toFixed(0);
-        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
-      }
-    }
-
-    function checkLiquidationStatus() {
-      if (balance < 10 && !positions.BTCUSDT && !positions.ETHUSDT) {
-        document.getElementById('liquidation-modal').classList.remove('hidden');
-      }
-    }
-
-    function resetBalance() {
-      balance = 10000;
-      positions = { BTCUSDT: null, ETHUSDT: null };
-      persistData(KEY_BALANCE, balance);
-      persistData(KEY_POSITIONS, positions);
-      document.getElementById('liquidation-modal').classList.add('hidden');
-      applyUI();
-      syncBalanceWithServer();
-    }
-
-    // SERVER BILAN BOG'LANISH VA REYTING
-    async function syncBalanceWithServer() {
-      const activeUser = getTelegramUser();
-      try {
-        await fetch(`${API_BASE}/api/update_balance`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: activeUser.id,
-            username: activeUser.username,
-            balance: Number(balance.toFixed(2))
-          })
-        });
-      } catch (e) {}
-    }
-
-    async function openLeaderboard() {
-      document.getElementById('leaderboard-modal').classList.remove('hidden');
-      const container = document.getElementById('leaderboard-list');
-      container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Yuklanmoqda...</p>`;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/leaderboard`);
-        const data = await res.json();
-
-        if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
-          container.innerHTML = data.leaders.map((item, idx) => {
-            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-            const displayBal = Number(item.Balance).toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
-
-            return `
-              <div class="flex items-center justify-between p-2 rounded-xl ${idx < 3 ? 'bg-amber-50/70 border border-amber-100' : 'bg-slate-50'} text-xs">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold font-mono text-slate-500 w-5">${medal}</span>
-                  <span class="font-semibold text-slate-800">${item.Username}</span>
-                </div>
-                <span class="font-bold font-mono text-emerald-600">$${displayBal}</span>
-              </div>
-            `;
-          }).join('');
-        } else {
-          container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Hozircha reyting bo'sh</p>`;
-        }
-      } catch (e) {
-        container.innerHTML = `<p class="text-xs text-rose-500 text-center py-4">Reytingni yuklab bo'lmadi</p>`;
-      }
-    }
-
-    // JONLI NARXNI OLISH (Zaxira va Avto-tebranish mexanizmi)
     async function updateLivePrice() {
-      // 1. Tashqi birjalardan olishga urinish
       try {
         const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
         const d = await res.json();
@@ -498,8 +489,7 @@
           prices[currentAsset] = parseFloat(d.price);
         }
       } catch (e) {
-        // Bloklangan holatda narxni jonli tebratib turish (Trading Simulator)
-        const delta = (Math.random() - 0.49) * (currentAsset === 'BTCUSDT' ? 12 : 1.5);
+        const delta = (Math.random() - 0.49) * (currentAsset === 'BTCUSDT' ? 15 : 2);
         prices[currentAsset] += delta;
       }
 
@@ -511,7 +501,6 @@
     }
 
     initData();
-    // Har soniyada narx jonli yangilanadi
     setInterval(updateLivePrice, 1000);
   </script>
 </body>
