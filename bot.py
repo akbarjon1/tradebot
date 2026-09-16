@@ -5,6 +5,7 @@ import json
 import uuid
 import datetime
 import threading
+import requests
 import feedparser
 import telebot
 import gspread
@@ -43,8 +44,7 @@ def format_google_sheet(sh, sp):
     """Google Jadvalni avtomatik ravishda chiroyli professional terminal qilib bezash"""
     try:
         sheet_id = sh.id
-        requests = [
-            # 1. Shapkani muzlatish (Freeze header)
+        requests_list = [
             {
                 "updateSheetProperties": {
                     "properties": {
@@ -54,7 +54,6 @@ def format_google_sheet(sh, sp):
                     "fields": "gridProperties.frozenRowCount"
                 }
             },
-            # 2. Ustunlar kengligini to'g'irlash (A: 90px, B: 240px, C: 480px, D: 110px)
             {
                 "updateDimensionProperties": {
                     "range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 0, "endIndex": 1},
@@ -83,7 +82,6 @@ def format_google_sheet(sh, sp):
                     "fields": "pixelSize"
                 }
             },
-            # 3. Shapka dizayni: To'q qora-ko'k fon, oq qalin shrift, o'rtada
             {
                 "repeatCell": {
                     "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": 4},
@@ -102,7 +100,6 @@ def format_google_sheet(sh, sp):
                     "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)"
                 }
             },
-            # 4. Matnlarni sig'dirish (Text Wrap) va vertikal markazlashtirish
             {
                 "repeatCell": {
                     "range": {"sheetId": sheet_id, "startRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": 4},
@@ -116,7 +113,7 @@ def format_google_sheet(sh, sp):
                 }
             }
         ]
-        sp.batch_update({"requests": requests})
+        sp.batch_update({"requests": requests_list})
         print("🎨 Google Sheets dizayni avtomatik ravishda bezatildi!")
     except Exception as e:
         print(f"Dizayn qo'llashda ogohlantirish: {e}")
@@ -130,15 +127,13 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
         spreadsheet = gc.open_by_key(SPREADSHEET_ID)
         sheet = spreadsheet.sheet1
         print("✅ Google Sheets ulandi!")
-        
-        # Jadvalni bir martada to'liq go'zal ko'rinishga keltiramiz:
         format_google_sheet(sheet, spreadsheet)
     except Exception as e:
         print(f"⚠️ Google Sheets ulanishda xatolik: {e}")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
-CORS(app)  # Brauzer so'roviga to'liq ruxsat beradi
+CORS(app)
 
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
 def get_ai_analysis(prompt: str) -> str:
@@ -215,14 +210,13 @@ comments_store = []
 
 @app.route('/', methods=['GET'])
 def home():
-    """Asosiy rasmiy landing page va veb terminalni ochish"""
     trades = get_trades_from_sheets()
     return render_template(
         'index.html',
         title="Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.",
         username="@trader",
         api_base="https://tradebot-xelo.onrender.com",
-        bot_url="https://t.me/your_bot_username",  # O'zingizning Telegram bot useringizni yozing
+        bot_url="https://t.me/your_bot_username",
         trades=trades,
         comments=comments_store
     )
@@ -254,10 +248,7 @@ def add_comment():
 
     return redirect(url_for('home'))
 
-# ----------------------------------------------------
-# LEADERBOARD API ENDPOINTS (Google Sheets bilan bog'langan)
-# ----------------------------------------------------
-
+# --- LEADERBOARD API ENDPOINTS ---
 @app.route('/api/update_balance', methods=['POST'])
 def update_balance():
     global spreadsheet
@@ -275,27 +266,22 @@ def update_balance():
 
         row_to_update = None
         for i, row in enumerate(all_vals[1:], start=2):
-            if len(row) >= 1:
-                # Asosiy kalit: foydalanuvchi ID si
-                if row[0].strip() == user_id:
-                    row_to_update = i
-                    break
+            if len(row) >= 1 and row[0].strip() == user_id:
+                row_to_update = i
+                break
 
         formatted_bal = f"{balance:.2f}"
 
         if row_to_update:
-            # Nik o'zgargan bo'lsa uni ham, balansni ham yangilaymiz
             ws.update_cell(row_to_update, 2, username)
             ws.update_cell(row_to_update, 3, formatted_bal)
         else:
-            # Yangi foydalanuvchi bo'lsa qo'shamiz
             ws.append_row([user_id, username, formatted_bal])
 
         return jsonify({"status": "success", "updated_row": row_to_update})
     except Exception as e:
         print(f"Xatolik update_balance: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
@@ -335,11 +321,97 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 5. TELEGRAM BOT HANDLERLAR ---
+# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI ---
+def calculate_rsi(prices, period=14):
+    """Shamchalar yopilish narxlaridan RSI indikatorini aniqlash"""
+    if len(prices) < period + 1:
+        return 50.0
+    deltas = [prices[i+1] - prices[i] for i in range(len(prices)-1)]
+    gains = [d for d in deltas if d > 0]
+    losses = [-d for d in deltas if d < 0]
+    avg_gain = sum(gains[-period:]) / period if gains else 0
+    avg_loss = sum(losses[-period:]) / period if losses else 1e-9
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 2)
+
+def scan_and_post_ai_signals():
+    """Har 15 daqiqada bozorni skaner qilib, kanalga tahliliy signal chiqaruvchi modul"""
+    symbols = ["BTCUSDT", "ETHUSDT"]
+    print("🚀 [AI Radar] Bozor skaneri 24/7 rejimida ishga tushdi!")
+    
+    while True:
+        try:
+            for sym in symbols:
+                url = f"https://api.binance.com/api/v3/klines?symbol={sym}&interval=15m&limit=30"
+                res = requests.get(url, timeout=10)
+                if res.status_code != 200:
+                    continue
+
+                candles = res.json()
+                closes = [float(k[4]) for k in candles]
+                current_price = closes[-1]
+                rsi_val = calculate_rsi(closes)
+
+                prompt = f"""
+Sen Obsidian Lab professional kripto-tahlilchisining aqlli neyrotarmog'isan.
+Bozor parametrlarini o'rganib chiq:
+- Aktiv: {sym}
+- Hozirgi narx: {current_price}
+- So'nggi 5 ta shamcha yopilishi: {closes[-5:]}
+- RSI (14, 15m): {rsi_val}
+
+Vazifang:
+Agar ushbu kotirovkalarda aniq ehtimolli LONG yoki SHORT ochish uchun sabab bo'lsa (masalan: RSI haddan tashqari tushgan/chiqqan, shamchalar teskari burilishi), javobingni QAT'IYAN "SIGNAL_FOUND" so'zi bilan boshla:
+SIGNAL_FOUND
+📍 Yo'nalish: [LONG yoki SHORT]
+🎯 Take-Profit: [aniq narx]
+🛑 Stop-Loss: [aniq narx]
+💡 Sabab: [1 ta lo'nda jumlada tushuntirish]
+
+Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hech qanday ortiqcha gap yozma.
+"""
+                ai_verdict = get_ai_analysis(prompt)
+
+                if ai_verdict and "SIGNAL_FOUND" in ai_verdict:
+                    clean_text = ai_verdict.replace("SIGNAL_FOUND", "").strip()
+
+                    uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
+                    now_time = uzb_time.strftime("%H:%M")
+
+                    post_text = (
+                        f"⚡️ <b>OBSIDIAN RADAR // AI MARKET SIGNAL</b>\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"📊 <b>Aktiv:</b> #{sym}\n"
+                        f"💵 <b>Narx:</b> ${current_price:,.2f}\n"
+                        f"📈 <b>RSI (15m):</b> {rsi_val}\n"
+                        f"⏱ <b>Vaqt:</b> {now_time}\n\n"
+                        f"{clean_text}\n\n"
+                        f"⚠️ <i>Kotletit qilmang, risk-menejment qoidalariga rioya qiling!</i>\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
+                    )
+
+                    # Kanalga yuborish
+                    bot.send_message(CHANNEL_CHAT_ID, post_text, parse_mode="HTML")
+                    
+                    # Google Sheets'ga qayd etish
+                    save_trade_to_sheets(f"AI: {sym}", clean_text)
+                    print(f"LOG: [AI Radar] {sym} bo'yicha signal kanalga chiqdi!")
+
+                time.sleep(5)  # Juftliklar orasidagi pauza
+
+        except Exception as err:
+            print(f"LOG: [AI Radar] Skanerda ogohlantirish: {err}")
+
+        # 15 daqiqa (900 soniya) kutish
+        time.sleep(900)
+
+# --- 6. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    
     tma_button = KeyboardButton(
         text="🚀 Savdo Terminalini ochish", 
         web_app=WebAppInfo(url="https://akbarjon1.github.io/tradebot/")
@@ -372,7 +444,7 @@ def handle_trade_message(message):
         "- 'Men ham dam olib uxlayman', 'Yaxshi, keyin gaplashamiz' degan robot gaplarni QAT'IYAN ISHLATMA!\n"
         "- Masalan: 'uxla' desa -> 'O'zing uxla brat, grafik qarab o'tiribman' yoki 'Bozor uxlamaydi, bizga dam yo'q' deb javob ber.\n"
         "- 'tur' desa -> 'Uyg'oqman, nima gap?' deb javob ber.\n"
-        "- Bozor bo'yicha aniq signal bo'lmasa, o'zingdan 1.07 deb yolg'on narx to'qima, 'Grafikni ko'rish kerak, hozircha noaniq' deb ayt.\n\n"
+        "- Bozor bo'yicha aniq signal bo'lmasa, o'zingdan yolg'on narx to'qima, 'Grafikni ko'rish kerak, hozircha noaniq' deb ayt.\n\n"
         f"Oldingi gaplar:\n{history_text}\n\n"
         f"Do'sting: {user_text}\n"
         "Sen:"
@@ -403,7 +475,7 @@ def handle_trade_message(message):
     except Exception as e:
         bot.send_message(message.chat.id, f"Brat, xatolik berdi: {e}")
 
-# --- 6. GOOGLE SHEETS MONITORING ---
+# --- 7. GOOGLE SHEETS MONITORING ---
 sent_trade_ids = set()
 
 def monitor_new_trades():
@@ -434,7 +506,7 @@ def monitor_new_trades():
         except Exception as e:
             print(f"Monitoring davomida xatolik: {e}")
 
-# --- 7. AVTOMATIK YANGILIKLAR TIZIMI ---
+# --- 8. AVTOMATIK YANGILIKLAR TIZIMI ---
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
@@ -463,7 +535,7 @@ Quyidagi yangilikni o'zbek tiliga tarjima qilib, treyderlar uchun lo'nda va prof
 Sarlavha: {title}
 Mazmuni: {clean_summary}
 
-Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgidan oshmasin):
+Format faqat mana shunday bo'lsin:
 ⚡️ *OBSIDIAN RADAR // MARKET ALERT*
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -500,22 +572,30 @@ Format faqat mana shunday bo'lsin (Telegram rasm ostiga sig'ishi uchun 700 belgi
                         )
                     
                     SEEN_NEWS.add(link)
-                    print("LOG: [Obsidian Radar] Kanalga post chiqdi!")
+                    print("LOG: [Obsidian Radar] Kanalga yangilik chiqdi!")
 
         except Exception as e:
             print(f"LOG: Yangiliklar tizimida xatolik: {e}")
 
         time.sleep(3600)
 
-# --- 8. ISHGA TUSHIRISH ---
+# --- 9. ISHGA TUSHIRISH (Barcha potoklar parallel) ---
 if __name__ == "__main__":
+    # 1. Flask Web Server
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
 
+    # 2. Google Sheets Signallar monitoringi
     t_sheet = threading.Thread(target=monitor_new_trades, daemon=True)
     t_sheet.start()
 
+    # 3. Kripto yangiliklar avtopostingi
     t_news = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
     t_news.start()
 
+    # 4. AI Bozor Skaneri (Har 15 daqiqada tahlil qilib, kanalga chiqaradi)
+    t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
+    t_radar.start()
+
+    # 5. Telegram Bot Polling
     bot.infinity_polling()
