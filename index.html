@@ -589,39 +589,63 @@
       }
     }
 
+    // NPC lar xatti-harakatini yangilash (Xilma-xil va tasodifiy hayot mantiqi)
     function updateNPCs() {
       npcs.forEach(npc => {
         npc.timer--;
-        if (npc.id === 'jasur' && npc.timer <= 0) {
-          if (npc.state === 'idle') {
-            npc.state = 'going_wc';
-            npc.targetX = 35; npc.targetY = 120;
-            npc.timer = 180;
-          } else if (npc.state === 'going_wc') {
-            npc.state = 'idle';
-            npc.targetX = npc.baseX; npc.targetY = npc.baseY;
-            npc.timer = 250;
+
+        if (npc.timer <= 0) {
+          // 1. ☕️ JASUR: Kofe, deraza, WC va erkin sayr
+          if (npc.id === 'jasur') {
+            const jasurActions = [
+              { name: 'coffee', x: npc.baseX, y: npc.baseY, coffee: true, time: 250 },
+              { name: 'window', x: 260, y: 120, coffee: true, time: 200 },
+              { name: 'wc', x: 35, y: 120, coffee: false, time: 180 },
+              { name: 'wander', x: 170, y: 190, coffee: true, time: 150 }
+            ];
+            const nextAct = jasurActions[Math.floor(Math.random() * jasurActions.length)];
+            npc.targetX = nextAct.x;
+            npc.targetY = nextAct.y;
+            npc.coffee = nextAct.coffee;
+            npc.timer = nextAct.time + Math.floor(Math.random() * 100);
           }
-        }
-        if (npc.id === 'alex' && npc.timer <= 0) {
-          if (npc.state === 'typing') {
-            npc.state = 'coffee_break';
-            npc.targetX = 160; npc.targetY = 150;
-            npc.timer = 200;
-            npc.coffee = true;
-          } else {
-            npc.state = 'typing';
-            npc.targetX = npc.baseX; npc.targetY = npc.baseY;
-            npc.timer = 300;
+
+          // 2. 💻 ALEX: Monitorlar, kofe olish, deraza va harakat
+          if (npc.id === 'alex') {
+            const alexActions = [
+              { name: 'desk', x: npc.baseX, y: npc.baseY, coffee: false, time: 350 },
+              { name: 'coffee', x: 130, y: 150, coffee: true, time: 160 },
+              { name: 'window', x: 330, y: 120, coffee: false, time: 180 },
+              { name: 'stretch', x: 420, y: 220, coffee: false, time: 140 }
+            ];
+            const nextAct = alexActions[Math.floor(Math.random() * alexActions.length)];
+            npc.targetX = nextAct.x;
+            npc.targetY = nextAct.y;
+            npc.coffee = nextAct.coffee;
+            npc.timer = nextAct.time + Math.floor(Math.random() * 120);
+          }
+
+          // 3. 🐋 MISTER WHALE: Divan va xona markazida sayr
+          if (npc.id === 'whale') {
+            const whaleActions = [
+              { name: 'sofa', x: npc.baseX, y: npc.baseY, coffee: true, time: 400 },
+              { name: 'stroll', x: 280, y: 310, coffee: true, time: 200 },
+              { name: 'center', x: 320, y: 180, coffee: true, time: 180 }
+            ];
+            const nextAct = whaleActions[Math.floor(Math.random() * whaleActions.length)];
+            npc.targetX = nextAct.x;
+            npc.targetY = nextAct.y;
+            npc.coffee = nextAct.coffee;
+            npc.timer = nextAct.time + Math.floor(Math.random() * 150);
           }
         }
 
         const dx = npc.targetX - npc.x;
         const dy = npc.targetY - npc.y;
         const dist = Math.hypot(dx, dy);
-        if (dist > 2) {
-          npc.x += (dx / dist) * 0.9;
-          npc.y += (dy / dist) * 0.9;
+        if (dist > 3) {
+          npc.x += (dx / dist) * 0.8;
+          npc.y += (dy / dist) * 0.8;
           npc.isMoving = true;
         } else {
           npc.isMoving = false;
