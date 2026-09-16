@@ -32,6 +32,14 @@ CHANNEL_CHAT_ID = get_env("CHANNEL_CHAT_ID", "@obsidian_lab_uz")
 
 user_histories = {}
 
+# Jonli agent vazifalari keshi (HQ Ticker uchun)
+latest_ict_status = {
+    "BTC": "Scanning 15m FVG Liquidity...",
+    "ETH": "Monitoring CISD delivery...",
+    "last_signal": "No high-probability setup yet",
+    "active_agents": 3
+}
+
 # AI Mijozlari
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
@@ -204,7 +212,7 @@ def save_trade_to_sheets(title, content):
         print(f"Google Sheets'ga yozishda xatolik: {err_msg}")
         return False, err_msg
 
-# --- 4. FLASK WEB SAYTI (LANDING PAGE) ---
+# --- 4. FLASK WEB SAYTI VA API ENDPOINTS ---
 CHANNEL_ID = "-5436696482"
 comments_store = []
 
@@ -248,7 +256,6 @@ def add_comment():
 
     return redirect(url_for('home'))
 
-# --- LEADERBOARD API ENDPOINTS ---
 @app.route('/api/update_balance', methods=['POST'])
 def update_balance():
     global spreadsheet
@@ -317,7 +324,42 @@ def get_leaderboard():
         print(f"Leaderboard olishda xatolik: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# --- OBSIDIAN LOUNGE: PIKSEL AI PERSONAJLAR BILAN SUHBAT ---
+# --- OBSIDIAN HQ: LIVE AGENT LOGS VA TASKS ENDPOINT ---
+@app.route('/api/agent_tasks', methods=['GET'])
+def get_agent_tasks():
+    """Izometrik HQ ofisdagi Live Ticker va statuslar uchun jonli ma'lumotlar"""
+    return jsonify({
+        "status": "success",
+        "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
+        "agents": {
+            "jasur": {
+                "name": "Jasur",
+                "role": "ICT Market Analyst",
+                "current_task": latest_ict_status.get("BTC", "Scanning 15m Liquidity"),
+                "location": "Central Desk"
+            },
+            "alex": {
+                "name": "Alex",
+                "role": "Algo & Quant Dev",
+                "current_task": "Backtesting CISD v2.4",
+                "location": "Server Terminal"
+            },
+            "whale": {
+                "name": "Mister Whale",
+                "role": "Capital & Risk Manager",
+                "current_task": "Reviewing Portfolio PnL",
+                "location": "VIP Lounge"
+            }
+        },
+        "logs": [
+            f"⚡️ Jasur: {latest_ict_status.get('BTC')}",
+            "💻 Alex: PineScript & Python ICT Engine online",
+            "🐋 Mister Whale: Risk threshold set to 1.5% max drawdown",
+            "📡 Network: Binance 15m WebSocket latency: 28ms"
+        ]
+    })
+
+# --- OBSIDIAN LOUNGE: AI AGENTLAR BILAN SUHBAT ---
 @app.route('/api/npc_chat', methods=['POST'])
 def npc_chat():
     try:
@@ -330,18 +372,21 @@ def npc_chat():
 
         prompts = {
             "jasur": (
-                "Sen — Jasur, kechasi bilan grafik qarab chiqqan, charchagan, lekin tajribali Toshkentlik treydersan. "
-                "Qahva ichib o'tiribsan. Gaplaring qisqa (1-2 jumla), samimiy, Toshkent ko'cha shevasida, biroz charchoq va kinoya aralash bo'lsin. "
+                "Sen — Jasur, kechasi bilan grafik qarab chiqqan, charchagan, lekin tajribali ICT treydersan. "
+                "Qo'lingda qahva, ko'zlaring qizargan. FVG, Turtle Soup, London/NY session likvidligi bo'yicha gapirasan. "
+                "Gaplaring qisqa (1-2 jumla), samimiy, Toshkent ko'cha shevasida, charchoq va o'tkir kinoya aralash bo'lsin. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             ),
             "alex": (
-                "Sen — Alex, sovuqqon algo-treyder va kordersan. Hissiyotlardan xolis, faqat ICT, FVG, BSL/SSL likvidlik "
-                "va algoritmik qoidalar bilan gaplashasan. Qisqa (1-2 jumla), aniq va professional javob ber. "
+                "Sen — Alex, sovuqqon algo-treyder va kordersan. Hissiyot nol, faqat matematika, kod va ICT algoritmi. "
+                "Change in State of Delivery (CISD), algoritmik muvozanat va backtest haqida gapirasan. "
+                "Qisqa (1-2 jumla), texnik va o'ta aniq javob ber. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             ),
             "whale": (
-                "Sen — Mister Whale, million dollarlik hamyon egasi, katta kit. O'ta xotirjam, mulohazali va boy odamsan. "
-                "Mayda 15 minutlik tebranishlarga kulib qaraysan, sabr va katta psixologiyani o'rgatasan. Qisqa (1-2 jumla) javob ber. "
+                "Sen — Mister Whale, ko'p millionli kapital boshqaruvchisi, katta kit. O'ta vazmin, mulohazali va boy odamsan. "
+                "1-2 daqiqalik shovqinlarga parvo qilmaysan. Sabr, psixologiya va katta hovuzlarni tushuntirasan. "
+                "Qisqa (1-2 jumla), xotirjam va salobatli javob ber. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             )
         }
@@ -350,7 +395,7 @@ def npc_chat():
         ai_reply = get_ai_analysis(chosen_prompt)
 
         if not ai_reply:
-            ai_reply = "Hozircha tarmoq band, birozdan keyin kel..."
+            ai_reply = "Hozircha server band, birozdan keyin kel..."
 
         return jsonify({"status": "success", "reply": ai_reply})
     except Exception as e:
@@ -363,6 +408,7 @@ def run_flask():
 # --- 5. ICT (SMART MONEY CONCEPTS) AVTO-SIGNAL SKANERI ---
 def scan_and_post_ai_signals():
     """Har 15 daqiqada shamchalarni ICT / Smart Money qoidalarida tekshiruvchi modul"""
+    global latest_ict_status
     symbols = ["BTCUSDT", "ETHUSDT"]
     print("🚀 [AI Radar // ICT Edition] Smart Money skaneri ishga tushdi!")
     
@@ -417,6 +463,8 @@ Agar bozor flat bo'lsa, likvidlik olinmagan bo'lsa yoki shartlar to'liq bo'lmasa
                     uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
                     now_time = uzb_time.strftime("%H:%M")
 
+                    latest_ict_status["BTC" if "BTC" in sym else "ETH"] = f"ICT Setup detected on {sym}!"
+
                     post_caption = (
                         f"⚡️ <b>OBSIDIAN RADAR // ICT ALGO SIGNAL</b>\n"
                         f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -445,6 +493,8 @@ Agar bozor flat bo'lsa, likvidlik olinmagan bo'lsa yoki shartlar to'liq bo'lmasa
 
                     save_trade_to_sheets(f"ICT: {sym}", clean_text)
                     print(f"LOG: [AI Radar // ICT] {sym} bo'yicha Smart Money signali kanalga chiqdi!")
+                else:
+                    latest_ict_status["BTC" if "BTC" in sym else "ETH"] = f"Scanning {sym} 15m Liquidity..."
 
                 time.sleep(5)
 
@@ -659,7 +709,7 @@ Format faqat mana shunday bo'lsin:
 
         time.sleep(3600)
 
-# --- 9. ISHGA TUSHIRISH (Barcha potoklar parallel) ---
+# --- 9. ISHGA TUSHIRISH ---
 if __name__ == "__main__":
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
