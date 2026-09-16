@@ -126,7 +126,7 @@
           </span>
         </div>
 
-        <!-- VIRTUAL DEPOSIT VA 10K FAUCET TUGMASI -->
+        <!-- VIRTUAL DEPOZIT VA 10K FAUCET -->
         <div class="flex items-center gap-3">
           <span class="text-xs text-slate-400 font-bold">Virtual Depozit:</span>
           <span id="balance-val" class="font-mono text-xs font-extrabold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl">$10,000.00</span>
@@ -288,10 +288,11 @@
       const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       document.getElementById('balance-val').innerText = bStr;
       
-      // 10k dan past bo'lsa Faucet tugmasi chiqadi, aks holda yashiriladi
+      // XATOLIK TUZATILDI: Ochiq bitim bo'lsa Faucet chiqa olmaydi!
+      // Faqat ochiq bitim bo'lmaganda va erkin balans $10,000 dan kam bo'lgandagina tugma ko'rinadi.
       const topUpBtn = document.getElementById('btn-topup');
       if (topUpBtn) {
-        if (balance < 10000) {
+        if (!position && balance < 10000) {
           topUpBtn.classList.remove('hidden');
         } else {
           topUpBtn.classList.add('hidden');
@@ -309,11 +310,19 @@
 
     // 10K BALANS TO'LDIRISH (FAUCET) FUNKSIYASI
     async function claimFaucet() {
+      // 1. Agar foydalanuvchida ochiq bitim bo'lsa, qat'iyan taqiqlanadi
+      if (position) {
+        alert("Ochiq bitimingiz mavjud! Balansni to'ldirish uchun avval bitimni yoping.");
+        return;
+      }
+
+      // 2. Agar balansi $10,000 dan kam bo'lmasa, ruxsat berilmaydi
       if (balance >= 10000) {
         alert("Balansingiz yetarli! Balans $10,000 dan pastga tushgandagina to'ldirish mumkin.");
         return;
       }
 
+      // Balansni qayta $10,000 ga tiklash
       balance = 10000.00;
       safeSet(`obs_bal_${userId}`, balance);
       updateUI();
