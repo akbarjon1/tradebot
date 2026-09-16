@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian Lab — HQ & Open World</title>
+  <title>Obsidian Lab — Open World HQ</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,31 +21,31 @@
     }
   </script>
   <style>
-    body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .custom-scroll::-webkit-scrollbar { width: 3px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    body { background-color: #0f172a; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
   <!-- TOP APP BAR -->
-  <header class="border-b border-brand-border bg-white/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-lg">
     <div class="flex items-center gap-2.5">
       <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
         <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
       </svg>
       <div>
-        <span class="font-extrabold text-slate-900 text-sm tracking-tight block leading-tight">Obsidian Lab</span>
-        <span class="text-[10px] text-slate-400 font-mono">Open World HQ</span>
+        <span class="font-extrabold text-white text-sm tracking-tight block leading-tight">Obsidian Lab</span>
+        <span class="text-[10px] text-indigo-400 font-mono">Open World HQ // Multiplayer</span>
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
-        <span>🎮</span> Open World HQ
+      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-xl transition active:scale-95 shadow-md">
+        <span>🎮</span> Kirish
       </button>
-      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-xl transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="nav-username">@trader</span> ✏️
       </button>
     </div>
@@ -53,38 +53,38 @@
 
   <!-- MAIN TERMINAL -->
   <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
-    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm flex items-center justify-between">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
       <div>
         <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
-        <span id="balance-val" class="font-mono text-xl font-extrabold text-slate-900">$10,000.00</span>
+        <span id="balance-val" class="font-mono text-xl font-extrabold text-emerald-400">$10,000.00</span>
       </div>
     </div>
-    <div class="h-64 rounded-2xl overflow-hidden border border-brand-border bg-slate-50 shadow-sm">
-      <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
+    <div class="h-64 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-lg">
+      <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent"></iframe>
     </div>
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OPEN WORLD WORLD MAP MODAL (HQ & STREET) -->
+  <!-- 🕹️ OPEN WORLD MAP MODAL (HQ & STREET) -->
   <!-- ========================================== -->
   <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-2 selection:bg-indigo-600">
-    <div class="flex justify-between items-center px-2 py-1.5 border-b border-slate-800 bg-slate-900/90 rounded-xl">
+    <div class="flex justify-between items-center px-3 py-2 border-b border-slate-800 bg-slate-900 rounded-xl shadow-md">
       <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="room-indicator" class="text-xs font-mono font-bold text-emerald-400">📍 Xona: Office (HQ)</span>
       </div>
       <div class="flex items-center gap-2">
-        <!-- OVOZLI CHAT (MIC) TUGMASI -->
-        <button id="mic-btn" onclick="toggleVoiceChat()" class="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg hover:bg-slate-700 transition">
-          🎙️ Muted
+        <button id="mic-btn" onclick="toggleVoiceIndicator()" class="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg hover:bg-slate-700 transition">
+          🎙️ Push to Talk
         </button>
-        <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-2.5 py-1 rounded-lg hover:bg-rose-900 transition">
+        <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-white bg-rose-600 hover:bg-rose-500 px-3 py-1 rounded-lg transition">
           ✕ Chiqish
         </button>
       </div>
     </div>
 
     <!-- CANVAS & CHAT CONTAINER -->
-    <div class="flex-1 my-2 relative flex flex-col items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#161311] shadow-2xl">
+    <div class="flex-1 my-2 relative flex flex-col items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#121216] shadow-2xl">
       <div id="canvas-wrapper" class="relative w-full flex-1 flex items-center justify-center touch-none select-none">
         <canvas id="lounge-canvas" width="640" height="380" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
         <div id="touch-stick-base" class="hidden absolute w-20 h-20 rounded-full border-2 border-indigo-500/40 bg-indigo-900/20 pointer-events-none -translate-x-1/2 -translate-y-1/2">
@@ -92,14 +92,14 @@
         </div>
       </div>
 
-      <!-- ONLINE MULTIPLAYER CHAT BOX (PASTKI QISMDAGI CHAT) -->
-      <div class="w-full bg-slate-900/95 border-t border-slate-800 p-2 flex flex-col gap-1 max-h-28">
-        <div id="chat-messages" class="flex-1 overflow-y-auto custom-scroll text-[10px] font-mono space-y-1 max-h-16 px-1">
-          <div class="text-slate-500 italic">Tizim: Chatga xush kelibsiz! Boshqa o'yinchilar bilan yozishingiz mumkin.</div>
+      <!-- ONLINE MULTIPLAYER CHAT BOX -->
+      <div class="w-full bg-slate-900/95 border-t border-slate-800 p-2.5 flex flex-col gap-1.5 max-h-32">
+        <div id="chat-messages" class="flex-1 overflow-y-auto custom-scroll text-[11px] font-mono space-y-1 max-h-16 px-1 text-slate-300">
+          <div class="text-indigo-400 italic">🌐 Multiplayer: Jonli chat faol. Boshqa o'yinchilar bilan yozishingiz mumkin.</div>
         </div>
-        <div class="flex gap-1.5">
-          <input id="multiplayer-chat-input" type="text" placeholder="Xona bo'yicha yozish..." class="flex-1 bg-slate-800 text-white px-2.5 py-1.5 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500 font-mono" />
-          <button onclick="sendMultiplayerChat()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-[11px] font-bold font-mono">Yuborish</button>
+        <div class="flex gap-2">
+          <input id="multiplayer-chat-input" type="text" placeholder="Xona bo'yicha habar yozish..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-xs outline-none border border-slate-700 focus:border-indigo-500 font-mono shadow-inner" />
+          <button onclick="sendMultiplayerChat()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold font-mono shadow-md active:scale-95 transition">Yuborish</button>
         </div>
       </div>
     </div>
@@ -127,52 +127,43 @@
 
     let userId = getTelegramUID();
     let myUsername = getTelegramUsername();
+    let balance = 10000.0;
 
-    // ==========================================
-    // 🌍 OPEN WORLD MAP & ROOMS ENGINE
-    // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
     const canvasWrapper = document.getElementById('canvas-wrapper');
 
     let loungeActive = false;
     let tick = 0;
-    let smokeParticles = [];
-
-    // Xonalar: 'office', 'hall', 'jasur_room', 'alex_room', 'whale_room', 'street'
     let currentRoom = 'office';
 
     let player = {
-      x: 320, y: 300, vx: 0, vy: 0, speed: 3.2, isMoving: false, name: myUsername
+      x: 320, y: 300, vx: 0, vy: 0, speed: 3.5, isMoving: false, name: myUsername, speaking: false
     };
 
     let onlinePlayers = [];
     let chatMessages = [];
-    let voiceActive = false;
-    let mediaStream = null;
 
     function openLoungeModal() {
       player.name = myUsername;
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
       requestAnimationFrame(renderLoop);
-      setInterval(syncMultiplayerData, 1000);
+      setInterval(syncMultiplayerData, 800);
     }
 
     function closeLoungeModal() {
       document.getElementById('lounge-modal').classList.add('hidden');
       loungeActive = false;
-      if (voiceActive) toggleVoiceChat();
     }
 
-    // --- MULTIPLAYER SERVER SYNC ---
     async function syncMultiplayerData() {
       if (!loungeActive) return;
       try {
         const res = await fetch(`${API_BASE}/api/multiplayer/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, username: myUsername, x: player.x, y: player.y, room: currentRoom })
+          body: JSON.stringify({ user_id: userId, username: myUsername, x: player.x, y: player.y, room: currentRoom, speaking: player.speaking })
         });
         const d = await res.json();
         if (d.status === 'success') { onlinePlayers = d.players; }
@@ -207,37 +198,29 @@
 
     function renderChatBox() {
       const box = document.getElementById('chat-messages');
-      box.innerHTML = chatMessages.map(m => `<div><b>${m.sender}</b> [${m.time}]: ${m.text}</div>`).join('');
+      box.innerHTML = chatMessages.map(m => `<div><b class="text-indigo-400">${m.sender}</b> <span class="text-slate-500">[${m.time}]</span>: <span class="text-slate-200">${m.text}</span></div>`).join('');
       box.scrollTop = box.scrollHeight;
     }
 
-    // Ovozli chat simulyatsiyasi (WebRTC / Mic stream)
-    async function toggleVoiceChat() {
+    function toggleVoiceIndicator() {
+      player.speaking = !player.speaking;
       const btn = document.getElementById('mic-btn');
-      if (!voiceActive) {
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          voiceActive = true;
-          btn.innerText = "🎙️ Live (ON)";
-          btn.className = "text-xs font-mono font-bold text-emerald-300 bg-emerald-950 border border-emerald-700 px-2.5 py-1 rounded-lg";
-        } catch (e) {
-          alert("Mikrofonga ruxsat berilmadi yoki mavjud emas!");
-        }
+      if (player.speaking) {
+        btn.innerText = "🎙️ Speaking...";
+        btn.className = "text-xs font-mono font-bold text-white bg-emerald-600 border border-emerald-500 px-3 py-1 rounded-lg shadow-md";
       } else {
-        if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); }
-        voiceActive = false;
-        btn.innerText = "🎙️ Muted";
-        btn.className = "text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg";
+        btn.innerText = "🎙️ Push to Talk";
+        btn.className = "text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg";
       }
     }
 
-    // --- SPIDER-MAN CHIZISH ---
-    function drawSpiderMan(x, y, label, isMoving) {
+    // 🕷️ SPIDER-MAN CHIZISH
+    function drawSpiderMan(x, y, label, isMoving, speaking = false) {
       const legCycle = isMoving ? Math.sin(tick * 0.45) * 4.5 : 0;
       const breathe = Math.sin(tick * 0.08) * 1.5;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath(); ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath(); ctx.ellipse(x, y + 17, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
 
       // Etiklar va shim
       ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y + 12 + legCycle, 8, 5); ctx.fillRect(x + 2, y + 12 - legCycle, 8, 5);
@@ -251,100 +234,105 @@
       ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y - 31 + breathe, 18, 16);
       ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 6, y - 25 + breathe, 4, 3); ctx.fillRect(x + 2, y - 25 + breathe, 4, 3);
 
+      // Ovozli to'lqin belgisi (Gapirganda chiqadi)
+      if (speaking) {
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('🗣️ 🔊', x + 10, y - 30 + breathe);
+      }
+
       ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px "JetBrains Mono", monospace';
-      ctx.fillText(`🕷 ${label}`, x - (ctx.measureText(`🕷 ${label}`).width / 2), y - 38);
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4;
+      ctx.fillText(`🕷 ${label}`, x - (ctx.measureText(`🕷 ${label}`).width / 2), y - 42);
+      ctx.shadowBlur = 0;
     }
 
     // --- MAP & ROOM RENDERING ---
     function drawEnvironment() {
-      ctx.fillStyle = '#161311'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#121216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       if (currentRoom === 'office') {
         document.getElementById('room-indicator').innerText = "📍 Xona: Office (HQ)";
-        // Ofis zamin va eshik (Hallga chiqish uchun pastda eshik)
-        ctx.fillStyle = '#2b2d42'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#334155'; ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-        
-        // Stollar va Jasur
-        ctx.fillStyle = '#fde68a'; ctx.fillRect(150, 150, 80, 40);
-        drawPixelHuman(190, 170, '#d97706', '#451a03', 'Jasur', false, true);
+        ctx.fillStyle = '#1e2028'; ctx.fillRect(20, 20, canvas.width - 40, canvas.height - 40);
+        ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+        // Ish stollari
+        ctx.fillStyle = '#334155'; ctx.fillRect(140, 140, 90, 45);
+        ctx.fillStyle = '#475569'; ctx.fillRect(410, 140, 90, 45);
 
         // Hallga chiqish eshigi (Pastda)
-        ctx.fillStyle = '#475569'; ctx.fillRect(270, 360, 100, 20);
-        ctx.fillStyle = '#ffffff'; ctx.font = '10px monospace'; ctx.fillText('🚪 HALLGA CHIQISH', 275, 374);
+        ctx.fillStyle = '#4f46e5'; ctx.fillRect(270, 345, 100, 25);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 HALLGA CHIQISH', 275, 361);
 
       } else if (currentRoom === 'hall') {
         document.getElementById('room-indicator').innerText = "📍 Xona: Hall (Koridor)";
-        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#181820'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 3 ta eshik (Jasur, Alex, Whale xonalari) va Tashqariga eshik
+        // 3 ta eshik
         ctx.fillStyle = '#334155';
-        ctx.fillRect(80, 40, 90, 25); ctx.fillStyle = '#fff'; ctx.fillText('🚪 JASUR XONASI', 85, 56);
-        ctx.fillRect(275, 40, 90, 25); ctx.fillText('🚪 ALEX XONASI', 282, 56);
-        ctx.fillRect(470, 40, 90, 25); ctx.fillText('🚪 WHALE XONASI', 475, 56);
+        ctx.fillRect(70, 35, 110, 28); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 JASUR XONASI', 78, 52);
+        ctx.fillRect(265, 35, 110, 28); ctx.fillText('🚪 ALEX XONASI', 274, 52);
+        ctx.fillRect(460, 35, 110, 28); ctx.fillText('🚪 WHALE XONASI', 466, 52);
 
-        // Ko'chaga chiqish eshigi (Pastda)
-        ctx.fillStyle = '#10b981'; ctx.fillRect(260, 355, 120, 25);
-        ctx.fillStyle = '#000'; ctx.font = 'bold 10px monospace'; ctx.fillText('🌳 KO\'CHAGA CHIQISH', 270, 371);
+        // Ko'chaga chiqish eshigi
+        ctx.fillStyle = '#059669'; ctx.fillRect(250, 345, 140, 28);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🌳 KO\'CHAGA CHIQISH', 262, 362);
 
-      } else if (currentRoom === 'jasur_room' || currentRoom === 'alex_room' || currentRoom === 'whale_room') {
-        document.getElementById('room-indicator').innerText = `📍 Xona: ${currentRoom.toUpperCase()}`;
-        ctx.fillStyle = '#1e1b4b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (currentRoom.includes('_room')) {
+        let name = currentRoom.replace('_room', '').toUpperCase();
+        document.getElementById('room-indicator').innerText = `📍 Xona: ${name} Xonasi`;
+        ctx.fillStyle = '#1a102f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (currentRoom === 'jasur_room') drawPixelHuman(320, 200, '#d97706', '#451a03', 'Jasur', false, true);
-        if (currentRoom === 'alex_room') drawPixelHuman(320, 200, '#10b981', '#0f172a', 'Alex', false, false);
-        if (currentRoom === 'whale_room') drawPixelHuman(320, 200, '#0284c7', '#ffffff', 'Mister Whale', false, true);
-
-        // Hallga qaytish
-        ctx.fillStyle = '#ef4444'; ctx.fillRect(270, 355, 100, 25);
-        ctx.fillStyle = '#fff'; ctx.fillText('🚪 HALLGA QAYTISH', 275, 371);
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(270, 345, 100, 25);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 HALLGA QAYTISH', 276, 361);
 
       } else if (currentRoom === 'street') {
         document.getElementById('room-indicator').innerText = "📍 Joy: Ko'cha & Daryo qirg'og'i";
-        // Osmon va bulutlar
-        ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, canvas.width, 140);
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        let cloudOffset = (tick * 0.2) % canvas.width;
-        ctx.fillRect(100 - cloudOffset, 30, 60, 20); ctx.fillRect(400 - cloudOffset, 60, 80, 25);
+        
+        // Osmon va qimirlab turgan bulutlar
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, canvas.width, 140);
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        let cloudOffset = (tick * 0.15) % canvas.width;
+        ctx.fillRect(80 - cloudOffset, 30, 70, 18); ctx.fillRect(420 - cloudOffset, 55, 90, 22);
 
-        // Daryo va suv oqishi
-        ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 140, canvas.width, 90);
+        // Daryo va oqib turgan suv
+        ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 140, canvas.width, 80);
         ctx.fillStyle = '#38bdf8';
-        for (let x = (tick * 2) % 40; x < canvas.width; x += 40) {
-          ctx.fillRect(x, 175, 20, 4); ctx.fillRect(x + 15, 205, 25, 4);
+        for (let x = (tick * 1.5) % 35; x < canvas.width; x += 35) {
+          ctx.fillRect(x, 170, 16, 3); ctx.fillRect(x + 10, 195, 20, 3);
         }
 
-        // Yoshi katta baliqchi qariya
-        ctx.fillStyle = '#b45309'; ctx.fillRect(80, 220, 20, 25);
-        ctx.fillStyle = '#fed7aa'; ctx.fillRect(82, 210, 16, 14); // Bosh
-        // Qarmoq
-        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(92, 222); ctx.lineTo(140, 180); ctx.stroke();
+        // Yoshi katta baliqchi qariya va qarmog'i
+        ctx.fillStyle = '#78350f'; ctx.fillRect(90, 210, 18, 22);
+        ctx.fillStyle = '#fed7aa'; ctx.fillRect(92, 200, 14, 12);
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(100, 212); ctx.lineTo(135, 175); ctx.stroke();
 
-        // Binoning oldidagi mashinalar (Lambo, Gelik, Malibu 2)
-        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 230, canvas.width, 150); // Yo'l
-        // Gelik (Qora)
-        ctx.fillStyle = '#000000'; ctx.fillRect(220, 260, 50, 24);
-        // Lambo (Qizil)
-        ctx.fillStyle = '#dc2626'; ctx.fillRect(300, 265, 55, 20);
-        // Malibu 2 (Oq)
-        ctx.fillStyle = '#f8fafc'; ctx.fillRect(380, 263, 60, 22);
-        // Mashina chiroqlari zavad bo'lib yongan
-        ctx.fillStyle = '#facc15';
-        ctx.fillRect(220, 266, 4, 4); ctx.fillRect(300, 271, 4, 4); ctx.fillRect(380, 269, 4, 4);
+        // YO'L VA RASMDAGI KABI YUQORI SIFATLI PIKSEL MASHINALAR (Lambo, Gelik, Malibu 2)
+        ctx.fillStyle = '#090d16'; ctx.fillRect(0, 220, canvas.width, 160);
+
+        // 1. Lambo (Sariq sport mashina)
+        ctx.fillStyle = '#eab308'; ctx.fillRect(140, 260, 70, 24);
+        ctx.fillStyle = '#000000'; ctx.fillRect(152, 252, 22, 10); // Oyna
+        ctx.fillRect(148, 280, 10, 6); ctx.fillRect(190, 280, 10, 6); // G'ildirak
+        ctx.fillStyle = '#fef08a'; ctx.fillRect(140, 268, 3, 4); // Faralar (Zavad)
+
+        // 2. Gelik (Qora jip)
+        ctx.fillStyle = '#111827'; ctx.fillRect(260, 245, 60, 38);
+        ctx.fillStyle = '#000000'; ctx.fillRect(270, 238, 40, 12); // Kabina
+        ctx.fillRect(268, 280, 12, 6); ctx.fillRect(302, 280, 12, 6);
+        ctx.fillStyle = '#fef08a'; ctx.fillRect(260, 255, 3, 4);
+
+        // 3. Malibu 2 (Oq sedan)
+        ctx.fillStyle = '#f8fafc'; ctx.fillRect(390, 255, 75, 26);
+        ctx.fillStyle = '#334155'; ctx.fillRect(405, 247, 35, 10);
+        ctx.fillRect(400, 278, 11, 6); ctx.fillRect(445, 278, 11, 6);
+        ctx.fillStyle = '#fef08a'; ctx.fillRect(390, 263, 3, 4);
 
         // Binoga qaytish eshigi
-        ctx.fillStyle = '#6366f1'; ctx.fillRect(20, 280, 80, 40);
-        ctx.fillStyle = '#fff'; ctx.fillText('🏢 BINOGA KIRISH', 25, 305);
+        ctx.fillStyle = '#4f46e5'; ctx.fillRect(20, 275, 75, 45);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🏢 HQ KIRISH', 27, 301);
       }
-    }
-
-    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.beginPath(); ctx.ellipse(x, y + 16, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = bodyColor; ctx.fillRect(x - 10, y - 16, 20, 19);
-      ctx.fillStyle = '#fed7aa'; ctx.fillRect(x - 8, y - 29, 16, 13);
-      ctx.fillStyle = hairColor; ctx.fillRect(x - 9, y - 34, 18, 7);
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 40);
     }
 
     function updatePlayer() {
@@ -354,21 +342,21 @@
         player.isMoving = true;
       } else { player.isMoving = false; }
 
-      // Xonalararo o'tish eshiklari mantiqi
-      if (currentRoom === 'office' && player.y > 345 && player.x > 260 && player.x > 260 && player.x < 380) {
+      // Xonalararo o'tishlar
+      if (currentRoom === 'office' && player.y > 335 && player.x > 260 && player.x < 380) {
         currentRoom = 'hall'; player.y = 70;
       } else if (currentRoom === 'hall') {
-        if (player.y < 50) {
-          if (player.x > 70 && player.x < 180) { currentRoom = 'jasur_room'; player.y = 320; }
-          else if (player.x > 265 && player.x < 375) { currentRoom = 'alex_room'; player.y = 320; }
-          else if (player.x > 460 && player.x < 570) { currentRoom = 'whale_room'; player.y = 320; }
-        } else if (player.y > 345 && player.x > 250 && player.x < 390) {
-          currentRoom = 'street'; player.x = 100; player.y = 300;
+        if (player.y < 45) {
+          if (player.x > 60 && player.x < 190) { currentRoom = 'jasur_room'; player.y = 310; }
+          else if (player.x > 255 && player.x < 385) { currentRoom = 'alex_room'; player.y = 310; }
+          else if (player.x > 450 && player.x < 580) { currentRoom = 'whale_room'; player.y = 310; }
+        } else if (player.y > 335 && player.x > 240 && player.x < 400) {
+          currentRoom = 'street'; player.x = 100; player.y = 290;
         }
-      } else if (currentRoom.includes('_room') && player.y > 340) {
+      } else if (currentRoom.includes('_room') && player.y > 330) {
         currentRoom = 'hall'; player.y = 75;
-      } else if (currentRoom === 'street' && player.x < 50 && player.y > 270 && player.y < 330) {
-        currentRoom = 'office'; player.x = 320; player.y = 320;
+      } else if (currentRoom === 'street' && player.x < 50 && player.y > 260 && player.y < 330) {
+        currentRoom = 'office'; player.x = 320; player.y = 310;
       }
 
       player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
@@ -382,11 +370,11 @@
       updatePlayer();
 
       // O'zingiz (Spider-Man)
-      drawSpiderMan(player.x, player.y, player.name, player.isMoving);
+      drawSpiderMan(player.x, player.y, player.name, player.isMoving, player.speaking);
 
-      // Boshqa online o'yinchilarni chizish
+      // Boshqa o'yinchilar
       onlinePlayers.forEach(p => {
-        drawSpiderMan(p.x, p.y, p.username, false);
+        drawSpiderMan(p.x, p.y, p.username, false, p.speaking);
       });
 
       requestAnimationFrame(renderLoop);
