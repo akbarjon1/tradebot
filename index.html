@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Obsidian Lab — Mini App</title>
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -20,23 +19,14 @@
             mono: ['"JetBrains Mono"', 'monospace']
           },
           colors: {
-            brand: {
-              bg: '#f8fafc',
-              border: '#e2e8f0',
-              accent: '#4f46e5'
-            }
+            brand: { bg: '#f8fafc', border: '#e2e8f0', accent: '#4f46e5' }
           }
         }
       }
     }
   </script>
   <style>
-    body {
-      background-color: #f8fafc;
-      color: #0f172a;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+    body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
     .custom-scroll::-webkit-scrollbar { width: 3px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
@@ -46,21 +36,18 @@
   <!-- TOP APP BAR -->
   <header class="border-b border-brand-border bg-white/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2.5">
-      <div class="flex items-center justify-center">
-        <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
-          <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
-        </svg>
-      </div>
+      <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
+        <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
+      </svg>
       <div>
         <span class="font-extrabold text-slate-900 text-sm tracking-tight block leading-tight">Obsidian Lab</span>
         <span class="text-[10px] text-slate-400 font-mono">Paper-Trading</span>
       </div>
     </div>
 
-    <!-- O'YIN TUGMASI VA USERNAME -->
     <div class="flex items-center gap-2">
-      <!-- O'YINGA KIRISH MINIMALIST TUGMASI -->
+      <!-- O'YINGA KIRISH TUGMASI -->
       <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
         <span>🎮</span> Lounge
       </button>
@@ -72,10 +59,9 @@
     </div>
   </header>
 
-  <!-- MAIN CONTAINER (ASOSIY TERMINAL) -->
+  <!-- MAIN TERMINAL -->
   <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
-    
-    <!-- BALANCE & FAUCET BAR -->
+    <!-- BALANCE -->
     <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
         <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
@@ -86,15 +72,11 @@
       </button>
     </div>
 
-    <!-- PAIR SELECTOR & LIVE TICKER -->
+    <!-- PAIRS & TICKER -->
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">
-          BTC / USDT
-        </button>
-        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">
-          ETH / USDT
-        </button>
+        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
+        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">ETH / USDT</button>
       </div>
       <span class="text-xs font-mono text-emerald-600 font-bold flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -102,16 +84,12 @@
       </span>
     </div>
 
-    <!-- LIVE TRADINGVIEW CHART -->
+    <!-- CHART -->
     <div class="h-64 rounded-2xl overflow-hidden border border-brand-border bg-slate-50 shadow-sm">
-      <iframe 
-        id="tradingview-frame"
-        class="w-full h-full border-0"
-        src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
-      ></iframe>
+      <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
     </div>
 
-    <!-- ACTIVE POSITION CARD -->
+    <!-- POSITION -->
     <div id="position-info" class="hidden bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 text-xs font-mono shadow-sm space-y-2">
       <div class="flex justify-between font-bold text-sm">
         <span id="pos-dir" class="text-emerald-600">LONG (10x)</span>
@@ -123,128 +101,103 @@
         <div>TP: <b id="pos-tp-txt" class="text-emerald-600">—</b></div>
         <div>SL: <b id="pos-sl-txt" class="text-rose-600">—</b></div>
       </div>
-      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">
-        Bitimni yopish ✕
-      </button>
+      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">Bitimni yopish ✕</button>
     </div>
 
-    <!-- ORDER CONTROLS -->
+    <!-- CONTROLS -->
     <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-4">
       <div>
         <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
         <div class="relative">
           <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
-          <input 
-            id="trade-amount" 
-            type="number" 
-            value="1000" 
-            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"
-          />
+          <input id="trade-amount" type="number" value="1000" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"/>
         </div>
         <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono">
-          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">10%</button>
-          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">25%</button>
-          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">50%</button>
-          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg active:scale-95 transition">MAX</button>
+          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">10%</button>
+          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">25%</button>
+          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">50%</button>
+          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg">MAX</button>
         </div>
       </div>
 
       <div>
         <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
-          <span>Leverage (Kredit yelkasi):</span>
+          <span>Leverage:</span>
           <span id="lev-val" class="text-indigo-600 font-mono font-bold">10x</span>
         </div>
         <div class="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
-          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="1">1x</button>
-          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="5">5x</button>
+          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="1">1x</button>
+          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="5">5x</button>
           <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" data-l="10">10x</button>
-          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="20">20x</button>
+          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="20">20x</button>
         </div>
       </div>
 
-      <!-- Take-Profit & Stop-Loss Fields -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <div>
           <label class="text-[11px] font-bold text-slate-500 block mb-1">Take Profit ($):</label>
-          <input 
-            id="trade-tp" 
-            type="number" 
-            placeholder="Ixtiyoriy" 
-            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-emerald-500 placeholder:text-slate-400"
-          />
+          <input id="trade-tp" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-emerald-500"/>
         </div>
         <div>
           <label class="text-[11px] font-bold text-slate-500 block mb-1">Stop Loss ($):</label>
-          <input 
-            id="trade-sl" 
-            type="number" 
-            placeholder="Ixtiyoriy" 
-            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-rose-500 placeholder:text-slate-400"
-          />
+          <input id="trade-sl" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-rose-500"/>
         </div>
       </div>
 
-      <!-- Execute Buttons -->
       <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm flex items-center justify-center gap-1">
-          Long 🟢
-        </button>
-        <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm flex items-center justify-center gap-1">
-          Short 🔴
-        </button>
+        <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Long 🟢</button>
+        <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Short 🔴</button>
       </div>
     </div>
 
-    <!-- LEADERBOARD ACCORDION / BOX -->
+    <!-- LEADERBOARD -->
     <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-3">
       <div class="flex justify-between items-center pb-2 border-b border-brand-border">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders (Leaderboard)</h3>
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders</h3>
         <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
       </div>
       <div id="top-traders-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll text-xs font-mono">
         <p class="text-slate-400 text-center py-4">Yuklanmoqda...</p>
       </div>
     </div>
-
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OBSIDIAN LOUNGE: FULLSCREEN RETRO MODAL -->
+  <!-- 🕹️ OBSIDIAN LOUNGE: RETRO MODAL (OFFICE ART) -->
   <!-- ========================================== -->
-  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-4 selection:bg-indigo-600">
-    <!-- Top Modal Header -->
-    <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-3 selection:bg-indigo-600">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN LOUNGE // v1.0</h2>
+        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN OFFICE // HQ LOUNGE</h2>
       </div>
-      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1.5 rounded-xl hover:bg-rose-900 transition">
-        ✕ Terminalga qaytish
+      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1 rounded-xl hover:bg-rose-900 transition">
+        ✕ Chiqish
       </button>
     </div>
 
-    <!-- Center Canvas Area -->
-    <div class="flex-1 my-3 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl">
-      <canvas id="lounge-canvas" width="360" height="240" class="w-full h-full max-w-lg object-contain image-rendering-pixelated"></canvas>
+    <!-- CANVAS CONTAINER -->
+    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-black shadow-2xl">
+      <canvas id="lounge-canvas" width="600" height="400" class="w-full h-full max-w-xl object-contain image-rendering-pixelated"></canvas>
 
-      <!-- On-Screen Controls for Mobile -->
+      <!-- MOBIL JOYSTICK -->
       <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-80 select-none">
         <div></div>
-        <button onclick="movePlayer(0, -12)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▲</button>
+        <button onclick="movePlayer(0, -15)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▲</button>
         <div></div>
-        <button onclick="movePlayer(-12, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">◀</button>
+        <button onclick="movePlayer(-15, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">◀</button>
         <button onclick="interactWithNearby()" class="w-9 h-9 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-[10px] font-bold shadow flex items-center justify-center">TALK</button>
-        <button onclick="movePlayer(12, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▶</button>
+        <button onclick="movePlayer(15, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▶</button>
         <div></div>
-        <button onclick="movePlayer(0, 12)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▼</button>
+        <button onclick="movePlayer(0, 15)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▼</button>
         <div></div>
       </div>
     </div>
 
-    <!-- RPG Dialog Box inside Modal -->
-    <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-lg mx-auto w-full">
+    <!-- DIALOG BOX -->
+    <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-xl mx-auto w-full">
       <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-        <span id="dialog-npc-name" class="font-bold text-indigo-400">☕️ Jasur (Treyder)</span>
+        <span id="dialog-npc-name" class="font-bold text-indigo-400">Jasur (Charchagan Treyder)</span>
         <button onclick="closeDialog()" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div id="dialog-reply" class="text-slate-200 leading-relaxed text-[11px] min-h-[30px]">
@@ -257,37 +210,24 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT ENGINE -->
   <script>
     const API_BASE = "https://tradebot-xelo.onrender.com";
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.expand();
-      tg.ready();
-    }
+    if (tg) { tg.expand(); tg.ready(); }
 
     function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
     function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
 
     function getTelegramUID() {
-      if (tg?.initDataUnsafe?.user?.id) {
-        return String(tg.initDataUnsafe.user.id);
-      }
-      let id = safeGet('obs_tma_uid');
-      if (!id) {
-        id = 'tg_' + Math.floor(Math.random() * 899999 + 100000);
-        safeSet('obs_tma_uid', id);
-      }
+      if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
+      let id = safeGet('obs_tma_uid') || ('tg_' + Math.floor(Math.random() * 899999 + 100000));
+      safeSet('obs_tma_uid', id);
       return id;
     }
 
     function getTelegramUsername() {
-      if (tg?.initDataUnsafe?.user?.username) {
-        return '@' + tg.initDataUnsafe.user.username;
-      }
-      if (tg?.initDataUnsafe?.user?.first_name) {
-        return tg.initDataUnsafe.user.first_name;
-      }
+      if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
+      if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
       return safeGet('obs_tma_username') || '@trader';
     }
 
@@ -301,15 +241,9 @@
 
     function init() {
       const savedBal = safeGet(`obs_bal_${userId}`);
-      if (savedBal !== null && !isNaN(parseFloat(savedBal))) {
-        balance = parseFloat(savedBal);
-      }
-
+      if (savedBal !== null && !isNaN(parseFloat(savedBal))) balance = parseFloat(savedBal);
       const savedPos = safeGet(`obs_pos_${userId}`);
-      if (savedPos) {
-        try { position = JSON.parse(savedPos); } catch(e) { position = null; }
-      }
-
+      if (savedPos) { try { position = JSON.parse(savedPos); } catch(e) { position = null; } }
       document.getElementById('nav-username').innerText = myUsername;
       updateUI();
       fetchLeaderboard();
@@ -317,16 +251,11 @@
     }
 
     function updateUI() {
-      const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('balance-val').innerText = bStr;
-      
+      document.getElementById('balance-val').innerText = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const topUpBtn = document.getElementById('btn-topup');
       if (topUpBtn) {
-        if (!position && balance < 10000) {
-          topUpBtn.classList.remove('hidden');
-        } else {
-          topUpBtn.classList.add('hidden');
-        }
+        if (!position && balance < 10000) topUpBtn.classList.remove('hidden');
+        else topUpBtn.classList.add('hidden');
       }
 
       const posCard = document.getElementById('position-info');
@@ -343,25 +272,17 @@
     }
 
     async function claimFaucet() {
-      if (position) {
-        alert("Ochiq bitimingiz mavjud! Avval uni yoping.");
-        return;
-      }
-      if (balance >= 10000) {
-        alert("Balansingiz yetarli!");
-        return;
-      }
-
+      if (position) return alert("Ochiq bitimingiz bor!");
+      if (balance >= 10000) return alert("Balans yetarli!");
       balance = 10000.00;
       safeSet(`obs_bal_${userId}`, balance);
       updateUI();
-
       await syncWithSheets();
-      alert("Hisobingiz muvaffaqiyatli $10,000 ga to'ldirildi! 🚀");
+      alert("Hisobingiz $10,000 ga to'ldirildi! 🚀");
     }
 
     function editMyUsername() {
-      const val = prompt("Ism yoki @username kiriting:", myUsername);
+      const val = prompt("Ism yoki @username:", myUsername);
       if (val && val.trim().length > 1) {
         let clean = val.trim();
         if (!clean.startsWith('@')) clean = '@' + clean;
@@ -376,17 +297,14 @@
       currentLeverage = l;
       document.getElementById('lev-val').innerText = `${l}x`;
       document.querySelectorAll('.lev-btn').forEach(b => {
-        if (parseInt(b.getAttribute('data-l')) === l) {
-          b.className = "lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm";
-        } else {
-          b.className = "lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600";
-        }
+        b.className = parseInt(b.getAttribute('data-l')) === l 
+          ? "lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" 
+          : "lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600";
       });
     }
 
     function setPercent(p) {
-      const val = Math.max(10, Math.floor(balance * p));
-      document.getElementById('trade-amount').value = val;
+      document.getElementById('trade-amount').value = Math.max(10, Math.floor(balance * p));
     }
 
     function switchAsset(sym) {
@@ -394,7 +312,6 @@
       const btcBtn = document.getElementById('btn-tab-btc');
       const ethBtn = document.getElementById('btn-tab-eth');
       const frame = document.getElementById('tradingview-frame');
-
       if (sym === 'BTCUSDT') {
         btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
         ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
@@ -408,41 +325,26 @@
 
     function executeOrder(type) {
       const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
-      if (amount < 10) return alert("Minimal savdo miqdori $10!");
-      if (amount > balance) return alert("Balansda mablag' yetarli emas!");
+      if (amount < 10) return alert("Minimal savdo $10!");
+      if (amount > balance) return alert("Mablag' yetarli emas!");
 
       const tpRaw = parseFloat(document.getElementById('trade-tp').value);
       const slRaw = parseFloat(document.getElementById('trade-sl').value);
       const curPrice = prices[currentAsset];
 
-      if (!isNaN(tpRaw)) {
-        if (type === 'LONG' && tpRaw <= curPrice) return alert("LONG uchun TP joriy narxdan baland bo'lishi kerak!");
-        if (type === 'SHORT' && tpRaw >= curPrice) return alert("SHORT uchun TP joriy narxdan past bo'lishi kerak!");
-      }
-      if (!isNaN(slRaw)) {
-        if (type === 'LONG' && slRaw >= curPrice) return alert("LONG uchun SL joriy narxdan past bo'lishi kerak!");
-        if (type === 'SHORT' && slRaw <= curPrice) return alert("SHORT uchun SL joriy narxdan baland bo'lishi kerak!");
-      }
-
       if (position) closeCurrentPosition();
 
       balance -= amount;
       position = {
-        type: type,
-        size: amount,
-        leverage: currentLeverage,
-        entryPrice: curPrice,
-        asset: currentAsset,
-        tp: !isNaN(tpRaw) ? tpRaw : null,
-        sl: !isNaN(slRaw) ? slRaw : null
+        type: type, size: amount, leverage: currentLeverage,
+        entryPrice: curPrice, asset: currentAsset,
+        tp: !isNaN(tpRaw) ? tpRaw : null, sl: !isNaN(slRaw) ? slRaw : null
       };
 
       document.getElementById('trade-tp').value = '';
       document.getElementById('trade-sl').value = '';
-
       safeSet(`obs_bal_${userId}`, balance);
       safeSet(`obs_pos_${userId}`, JSON.stringify(position));
-
       updateUI();
       syncWithSheets();
     }
@@ -452,20 +354,14 @@
       const live = prices[position.asset || currentAsset];
       let diff = (live - position.entryPrice) / position.entryPrice;
       if (position.type === 'SHORT') diff = -diff;
-
       const pnlUSD = position.size * diff * position.leverage;
       balance += Math.max(0, position.size + pnlUSD);
-
       position = null;
       safeSet(`obs_bal_${userId}`, balance);
       try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
-
       updateUI();
       syncWithSheets();
-
-      if (reason) {
-        alert(reason);
-      }
+      if (reason) alert(reason);
     }
 
     async function syncWithSheets() {
@@ -473,11 +369,7 @@
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            username: myUsername,
-            balance: Number(balance.toFixed(2))
-          })
+          body: JSON.stringify({ user_id: userId, username: myUsername, balance: Number(balance.toFixed(2)) })
         });
         fetchLeaderboard();
       } catch (e) {}
@@ -498,12 +390,8 @@
               <span class="font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
             </div>
           `).join('');
-        } else {
-          list.innerHTML = `<p class="text-slate-400 text-center py-4">Reyting bo'sh</p>`;
         }
-      } catch (e) {
-        list.innerHTML = `<p class="text-rose-500 text-center py-4">Yuklab bo'lmadi</p>`;
-      }
+      } catch (e) {}
     }
 
     async function updateTicker() {
@@ -514,7 +402,6 @@
       } catch (e) {
         prices[currentAsset] += (Math.random() - 0.49) * 10;
       }
-
       document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
       if (position) {
@@ -527,47 +414,40 @@
         pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
 
         if (position.type === 'LONG') {
-          if (position.tp && liveP >= position.tp) {
-            closeCurrentPosition(`🎯 Take-Profit ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
-            return;
-          }
-          if (position.sl && liveP <= position.sl) {
-            closeCurrentPosition(`🛑 Stop-Loss ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
-            return;
-          }
-        } else if (position.type === 'SHORT') {
-          if (position.tp && liveP <= position.tp) {
-            closeCurrentPosition(`🎯 Take-Profit ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
-            return;
-          }
-          if (position.sl && liveP >= position.sl) {
-            closeCurrentPosition(`🛑 Stop-Loss ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
-            return;
-          }
+          if (position.tp && liveP >= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
+          if (position.sl && liveP <= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
+        } else {
+          if (position.tp && liveP <= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
+          if (position.sl && liveP >= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
         }
       }
     }
 
     // ==========================================
-    // 🕹️ OBSIDIAN LOUNGE CANVAS GAME ENGINE
+    // 🕹️ OBSIDIAN OFFICE ENGINE (IMAGE BASED)
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
 
-    let player = { x: 180, y: 120, w: 12, h: 12, color: '#6366F1' };
-    let currentTargetNpc = null;
-    let loungeActive = false;
+    // Rasm orqa fon sifatida yuklanadi
+    const officeImg = new Image();
+    officeImg.src = 'obsidian_office.png'; // GitHub ildizidagi rasm
 
+    let player = { x: 300, y: 340, w: 14, h: 14, color: '#6366F1' }; // Eshikdan kiradi
+    let loungeActive = false;
+    let currentTargetNpc = null;
+
+    // Rasm ustidagi NPC larning aniq koordinatalari
     const npcs = [
-      { id: 'jasur', name: '☕️ Jasur (Charchagan Treyder)', x: 60, y: 60, color: '#f59e0b', desc: 'Coffee' },
-      { id: 'alex', name: '💻 Alex (Algo-ICT)', x: 300, y: 60, color: '#10b981', desc: 'Trading Desk' },
-      { id: 'whale', name: '🐋 Mister Whale (Kit)', x: 180, y: 200, color: '#38bdf8', desc: 'VIP Sofa' }
+      { id: 'jasur', name: '☕️ Jasur (Charchagan Treyder)', x: 120, y: 170 },
+      { id: 'alex', name: '💻 Alex (Algo-ICT Xaker)', x: 470, y: 155 },
+      { id: 'whale', name: '🐋 Mister Whale (Katta Kit)', x: 300, y: 260 }
     ];
 
     function openLoungeModal() {
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
-      drawLounge();
+      drawOffice();
     }
 
     function closeLoungeModal() {
@@ -576,53 +456,51 @@
       loungeActive = false;
     }
 
-    function drawLounge() {
+    function drawOffice() {
       if (!ctx || !loungeActive) return;
-      ctx.fillStyle = '#090d16';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.strokeStyle = '#131b2e';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < canvas.width; x += 24) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      // 1. Asosiy Pikselli Ofis Rasmini chizish
+      if (officeImg.complete && officeImg.naturalWidth !== 0) {
+        ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = '#1e1e24';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '12px monospace';
+        ctx.fillText('Ofis yuklanmoqda...', 240, 200);
       }
-      for (let y = 0; y < canvas.height; y += 24) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-      }
 
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(40, 30, 40, 20);
-      ctx.fillRect(280, 30, 60, 20);
-      ctx.fillRect(150, 215, 60, 16);
-
-      npcs.forEach(n => {
-        ctx.fillStyle = n.color;
-        ctx.fillRect(n.x - 6, n.y - 6, 12, 12);
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '8px "JetBrains Mono", monospace';
-        ctx.fillText(n.name.split(' ')[1], n.x - 12, n.y - 10);
-      });
-
+      // 2. O'yinchi personajini chizish (Pikselli ko'k qahramon)
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(player.x - 5, player.y + 7, 14, 4); // Soya
       ctx.fillStyle = player.color;
-      ctx.fillRect(player.x - 6, player.y - 6, player.w, player.h);
+      ctx.fillRect(player.x - 5, player.y - 6, 12, 12); // Kiyim
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(player.x - 4, player.y - 12, 10, 6); // Yuz
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(player.x - 5, player.y - 15, 12, 4); // Soch/Qalpoq
 
+      // 3. NPC ga yaqin borganda interaktiv [TALK] ko'rsatkichi
       let nearNpc = getNearbyNPC();
       if (nearNpc) {
+        ctx.fillStyle = '#6366F1';
+        ctx.fillRect(nearNpc.x - 22, nearNpc.y - 50, 44, 15);
         ctx.fillStyle = '#ffffff';
-        ctx.font = '9px "JetBrains Mono", monospace';
-        ctx.fillText('💬 [TALK]', nearNpc.x - 14, nearNpc.y + 18);
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('💬 [TALK]', nearNpc.x - 18, nearNpc.y - 39);
       }
     }
 
     function movePlayer(dx, dy) {
       if (!loungeActive) return;
-      player.x = Math.max(15, Math.min(canvas.width - 15, player.x + dx));
-      player.y = Math.max(15, Math.min(canvas.height - 15, player.y + dy));
-      drawLounge();
+      // Xona devorlari chegarasi
+      player.x = Math.max(50, Math.min(canvas.width - 50, player.x + dx));
+      player.y = Math.max(120, Math.min(canvas.height - 50, player.y + dy));
+      drawOffice();
     }
 
     function getNearbyNPC() {
-      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 32) || null;
+      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 55) || null;
     }
 
     function interactWithNearby() {
@@ -631,7 +509,7 @@
       if (!npc) return;
       currentTargetNpc = npc;
       document.getElementById('dialog-npc-name').innerText = npc.name;
-      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qarab bosh irg'adi. Savolingni ber..."`;
+      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qaradi. Savolingni ber..."`;
       document.getElementById('dialog-box').classList.remove('hidden');
     }
 
@@ -659,21 +537,21 @@
         const d = await res.json();
         replyBox.innerText = `"${d.reply}"`;
       } catch (e) {
-        replyBox.innerText = '"Tarmoqda nosozlik, keyinroq gaplashamiz..."';
+        replyBox.innerText = '"Tarmoqda nosozlik, birozdan keyin yoz..."';
       }
     }
 
     window.addEventListener('keydown', (e) => {
-      if (!loungeActive) return;
-      if (document.activeElement.tagName === 'INPUT') return;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -12);
-      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 12);
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-12, 0);
-      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(12, 0);
+      if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
+      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -15);
+      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 15);
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-15, 0);
+      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(15, 0);
       if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
       if (['Escape'].includes(e.code)) closeLoungeModal();
     });
 
+    officeImg.onload = () => { if (loungeActive) drawOffice(); };
     init();
     setInterval(updateTicker, 1000);
   </script>
