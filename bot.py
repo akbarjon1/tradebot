@@ -121,7 +121,7 @@ def format_google_sheet(sh, sp):
 if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
     try:
         cred_info = json.loads(GOOGLE_CREDENTIALS_JSON)
-        scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         credentials = Credentials.from_service_account_info(cred_info, scopes=scopes)
         gc = gspread.authorize(credentials)
         spreadsheet = gc.open_by_key(SPREADSHEET_ID)
@@ -143,8 +143,8 @@ def get_ai_analysis(prompt: str) -> str:
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config=genai_types.GenerateContentConfig(
-                    temperature=0.65,
-                    max_output_tokens=800,
+                    temperature=0.45,
+                    max_output_tokens=900,
                 ),
             )
             text = (response.text or "").strip()
@@ -159,8 +159,8 @@ def get_ai_analysis(prompt: str) -> str:
             completion = groq_client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=800,
+                temperature=0.5,
+                max_tokens=900,
             )
             text = (completion.choices[0].message.content or "").strip()
             if text:
@@ -321,56 +321,55 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI ---
-def calculate_rsi(prices, period=14):
-    """Shamchalar yopilish narxlaridan RSI indikatorini aniqlash"""
-    if len(prices) < period + 1:
-        return 50.0
-    deltas = [prices[i+1] - prices[i] for i in range(len(prices)-1)]
-    gains = [d for d in deltas if d > 0]
-    losses = [-d for d in deltas if d < 0]
-    avg_gain = sum(gains[-period:]) / period if gains else 0
-    avg_loss = sum(losses[-period:]) / period if losses else 1e-9
-    if avg_loss == 0:
-        return 100.0
-    rs = avg_gain / avg_loss
-    return round(100 - (100 / (1 + rs)), 2)
-
+# --- 5. ICT (SMART MONEY CONCEPTS) AVTO-SIGNAL SKANERI ---
 def scan_and_post_ai_signals():
-    """Har 15 daqiqada bozorni skaner qilib, kanalga rasmli signal chiqaruvchi modul"""
+    """Har 15 daqiqada shamchalarni ICT / Smart Money qoidalarida tekshiruvchi modul"""
     symbols = ["BTCUSDT", "ETHUSDT"]
-    print("🚀 [AI Radar] Bozor skaneri 24/7 rejimida ishga tushdi!")
+    print("🚀 [AI Radar // ICT Edition] Smart Money skaneri ishga tushdi!")
     
     while True:
         try:
             for sym in symbols:
-                url = f"https://api.binance.com/api/v3/klines?symbol={sym}&interval=15m&limit=30"
+                url = f"https://api.binance.com/api/v3/klines?symbol={sym}&interval=15m&limit=25"
                 res = requests.get(url, timeout=10)
                 if res.status_code != 200:
                     continue
 
-                candles = res.json()
-                closes = [float(k[4]) for k in candles]
-                current_price = closes[-1]
-                rsi_val = calculate_rsi(closes)
+                candles_raw = res.json()
+                current_price = float(candles_raw[-1][4])
+
+                # Shamchalarning to'liq OHLC tuzilmasini yig'ish (Soyalarni hisoblash uchun)
+                candles_ohlc = []
+                for c in candles_raw[-15:]:
+                    t_str = datetime.datetime.fromtimestamp(c[0]/1000).strftime("%H:%M")
+                    candles_ohlc.append({
+                        "t": t_str,
+                        "open": float(c[1]),
+                        "high": float(c[2]),
+                        "low": float(c[3]),
+                        "close": float(c[4])
+                    })
 
                 prompt = f"""
-Sen Obsidian Lab professional kripto-tahlilchisining aqlli neyrotarmog'isan.
-Bozor parametrlarini o'rganib chiq:
-- Aktiv: {sym}
-- Hozirgi narx: {current_price}
-- So'nggi 5 ta shamcha yopilishi: {closes[-5:]}
-- RSI (14, 15m): {rsi_val}
+Sen ICT (Inner Circle Trader) va Smart Money Concepts bo'yicha professional institutsional treydersan.
+Quyida {sym} aktivining 15 daqiqalik so'nggi shamchalari berilgan (Open, High, Low, Close):
+{json.dumps(candles_ohlc)}
+Joriy jonli narx: {current_price}
 
-Vazifang:
-Agar ushbu kotirovkalarda aniq ehtimolli LONG yoki SHORT ochish uchun sabab bo'lsa (masalan: RSI haddan tashqari tushgan/chiqqan, shamchalar teskari burilishi), javobingni QAT'IYAN "SIGNAL_FOUND" so'zi bilan boshla:
+Quyidagi ICT konseptlarini qat'iy tekshir:
+1. Liquidity Sweep / Turtle Soup: Narx oldingi asosiy High (Buy-side) yoki Low (Sell-side) likvidligini olib, orqasiga qaytdimi?
+2. CISD (Change In State of Delivery / Market Structure Shift): Yetkazib berish holati o'zgardimi, impulsiv qarama-qarshi shamcha paydo bo'ldimi?
+3. FVG (Fair Value Gap): 3 ta ketma-ket shamcha oralig'ida Imbalance (muvozanatsizlik) bormi va narx unga mitigatsiya qildimi?
+4. Target (BSL yoki SSL): Qarama-qarshi tomondagi likvidlik hovuzi qayerda?
+
+Agar bozorda to'laqonli ICT kirish nuqtasi (Turtle Soup + CISD + FVG) shakllangan bo'lsa, xabarni aynan "SIGNAL_FOUND" bilan boshla:
 SIGNAL_FOUND
 📍 Yo'nalish: [LONG yoki SHORT]
-🎯 Take-Profit: [aniq narx]
-🛑 Stop-Loss: [aniq narx]
-💡 Sabab: [1 ta lo'nda jumlada tushuntirish]
+🎯 Take-Profit (BSL/SSL): [aniq narx]
+🛑 Stop-Loss (Invalidation): [aniq narx]
+💡 ICT Tahlil: [Qaysi likvidlik olingani, FVG va CISD qanday yuz berganini 1-2 jumlada o'zbek tilida professional ifoda et]
 
-Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hech qanday ortiqcha gap yozma.
+Agar bozor flat bo'lsa, likvidlik olinmagan bo'lsa yoki shartlar to'liq bo'lmasa, FAQAT "NO_SIGNAL" deb yoz. Boshqa so'z qo'shma.
 """
                 ai_verdict = get_ai_analysis(prompt)
 
@@ -381,11 +380,10 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                     now_time = uzb_time.strftime("%H:%M")
 
                     post_caption = (
-                        f"⚡️ <b>OBSIDIAN RADAR // AI MARKET SIGNAL</b>\n"
+                        f"⚡️ <b>OBSIDIAN RADAR // ICT ALGO SIGNAL</b>\n"
                         f"━━━━━━━━━━━━━━━━━━━━\n"
                         f"📊 <b>Aktiv:</b> #{sym}\n"
                         f"💵 <b>Narx:</b> ${current_price:,.2f}\n"
-                        f"📈 <b>RSI (15m):</b> {rsi_val}\n"
                         f"⏱ <b>Vaqt:</b> {now_time}\n\n"
                         f"{clean_text}\n\n"
                         f"⚠️ <i>Kotletit qilmang, risk-menejment qoidalariga rioya qiling!</i>\n"
@@ -393,7 +391,6 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                         f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
                     )
 
-                    # Rasmni xotiraga yuklab olish va Telegramga bayt sifatida jo'natish (400 xatosiz)
                     chart_url = "https://charts.bitbo.io/chart-images/btc-usd-1d.png"
                     img_sent = False
 
@@ -408,13 +405,13 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                     if not img_sent:
                         bot.send_message(CHANNEL_CHAT_ID, post_caption, parse_mode="HTML")
 
-                    save_trade_to_sheets(f"AI: {sym}", clean_text)
-                    print(f"LOG: [AI Radar] {sym} signali kanalga chiqdi!")
+                    save_trade_to_sheets(f"ICT: {sym}", clean_text)
+                    print(f"LOG: [AI Radar // ICT] {sym} bo'yicha Smart Money signali kanalga chiqdi!")
 
                 time.sleep(5)
 
         except Exception as err:
-            print(f"LOG: [AI Radar] Skanerda ogohlantirish: {err}")
+            print(f"LOG: [AI Radar // ICT] Skanerda ogohlantirish: {err}")
 
         time.sleep(900)
 
@@ -437,38 +434,35 @@ def handle_start(message):
         parse_mode="Markdown"
     )
 
-# Kanalga rasmli test signali yuborish buyrug'i (100% XATOSIZ)
+# ICT formatidagi yangilangan test signali buyrug'i
 @bot.message_handler(commands=['test_signal'])
 def handle_test_signal(message):
     uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
     now_time = uzb_time.strftime("%H:%M")
     
     test_caption = (
-        f"⚡️ <b>OBSIDIAN RADAR // TEST SIGNAL</b>\n"
+        f"⚡️ <b>OBSIDIAN RADAR // ICT ALGO SIGNAL</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"📊 <b>Aktiv:</b> #BTCUSDT\n"
         f"💵 <b>Narx:</b> $76,300.00\n"
-        f"📈 <b>RSI (15m):</b> 28.5 (Oversold)\n"
         f"⏱ <b>Vaqt:</b> {now_time}\n\n"
         f"📍 <b>Yo'nalish:</b> LONG 🟢\n"
-        f"🎯 <b>Take-Profit:</b> $78,500.00\n"
-        f"🛑 <b>Stop-Loss:</b> $75,100.00\n"
-        f"💡 <b>Sabab:</b> Tizim muvaffaqiyatli sinovdan o'tkazildi, buyruqlar to'liq ishlayapti!\n\n"
+        f"🎯 <b>Take-Profit (BSL):</b> $78,500.00\n"
+        f"🛑 <b>Stop-Loss (Invalidation):</b> $75,100.00\n"
+        f"💡 <b>ICT Tahlil:</b> 15m Sell-side likvidligi (Turtle Soup) yechildi va bullish CISD yuz berdi. Narx $75,800 FVG zonasiga mitigatsiya qilib yuqoriga qaytmoqda.\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
     )
     chart_url = "https://charts.bitbo.io/chart-images/btc-usd-1d.png"
 
     try:
-        # Rasmni xotiraga (bytes) olib, fayl sifatida Telegramga uzatish
         resp = requests.get(chart_url, timeout=8)
         if resp.status_code == 200:
             bot.send_photo(CHANNEL_CHAT_ID, resp.content, caption=test_caption, parse_mode="HTML")
         else:
             bot.send_message(CHANNEL_CHAT_ID, test_caption, parse_mode="HTML")
-        bot.reply_to(message, "✅ Test signali kanalga muvaffaqiyatli yuborildi!")
+        bot.reply_to(message, "✅ ICT test signali kanalga muvaffaqiyatli yuborildi!")
     except Exception as e:
-        # Aloqa xatosi bo'lsa matn baribir yetkaziladi
         try:
             bot.send_message(CHANNEL_CHAT_ID, test_caption, parse_mode="HTML")
             bot.reply_to(message, "✅ Test signali matn ko'rinishida kanalga yuborildi!")
