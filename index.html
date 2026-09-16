@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian Lab — Open World HQ</title>
+  <title>Obsidian Lab — Mini App</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,8 +14,13 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] },
-          colors: { brand: { bg: '#0f172a', border: '#1e293b', accent: '#6366f1' } }
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: { bg: '#0f172a', border: '#1e293b', accent: '#6366f1' }
+          }
         }
       }
     }
@@ -37,22 +42,25 @@
       </svg>
       <div>
         <span class="font-extrabold text-white text-sm tracking-tight block leading-tight">Obsidian Lab</span>
-        <span class="text-[10px] text-indigo-400 font-mono">Open World HQ // Multiplayer</span>
+        <span class="text-[10px] text-indigo-400 font-mono">Paper-Trading</span>
       </div>
     </div>
+
     <div class="flex items-center gap-2">
-      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-xl transition active:scale-95 shadow-md">
-        <span>🎮</span> Open World HQ
+      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-md">
+        <span>🎮</span> HQ Office
       </button>
+
       <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-xl transition">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span id="nav-username">@trader</span> ✏️
       </button>
     </div>
   </header>
 
-  <!-- MAIN TERMINAL -->
+  <!-- MAIN TERMINAL (LONG / SHORT & TRADING) -->
   <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
+    <!-- BALANCE -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
       <div>
         <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
@@ -63,10 +71,11 @@
       </button>
     </div>
 
+    <!-- PAIRS & TICKER -->
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
-        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs font-bold font-mono transition">ETH / USDT</button>
+        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
+        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold font-mono transition">ETH / USDT</button>
       </div>
       <span class="text-xs font-mono text-emerald-400 font-bold flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -74,13 +83,87 @@
       </span>
     </div>
 
+    <!-- CHART -->
     <div class="h-64 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-lg">
       <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent"></iframe>
+    </div>
+
+    <!-- POSITION -->
+    <div id="position-info" class="hidden bg-indigo-950/60 border border-indigo-900 rounded-2xl p-4 text-xs font-mono shadow-lg space-y-2">
+      <div class="flex justify-between font-bold text-sm">
+        <span id="pos-dir" class="text-emerald-400">LONG (10x)</span>
+        <span id="pos-pnl" class="text-emerald-400">$0.00 (+0.00%)</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400 border-t border-indigo-900/60 pt-2">
+        <div>Garov: <b id="pos-sz" class="text-white">$0.00</b></div>
+        <div>Kirish: <b id="pos-ent" class="text-white">$0.00</b></div>
+        <div>TP: <b id="pos-tp-txt" class="text-emerald-400">—</b></div>
+        <div>SL: <b id="pos-sl-txt" class="text-rose-400">—</b></div>
+      </div>
+      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">Bitimni yopish ✕</button>
+    </div>
+
+    <!-- CONTROLS (LONG / SHORT) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-4">
+      <div>
+        <label class="text-[11px] font-bold text-slate-400 block mb-1">Savdo hajmi ($):</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
+          <input id="trade-amount" type="number" value="1000" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-white outline-none focus:border-indigo-500"/>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono">
+          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">10%</button>
+          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">25%</button>
+          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">50%</button>
+          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-600 border border-indigo-500 text-white font-bold rounded-lg">MAX</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
+          <span>Leverage:</span>
+          <span id="lev-val" class="text-indigo-400 font-mono font-bold">10x</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
+          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="1">1x</button>
+          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="5">5x</button>
+          <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-indigo-600 font-bold text-white shadow-sm" data-l="10">10x</button>
+          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="20">20x</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 block mb-1">Take Profit ($):</label>
+          <input id="trade-tp" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 font-mono text-xs text-white outline-none focus:border-emerald-500"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-400 block mb-1">Stop Loss ($):</label>
+          <input id="trade-sl" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 font-mono text-xs text-white outline-none focus:border-rose-500"/>
+        </div>
+      </div>
+
+      <!-- LONG / SHORT TUGMALARI -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="executeOrder('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-md">Long 🟢</button>
+        <button onclick="executeOrder('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-md">Short 🔴</button>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Top Traders</h3>
+        <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-400 hover:underline">Yangilash 🔄</button>
+      </div>
+      <div id="top-traders-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll text-xs font-mono">
+        <p class="text-slate-500 text-center py-4">Yuklanmoqda...</p>
+      </div>
     </div>
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OPEN WORLD HQ MAP MODAL (HQ & STREET) -->
+  <!-- 🕹️ OPEN WORLD HQ MAP MODAL (MULTIPLAYER & ROOMS) -->
   <!-- ========================================== -->
   <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-2 selection:bg-indigo-600">
     <div class="flex justify-between items-center px-3 py-2 border-b border-slate-800 bg-slate-900 rounded-xl shadow-md">
@@ -89,7 +172,6 @@
         <span id="room-indicator" class="text-xs font-mono font-bold text-emerald-400">📍 Xona: Office (HQ)</span>
       </div>
       <div class="flex items-center gap-2">
-        <!-- PUSH TO TALK OVOZLI INDIKATORI -->
         <button id="mic-btn" onclick="toggleVoiceIndicator()" class="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg hover:bg-slate-700 transition shadow-sm">
           🎙️ Push to Talk
         </button>
@@ -99,16 +181,16 @@
       </div>
     </div>
 
-    <!-- CANVAS & MULTIPLAYER CHAT CONTAINER -->
+    <!-- CANVAS & CHAT CONTAINER -->
     <div class="flex-1 my-2 relative flex flex-col items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#121216] shadow-2xl">
       <div id="canvas-wrapper" class="relative w-full flex-1 flex items-center justify-center touch-none select-none">
-        <canvas id="lounge-canvas" width="640" height="380" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
+        <canvas id="lounge-canvas" width="600" height="380" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
         <div id="touch-stick-base" class="hidden absolute w-20 h-20 rounded-full border-2 border-indigo-500/40 bg-indigo-900/20 pointer-events-none -translate-x-1/2 -translate-y-1/2">
           <div id="touch-stick-knob" class="absolute w-8 h-8 rounded-full bg-indigo-500 shadow-lg top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
         </div>
       </div>
 
-      <!-- ONLINE MULTIPLAYER CHAT BOX -->
+      <!-- CHAT BOX -->
       <div class="w-full bg-slate-900/95 border-t border-slate-800 p-2.5 flex flex-col gap-1.5 max-h-32">
         <div id="chat-messages" class="flex-1 overflow-y-auto custom-scroll text-[11px] font-mono space-y-1 max-h-16 px-1 text-slate-300">
           <div class="text-indigo-400 italic">🌐 Multiplayer: Jonli chat faol. Boshqa o'yinchilar bilan yozishingiz mumkin.</div>
@@ -143,9 +225,200 @@
 
     let userId = getTelegramUID();
     let myUsername = getTelegramUsername();
+    let balance = 10000.0;
+    let currentAsset = "BTCUSDT";
+    let currentLeverage = 10;
+    const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
+    let position = null;
+
+    function init() {
+      const savedBal = safeGet(`obs_bal_${userId}`);
+      if (savedBal !== null && !isNaN(parseFloat(savedBal))) balance = parseFloat(savedBal);
+      const savedPos = safeGet(`obs_pos_${userId}`);
+      if (savedPos) { try { position = JSON.parse(savedPos); } catch(e) { position = null; } }
+      document.getElementById('nav-username').innerText = myUsername;
+      if (player) player.name = myUsername;
+      updateUI();
+      fetchLeaderboard();
+      setPercent(0.1);
+    }
+
+    function updateUI() {
+      document.getElementById('balance-val').innerText = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const topUpBtn = document.getElementById('btn-topup');
+      if (topUpBtn) {
+        if (!position && balance < 10000) topUpBtn.classList.remove('hidden');
+        else topUpBtn.classList.add('hidden');
+      }
+
+      const posCard = document.getElementById('position-info');
+      if (position) {
+        posCard.classList.remove('hidden');
+        document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
+        document.getElementById('pos-sz').innerText = `$${position.size.toFixed(2)}`;
+        document.getElementById('pos-ent').innerText = `$${position.entryPrice.toFixed(2)}`;
+        document.getElementById('pos-tp-txt').innerText = position.tp ? `$${position.tp.toFixed(2)}` : 'Yo‘q';
+        document.getElementById('pos-sl-txt').innerText = position.sl ? `$${position.sl.toFixed(2)}` : 'Yo‘q';
+      } else {
+        posCard.classList.add('hidden');
+      }
+    }
+
+    async function claimFaucet() {
+      if (position) return alert("Ochiq bitimingiz bor!");
+      if (balance >= 10000) return alert("Balans yetarli!");
+      balance = 10000.00;
+      safeSet(`obs_bal_${userId}`, balance);
+      updateUI();
+      await syncWithSheets();
+      alert("Hisobingiz $10,000 ga to'ldirildi! 🚀");
+    }
+
+    function editMyUsername() {
+      const val = prompt("Ism yoki @username:", myUsername);
+      if (val && val.trim().length > 1) {
+        let clean = val.trim();
+        if (!clean.startsWith('@')) clean = '@' + clean;
+        myUsername = clean;
+        player.name = myUsername;
+        safeSet('obs_tma_username', myUsername);
+        document.getElementById('nav-username').innerText = myUsername;
+        syncWithSheets();
+      }
+    }
+
+    function setLev(l) {
+      currentLeverage = l;
+      document.getElementById('lev-val').innerText = `${l}x`;
+      document.querySelectorAll('.lev-btn').forEach(b => {
+        b.className = parseInt(b.getAttribute('data-l')) === l 
+          ? "lev-btn py-1.5 rounded-xl bg-indigo-600 font-bold text-white shadow-sm" 
+          : "lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300";
+      });
+    }
+
+    function setPercent(p) {
+      document.getElementById('trade-amount').value = Math.max(10, Math.floor(balance * p));
+    }
+
+    function switchAsset(sym) {
+      currentAsset = sym;
+      const btcBtn = document.getElementById('btn-tab-btc');
+      const ethBtn = document.getElementById('btn-tab-eth');
+      const frame = document.getElementById('tradingview-frame');
+      if (sym === 'BTCUSDT') {
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition";
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent";
+      } else {
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition";
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent";
+      }
+    }
+
+    function executeOrder(type) {
+      const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
+      if (amount < 10) return alert("Minimal savdo $10!");
+      if (amount > balance) return alert("Mablag' yetarli emas!");
+
+      const tpRaw = parseFloat(document.getElementById('trade-tp').value);
+      const slRaw = parseFloat(document.getElementById('trade-sl').value);
+      const curPrice = prices[currentAsset];
+
+      if (position) closeCurrentPosition();
+
+      balance -= amount;
+      position = {
+        type: type, size: amount, leverage: currentLeverage,
+        entryPrice: curPrice, asset: currentAsset,
+        tp: !isNaN(tpRaw) ? tpRaw : null, sl: !isNaN(slRaw) ? slRaw : null
+      };
+
+      document.getElementById('trade-tp').value = '';
+      document.getElementById('trade-sl').value = '';
+      safeSet(`obs_bal_${userId}`, balance);
+      safeSet(`obs_pos_${userId}`, JSON.stringify(position));
+      updateUI();
+      syncWithSheets();
+    }
+
+    function closeCurrentPosition(reason = null) {
+      if (!position) return;
+      const live = prices[position.asset || currentAsset];
+      let diff = (live - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+      const pnlUSD = position.size * diff * position.leverage;
+      balance += Math.max(0, position.size + pnlUSD);
+      position = null;
+      safeSet(`obs_bal_${userId}`, balance);
+      try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
+      updateUI();
+      syncWithSheets();
+      if (reason) alert(reason);
+    }
+
+    async function syncWithSheets() {
+      try {
+        await fetch(`${API_BASE}/api/update_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, username: myUsername, balance: Number(balance.toFixed(2)) })
+        });
+        fetchLeaderboard();
+      } catch (e) {}
+    }
+
+    async function fetchLeaderboard() {
+      const list = document.getElementById('top-traders-list');
+      try {
+        const res = await fetch(`${API_BASE}/api/leaderboard?t=${Date.now()}`);
+        const data = await res.json();
+        if (data.status === 'success' && data.leaders.length > 0) {
+          list.innerHTML = data.leaders.map((u, i) => `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/80 border border-slate-700">
+              <div class="flex items-center gap-2 truncate">
+                <span class="font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
+                <span class="font-semibold text-white truncate max-w-[120px]">${u.Username}</span>
+              </div>
+              <span class="font-bold text-emerald-400">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function updateTicker() {
+      try {
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
+        const d = await res.json();
+        if (d.price) prices[currentAsset] = parseFloat(d.price);
+      } catch (e) {
+        prices[currentAsset] += (Math.random() - 0.49) * 10;
+      }
+      document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+      if (position) {
+        const liveP = prices[position.asset || currentAsset];
+        let diff = (liveP - position.entryPrice) / position.entryPrice;
+        if (position.type === 'SHORT') diff = -diff;
+        const pnl = position.size * diff * position.leverage;
+        const pnlEl = document.getElementById('pos-pnl');
+        pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
+        pnlEl.className = pnl >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+
+        if (position.type === 'LONG') {
+          if (position.tp && liveP >= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
+          if (position.sl && liveP <= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
+        } else {
+          if (position.tp && liveP <= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
+          if (position.sl && liveP >= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
+        }
+      }
+    }
 
     // ==========================================
-    // 🌍 OPEN WORLD MAP & ROOMS ENGINE
+    // 🕹️ OPEN WORLD HQ & MULTIPLAYER ENGINE
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
@@ -156,7 +429,7 @@
     let currentRoom = 'office';
 
     let player = {
-      x: 320, y: 300, vx: 0, vy: 0, speed: 3.5, isMoving: false, name: myUsername, speaking: false
+      x: 300, y: 300, vx: 0, vy: 0, speed: 3.5, isMoving: false, name: myUsername, speaking: false
     };
 
     let onlinePlayers = [];
@@ -240,15 +513,12 @@
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.beginPath(); ctx.ellipse(x, y + 17, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
 
-      // Etiklar va shim
       ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y + 12 + legCycle, 8, 5); ctx.fillRect(x + 2, y + 12 - legCycle, 8, 5);
       ctx.fillStyle = '#1d4ed8'; ctx.fillRect(x - 8, y + 2 + legCycle, 6, 11); ctx.fillRect(x + 2, y + 2 - legCycle, 6, 11);
 
-      // Tana va o'rgimchak logosi
       ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 11, y - 16 + breathe, 22, 19);
       ctx.fillStyle = '#000000'; ctx.fillRect(x - 2, y - 10 + breathe, 4, 6);
 
-      // Bosh va ko'zlar
       ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y - 31 + breathe, 18, 16);
       ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 6, y - 25 + breathe, 4, 3); ctx.fillRect(x + 2, y - 25 + breathe, 4, 3);
 
@@ -282,7 +552,6 @@
         drawPixelHuman(130, 170, '#d97706', '#451a03', 'Jasur', false);
         drawPixelHuman(470, 160, '#10b981', '#0f172a', 'Alex', false);
 
-        // Hallga chiqish eshigi
         ctx.fillStyle = '#4f46e5'; ctx.fillRect(270, 345, 100, 25);
         ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 HALLGA CHIQISH', 275, 361);
 
@@ -290,13 +559,11 @@
         document.getElementById('room-indicator').innerText = "📍 Xona: Hall (Koridor)";
         ctx.fillStyle = '#181820'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 3 ta eshik
         ctx.fillStyle = '#334155';
         ctx.fillRect(70, 35, 110, 28); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 JASUR Xonasi', 78, 52);
         ctx.fillRect(265, 35, 110, 28); ctx.fillText('🚪 ALEX Xonasi', 274, 52);
         ctx.fillRect(460, 35, 110, 28); ctx.fillText('🚪 WHALE Xonasi', 466, 52);
 
-        // Ko'chaga chiqish eshigi
         ctx.fillStyle = '#059669'; ctx.fillRect(250, 345, 140, 28);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🌳 KO\'CHAGA CHIQISH', 262, 362);
 
@@ -315,47 +582,42 @@
       } else if (currentRoom === 'street') {
         document.getElementById('room-indicator').innerText = "📍 Joy: Ko'cha & Daryo qirg'og'i";
         
-        // Osmon va qimirlab turgan bulutlar
         ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, canvas.width, 140);
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
         let cloudOffset = (tick * 0.15) % canvas.width;
         ctx.fillRect(80 - cloudOffset, 30, 70, 18); ctx.fillRect(420 - cloudOffset, 55, 90, 22);
 
-        // Daryo va oqib turgan suv
         ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 140, canvas.width, 80);
         ctx.fillStyle = '#38bdf8';
         for (let x = (tick * 1.5) % 35; x < canvas.width; x += 35) {
           ctx.fillRect(x, 170, 16, 3); ctx.fillRect(x + 10, 195, 20, 3);
         }
 
-        // Qariya baliqchi
         ctx.fillStyle = '#78350f'; ctx.fillRect(90, 210, 18, 22);
         ctx.fillStyle = '#fed7aa'; ctx.fillRect(92, 200, 14, 12);
         ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(100, 212); ctx.lineTo(135, 175); ctx.stroke();
 
-        // YO'L VA YUQORI SIFATLI PIKSEL MASHINALAR (Lambo, Gelik, Malibu 2)
         ctx.fillStyle = '#090d16'; ctx.fillRect(0, 220, canvas.width, 160);
 
-        // 1. Lambo (Sariq sport mashina)
+        // 1. Lambo (Sariq)
         ctx.fillStyle = '#eab308'; ctx.fillRect(130, 255, 75, 25);
         ctx.fillStyle = '#000000'; ctx.fillRect(142, 246, 24, 11);
         ctx.fillRect(138, 276, 11, 7); ctx.fillRect(185, 276, 11, 7);
         ctx.fillStyle = '#fef08a'; ctx.fillRect(130, 263, 3, 4);
 
-        // 2. Gelik (Qora jip)
+        // 2. Gelik (Qora)
         ctx.fillStyle = '#111827'; ctx.fillRect(240, 240, 65, 42);
         ctx.fillStyle = '#000000'; ctx.fillRect(252, 230, 42, 13);
         ctx.fillRect(248, 278, 13, 7); ctx.fillRect(284, 278, 13, 7);
         ctx.fillStyle = '#fef08a'; ctx.fillRect(240, 252, 3, 4);
 
-        // 3. Malibu 2 (Oq sedan)
+        // 3. Malibu 2 (Oq)
         ctx.fillStyle = '#f8fafc'; ctx.fillRect(380, 250, 80, 28);
         ctx.fillStyle = '#334155'; ctx.fillRect(398, 240, 38, 12);
         ctx.fillRect(392, 274, 12, 7); ctx.fillRect(440, 274, 12, 7);
         ctx.fillStyle = '#fef08a'; ctx.fillRect(380, 258, 3, 4);
 
-        // Binoga qaytish eshigi
         ctx.fillStyle = '#4f46e5'; ctx.fillRect(20, 275, 75, 45);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🏢 HQ KIRISH', 27, 301);
       }
@@ -368,7 +630,6 @@
         player.isMoving = true;
       } else { player.isMoving = false; }
 
-      // Xonalararo o'tishlar
       if (currentRoom === 'office' && player.y > 335 && player.x > 260 && player.x < 380) {
         currentRoom = 'hall'; player.y = 70;
       } else if (currentRoom === 'hall') {
