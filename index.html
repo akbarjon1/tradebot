@@ -163,13 +163,13 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OBSIDIAN LOUNGE: RETRO MODAL (OFFICE ART) -->
+  <!-- 🕹️ OBSIDIAN LOUNGE: PROCEDURAL PIXEL OFFICE -->
   <!-- ========================================== -->
   <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-3 selection:bg-indigo-600">
     <div class="flex justify-between items-center pb-2 border-b border-slate-800">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN OFFICE // HQ LOUNGE</h2>
+        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN LIVING OFFICE // HQ</h2>
       </div>
       <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1 rounded-xl hover:bg-rose-900 transition">
         ✕ Chiqish
@@ -177,19 +177,19 @@
     </div>
 
     <!-- CANVAS CONTAINER -->
-    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-black shadow-2xl">
+    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#161311] shadow-2xl">
       <canvas id="lounge-canvas" width="600" height="400" class="w-full h-full max-w-xl object-contain image-rendering-pixelated"></canvas>
 
       <!-- MOBIL JOYSTICK -->
       <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-80 select-none">
         <div></div>
-        <button onclick="movePlayer(0, -15)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▲</button>
+        <button onclick="movePlayer(0, -20)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▲</button>
         <div></div>
-        <button onclick="movePlayer(-15, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">◀</button>
+        <button onclick="movePlayer(-20, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">◀</button>
         <button onclick="interactWithNearby()" class="w-9 h-9 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-[10px] font-bold shadow flex items-center justify-center">TALK</button>
-        <button onclick="movePlayer(15, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▶</button>
+        <button onclick="movePlayer(20, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▶</button>
         <div></div>
-        <button onclick="movePlayer(0, 15)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▼</button>
+        <button onclick="movePlayer(0, 20)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▼</button>
         <div></div>
       </div>
     </div>
@@ -424,30 +424,50 @@
     }
 
     // ==========================================
-    // 🕹️ OBSIDIAN OFFICE ENGINE (IMAGE BASED)
+    // 🕹️ OBSIDIAN LIVING OFFICE ENGINE (PROCEDURAL 2D)
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
 
-    // Rasm orqa fon sifatida yuklanadi
-    const officeImg = new Image();
-    officeImg.src = 'obsidian_office.png'; // GitHub ildizidagi rasm
-
-    let player = { x: 300, y: 340, w: 14, h: 14, color: '#6366F1' }; // Eshikdan kiradi
     let loungeActive = false;
     let currentTargetNpc = null;
+    let tick = 0;
+    let smokeParticles = [];
 
-    // Rasm ustidagi NPC larning aniq koordinatalari
+    let player = {
+      x: 300, y: 340, targetX: 300, targetY: 340,
+      speed: 2.5, isMoving: false, dir: 'down',
+      color: '#4f46e5', name: 'Siz'
+    };
+
     const npcs = [
-      { id: 'jasur', name: '☕️ Jasur (Charchagan Treyder)', x: 120, y: 170 },
-      { id: 'alex', name: '💻 Alex (Algo-ICT Xaker)', x: 470, y: 155 },
-      { id: 'whale', name: '🐋 Mister Whale (Katta Kit)', x: 300, y: 260 }
+      {
+        id: 'jasur', name: '☕️ Jasur',
+        x: 130, y: 170, targetX: 130, targetY: 170,
+        baseX: 130, baseY: 170,
+        bodyColor: '#d97706', hairColor: '#451a03',
+        state: 'idle', timer: 100, coffee: true
+      },
+      {
+        id: 'alex', name: '💻 Alex',
+        x: 470, y: 160, targetX: 470, targetY: 160,
+        baseX: 470, baseY: 160,
+        bodyColor: '#10b981', hairColor: '#0f172a',
+        state: 'typing', timer: 150, coffee: false
+      },
+      {
+        id: 'whale', name: '🐋 Mister Whale',
+        x: 300, y: 240, targetX: 300, targetY: 240,
+        baseX: 300, baseY: 240,
+        bodyColor: '#0284c7', hairColor: '#ffffff',
+        state: 'chilling', timer: 200, coffee: true
+      }
     ];
 
     function openLoungeModal() {
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
-      drawOffice();
+      requestAnimationFrame(renderLoop);
     }
 
     function closeLoungeModal() {
@@ -456,60 +476,222 @@
       loungeActive = false;
     }
 
-    function drawOffice() {
-      if (!ctx || !loungeActive) return;
+    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
+      const legCycle = isMoving ? Math.sin(tick * 0.4) * 3 : 0;
+      const breathe = Math.sin(tick * 0.08) * 1;
 
-      // 1. Asosiy Pikselli Ofis Rasmini chizish
-      if (officeImg.complete && officeImg.naturalWidth !== 0) {
-        ctx.drawImage(officeImg, 0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.fillStyle = '#1e1e24';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 10, 10, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(x - 5, y + 2 + legCycle, 4, 8);
+      ctx.fillRect(x + 2, y + 2 - legCycle, 4, 8);
+
+      ctx.fillStyle = bodyColor;
+      ctx.fillRect(x - 7, y - 10 + breathe, 15, 13);
+
+      ctx.fillStyle = '#fed7aa';
+      if (hasCoffee) {
+        ctx.fillRect(x + 8, y - 8 + breathe, 4, 4);
         ctx.fillStyle = '#ffffff';
-        ctx.font = '12px monospace';
-        ctx.fillText('Ofis yuklanmoqda...', 240, 200);
+        ctx.fillRect(x + 9, y - 10 + breathe, 5, 5);
+        if (Math.random() < 0.2) {
+          smokeParticles.push({ x: x + 11, y: y - 11 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.7 });
+        }
+      } else {
+        ctx.fillRect(x - 10, y - 7 + breathe, 3, 8);
+        ctx.fillRect(x + 8, y - 7 + breathe, 3, 8);
       }
 
-      // 2. O'yinchi personajini chizish (Pikselli ko'k qahramon)
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(player.x - 5, player.y + 7, 14, 4); // Soya
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x - 5, player.y - 6, 12, 12); // Kiyim
       ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(player.x - 4, player.y - 12, 10, 6); // Yuz
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(player.x - 5, player.y - 15, 12, 4); // Soch/Qalpoq
+      ctx.fillRect(x - 5, y - 18 + breathe, 11, 9);
 
-      // 3. NPC ga yaqin borganda interaktiv [TALK] ko'rsatkichi
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(x - 2, y - 15 + breathe, 2, 2);
+      ctx.fillRect(x + 3, y - 15 + breathe, 2, 2);
+
+      ctx.fillStyle = hairColor;
+      ctx.fillRect(x - 6, y - 22 + breathe, 13, 6);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 26);
+    }
+
+    function drawEnvironment() {
+      ctx.fillStyle = '#161311';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.strokeStyle = '#231d19';
+      ctx.lineWidth = 1;
+      for (let y = 100; y < canvas.height; y += 18) {
+        ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(canvas.width - 40, y); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#2b2d42';
+      ctx.fillRect(0, 0, canvas.width, 100);
+      ctx.fillStyle = '#1f202e';
+      ctx.fillRect(0, 92, canvas.width, 8);
+
+      ctx.fillStyle = '#181a24';
+      ctx.fillRect(10, 30, 24, 70);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '7px monospace';
+      ctx.fillText('WC', 14, 26);
+
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(240, 25, 120, 50);
+      ctx.fillStyle = '#1e1b4b';
+      ctx.fillRect(250, 45, 15, 30);
+      ctx.fillRect(270, 35, 20, 40);
+      ctx.fillRect(300, 50, 18, 25);
+      ctx.fillRect(330, 40, 15, 35);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(240, 25, 120, 50);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(230, 210, 140, 45);
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(225, 210, 10, 45); ctx.fillRect(365, 210, 10, 45);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(260, 265, 80, 20);
+
+      ctx.fillStyle = '#3f2e21';
+      ctx.fillRect(70, 130, 80, 30);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(80, 110, 22, 20);
+      if (Math.random() < 0.3) {
+        smokeParticles.push({ x: 91, y: 108, vx: (Math.random() - 0.5) * 0.4, vy: -0.7, life: 35, alpha: 0.8 });
+      }
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(440, 130, 110, 30);
+      const bColor = Math.sin(tick * 0.05) > 0 ? '#10b981' : '#059669';
+      const rColor = Math.cos(tick * 0.06) > 0 ? '#ef4444' : '#b91c1c';
+      ctx.fillStyle = bColor; ctx.fillRect(445, 105, 26, 22);
+      ctx.fillStyle = '#6366f1'; ctx.fillRect(478, 100, 32, 27);
+      ctx.fillStyle = rColor; ctx.fillRect(518, 105, 26, 22);
+    }
+
+    function handleSmoke() {
+      for (let i = smokeParticles.length - 1; i >= 0; i--) {
+        let p = smokeParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        p.alpha = p.life / 35;
+        ctx.fillStyle = `rgba(226, 232, 240, ${p.alpha})`;
+        ctx.fillRect(p.x, p.y, 2, 2);
+        if (p.life <= 0) smokeParticles.splice(i, 1);
+      }
+    }
+
+    function updateNPCs() {
+      npcs.forEach(npc => {
+        npc.timer--;
+        if (npc.id === 'jasur' && npc.timer <= 0) {
+          if (npc.state === 'idle') {
+            npc.state = 'going_wc';
+            npc.targetX = 35; npc.targetY = 120;
+            npc.timer = 180;
+          } else if (npc.state === 'going_wc') {
+            npc.state = 'idle';
+            npc.targetX = npc.baseX; npc.targetY = npc.baseY;
+            npc.timer = 250;
+          }
+        }
+        if (npc.id === 'alex' && npc.timer <= 0) {
+          if (npc.state === 'typing') {
+            npc.state = 'coffee_break';
+            npc.targetX = 160; npc.targetY = 150;
+            npc.timer = 200;
+            npc.coffee = true;
+          } else {
+            npc.state = 'typing';
+            npc.targetX = npc.baseX; npc.targetY = npc.baseY;
+            npc.timer = 300;
+          }
+        }
+
+        const dx = npc.targetX - npc.x;
+        const dy = npc.targetY - npc.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 2) {
+          npc.x += (dx / dist) * 0.9;
+          npc.y += (dy / dist) * 0.9;
+          npc.isMoving = true;
+        } else {
+          npc.isMoving = false;
+        }
+      });
+    }
+
+    function updatePlayer() {
+      const dx = player.targetX - player.x;
+      const dy = player.targetY - player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 3) {
+        player.x += (dx / dist) * player.speed;
+        player.y += (dy / dist) * player.speed;
+        player.isMoving = true;
+      } else {
+        player.isMoving = false;
+      }
+    }
+
+    function renderLoop() {
+      if (!loungeActive || !ctx) return;
+      tick++;
+
+      drawEnvironment();
+      handleSmoke();
+      updateNPCs();
+      updatePlayer();
+
+      let renderables = [
+        { ...player, isPlayer: true },
+        ...npcs.map(n => ({ ...n, isPlayer: false }))
+      ];
+      renderables.sort((a, b) => a.y - b.y);
+
+      renderables.forEach(obj => {
+        if (obj.isPlayer) {
+          drawPixelHuman(obj.x, obj.y, obj.color, '#ffffff', obj.name, obj.isMoving);
+        } else {
+          drawPixelHuman(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.isMoving, obj.coffee);
+        }
+      });
+
       let nearNpc = getNearbyNPC();
       if (nearNpc) {
-        ctx.fillStyle = '#6366F1';
-        ctx.fillRect(nearNpc.x - 22, nearNpc.y - 50, 44, 15);
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(nearNpc.x - 22, nearNpc.y - 42, 44, 14);
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('💬 [TALK]', nearNpc.x - 18, nearNpc.y - 39);
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText('💬 [TALK]', nearNpc.x - 18, nearNpc.y - 32);
       }
+
+      requestAnimationFrame(renderLoop);
     }
 
     function movePlayer(dx, dy) {
-      if (!loungeActive) return;
-      // Xona devorlari chegarasi
-      player.x = Math.max(50, Math.min(canvas.width - 50, player.x + dx));
-      player.y = Math.max(120, Math.min(canvas.height - 50, player.y + dy));
-      drawOffice();
+      player.targetX = Math.max(60, Math.min(canvas.width - 60, player.targetX + dx));
+      player.targetY = Math.max(130, Math.min(canvas.height - 40, player.targetY + dy));
     }
 
     function getNearbyNPC() {
-      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 55) || null;
+      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 45) || null;
     }
 
     function interactWithNearby() {
-      if (!loungeActive) return;
       const npc = getNearbyNPC();
       if (!npc) return;
       currentTargetNpc = npc;
       document.getElementById('dialog-npc-name').innerText = npc.name;
-      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qaradi. Savolingni ber..."`;
+      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qarab kofesini ho'pladi. Savolingni ber..."`;
       document.getElementById('dialog-box').classList.remove('hidden');
     }
 
@@ -537,21 +719,20 @@
         const d = await res.json();
         replyBox.innerText = `"${d.reply}"`;
       } catch (e) {
-        replyBox.innerText = '"Tarmoqda nosozlik, birozdan keyin yoz..."';
+        replyBox.innerText = '"Tarmoqda nosozlik, birozdan keyin kel..."';
       }
     }
 
     window.addEventListener('keydown', (e) => {
       if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -15);
-      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 15);
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-15, 0);
-      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(15, 0);
+      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -20);
+      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 20);
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-20, 0);
+      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(20, 0);
       if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
       if (['Escape'].includes(e.code)) closeLoungeModal();
     });
 
-    officeImg.onload = () => { if (loungeActive) drawOffice(); };
     init();
     setInterval(updateTicker, 1000);
   </script>
