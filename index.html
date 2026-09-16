@@ -48,7 +48,7 @@
 
     <div class="flex items-center gap-2">
       <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
-        <span>🎮</span> Lounge
+        <span>🎮</span> HQ Office
       </button>
 
       <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
@@ -156,33 +156,43 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OBSIDIAN LOUNGE: LIVING OFFICE HQ -->
+  <!-- 🕹️ OBSIDIAN HQ: ISOMETRIC AI AGENTS OFFICE -->
   <!-- ========================================== -->
-  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-3 selection:bg-indigo-600">
-    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-2 selection:bg-indigo-600">
+    <!-- TOP STATUS BAR -->
+    <div class="flex justify-between items-center px-2 py-1.5 border-b border-slate-800 bg-slate-900/90 rounded-xl">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN LIVING OFFICE // HQ</h2>
+        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN GROUP HQ // 3 AI AGENTS</h2>
       </div>
-      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1 rounded-xl hover:bg-rose-900 transition">
+      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-2.5 py-1 rounded-lg hover:bg-rose-900 transition">
         ✕ Chiqish
       </button>
     </div>
 
     <!-- CANVAS CONTAINER -->
-    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#161311] shadow-2xl">
-      <canvas id="lounge-canvas" width="600" height="400" class="w-full h-full max-w-xl object-contain image-rendering-pixelated"></canvas>
+    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#2b1f1a] shadow-2xl">
+      <canvas id="lounge-canvas" width="640" height="420" class="w-full h-full max-w-xl object-contain"></canvas>
+
+      <!-- LIVE TASK TICKER (VIDEODAGI MONITORING PANELI) -->
+      <div class="absolute top-2 left-2 right-2 bg-slate-900/90 border border-slate-800 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center justify-between text-[10px] font-mono text-slate-300">
+        <div class="flex items-center gap-2 truncate">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span id="live-hq-ticker" class="truncate text-emerald-400 font-semibold">⚡️ Jasur: Scanning BTC 15m FVG Liquidity...</span>
+        </div>
+        <span class="text-slate-500 text-[9px]">LIVE AGENTS</span>
+      </div>
 
       <!-- MOBIL JOYSTICK -->
-      <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-80 select-none">
+      <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-85 select-none">
         <div></div>
-        <button onclick="movePlayer(0, -22)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▲</button>
+        <button onclick="movePlayer(0, -18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▲</button>
         <div></div>
-        <button onclick="movePlayer(-22, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">◀</button>
+        <button onclick="movePlayer(-18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">◀</button>
         <button onclick="interactWithNearby()" class="w-10 h-10 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">TALK</button>
-        <button onclick="movePlayer(22, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▶</button>
+        <button onclick="movePlayer(18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▶</button>
         <div></div>
-        <button onclick="movePlayer(0, 22)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▼</button>
+        <button onclick="movePlayer(0, 18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▼</button>
         <div></div>
       </div>
     </div>
@@ -197,7 +207,7 @@
         "E, kel jigar! Yana qaysidir shitcoinda minus qildingmi?"
       </div>
       <div class="flex gap-1.5 pt-1">
-        <input id="dialog-input" type="text" placeholder="Biror narsa so'rang..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500" />
+        <input id="dialog-input" type="text" placeholder="Savol yoki vazifa bering..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500" />
         <button onclick="sendNpcMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-[11px] font-bold">Yuborish</button>
       </div>
     </div>
@@ -419,7 +429,7 @@
     }
 
     // ==========================================
-    // 🕹️ OBSIDIAN LIVING OFFICE ENGINE (HQ EDITION)
+    // 🕹️ OBSIDIAN HQ: ISOMETRIC 2.5D AGENTS ENGINE
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
@@ -429,40 +439,49 @@
     let tick = 0;
     let smokeParticles = [];
 
-    // O'yinchi personaji
+    // O'yinchi
     let player = {
-      x: 300, y: 340, targetX: 300, targetY: 340,
-      speed: 2.8, isMoving: false, dir: 'down',
+      x: 320, y: 350, targetX: 320, targetY: 350,
+      speed: 2.8, isMoving: false,
       color: '#4f46e5', name: myUsername || '@trader'
     };
 
-    // NPC lar
+    // AI Agentlar (Videodagi kabi vazifalari va holatlari bilan)
     const npcs = [
       {
-        id: 'jasur', name: '☕️ Jasur',
-        x: 130, y: 170, targetX: 130, targetY: 170,
-        baseX: 130, baseY: 170,
+        id: 'jasur', name: 'Jasur', role: 'ICT Analyst',
+        status: 'Scanning 15m FVG',
+        x: 180, y: 220, targetX: 180, targetY: 220, baseX: 180, baseY: 220,
         bodyColor: '#d97706', hairColor: '#451a03',
-        state: 'idle', timer: 100, coffee: true
+        state: 'desk', timer: 120, coffee: true
       },
       {
-        id: 'alex', name: '💻 Alex',
-        x: 470, y: 160, targetX: 470, targetY: 160,
-        baseX: 470, baseY: 160,
+        id: 'alex', name: 'Alex', role: 'Algo & Dev',
+        status: 'Testing CISD Script',
+        x: 460, y: 220, targetX: 460, targetY: 220, baseX: 460, baseY: 220,
         bodyColor: '#10b981', hairColor: '#0f172a',
-        state: 'typing', timer: 150, coffee: false
+        state: 'desk', timer: 160, coffee: false
       },
       {
-        id: 'whale', name: '🐋 Mister Whale',
-        x: 300, y: 240, targetX: 300, targetY: 240,
-        baseX: 300, baseY: 240,
+        id: 'whale', name: 'Mister Whale', role: 'Fund Manager',
+        status: 'Reviewing Leaderboard',
+        x: 320, y: 130, targetX: 320, targetY: 130, baseX: 320, baseY: 130,
         bodyColor: '#0284c7', hairColor: '#ffffff',
-        state: 'chilling', timer: 200, coffee: true
+        state: 'meeting', timer: 200, coffee: true
       }
     ];
 
+    const hqLogs = [
+      "⚡️ Jasur: Scanning BTC 15m FVG Liquidity...",
+      "💻 Alex: Backtesting Smart Money Algo v2.4...",
+      "🐋 Mister Whale: Calculating Risk vs Reward (PnL: +14.2%)...",
+      "☕️ Jasur: Taking a break at coffee corner...",
+      "📊 Server 01: Binance WebSocket active 60 FPS..."
+    ];
+    let logIdx = 0;
+
     function openLoungeModal() {
-      player.name = myUsername; // Haqiqiy ism yangilanadi
+      player.name = myUsername;
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
       requestAnimationFrame(renderLoop);
@@ -474,248 +493,178 @@
       loungeActive = false;
     }
 
-    // JASURNI ALOHIDA PIXEL-ART CHIZISH (HOODIE, QIZARGON KO'ZLAR, KOFE HO'PLASH)
-    function drawJasur(x, y, isMoving, hasCoffee) {
-      const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
-      const breathe = Math.sin(tick * 0.08) * 1.5;
-      const isDrinking = hasCoffee && (Math.sin(tick * 0.04) > 0.4);
-
-      // Soya
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 1. Krossovkalar (Oq taglik, ko'k yuza)
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x - 9, y + 13 + legCycle, 8, 4);
-      ctx.fillRect(x + 2, y + 13 - legCycle, 8, 4);
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(x - 9, y + 10 + legCycle, 7, 3);
-      ctx.fillRect(x + 3, y + 10 - legCycle, 7, 3);
-
-      // 2. Ko'k jinsi shim
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(x - 8, y + 2 + legCycle, 6, 9);
-      ctx.fillRect(x + 2, y + 2 - legCycle, 6, 9);
-
-      // 3. Hoodie (Jigarrang kapyushonli sviter)
-      ctx.fillStyle = '#a16207';
-      ctx.fillRect(x - 12, y - 16 + breathe, 24, 19);
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(x - 2, y - 16 + breathe, 4, 8);
-      ctx.fillStyle = '#78350f';
-      ctx.fillRect(x - 8, y - 4 + breathe, 16, 5);
-
-      // 4. Qo'llar va Krujka
-      ctx.fillStyle = '#a16207';
-      ctx.fillRect(x - 15, y - 13 + breathe, 4, 11);
-
-      if (hasCoffee) {
-        if (isDrinking) {
-          ctx.fillStyle = '#fed7aa';
-          ctx.fillRect(x + 4, y - 20 + breathe, 5, 5);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x - 2, y - 24 + breathe, 8, 8);
-          if (Math.random() < 0.3) {
-            smokeParticles.push({ x: x + 2, y: y - 25 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.6, life: 25, alpha: 0.8 });
-          }
-        } else {
-          ctx.fillStyle = '#fed7aa';
-          ctx.fillRect(x + 11, y - 10 + breathe, 5, 5);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 13, y - 15 + breathe, 8, 8);
-          ctx.fillStyle = '#64748b';
-          ctx.fillRect(x + 12, y - 13 + breathe, 2, 4);
-          if (Math.random() < 0.25) {
-            smokeParticles.push({ x: x + 17, y: y - 17 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.7, life: 30, alpha: 0.8 });
-          }
-        }
-      } else {
-        ctx.fillRect(x + 11, y - 13 + breathe, 4, 11);
-      }
-
-      // 5. Yuz va Bosh
-      ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(x - 9, y - 30 + breathe, 18, 15);
-
-      // 6. Charchagan, uyqusiz QIZARGON Ko'zlar
-      ctx.fillStyle = '#dc2626';
-      ctx.fillRect(x - 6, y - 24 + breathe, 5, 3);
-      ctx.fillRect(x + 2, y - 24 + breathe, 5, 3);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(x - 4, y - 24 + breathe, 2, 2);
-      ctx.fillRect(x + 4, y - 24 + breathe, 2, 2);
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(x - 6, y - 26 + breathe, 5, 2);
-      ctx.fillRect(x + 2, y - 26 + breathe, 5, 2);
-
-      // 7. To'zg'igan Sochlar
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(x - 12, y - 37 + breathe, 24, 9);
-      ctx.fillRect(x - 11, y - 29 + breathe, 4, 7);
-      ctx.fillRect(x + 8, y - 29 + breathe, 4, 6);
-      ctx.fillRect(x - 5, y - 29 + breathe, 3, 3);
-
-      // Ism yozuvi
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.9)';
-      ctx.shadowBlur = 4;
-      ctx.fillText('☕️ Jasur', x - (ctx.measureText('☕️ Jasur').width / 2), y - 44);
-      ctx.shadowBlur = 0;
-    }
-
-    // ODDIY PIKSEL PERSONAJ (ALEX, WHALE VA O'YINCHI UCHUN)
-    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
-      const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
+    // 1. VIDEODAGI KABI IZOMETRIK BOSH/TANALI AGENT CHIZISH
+    function drawAgent(x, y, bodyColor, hairColor, name, role, status, isMoving, hasCoffee = false) {
+      const legCycle = isMoving ? Math.sin(tick * 0.45) * 4 : 0;
       const breathe = Math.sin(tick * 0.08) * 1.5;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      // 3D Soya
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
       ctx.beginPath();
-      ctx.ellipse(x, y + 16, 15, 6, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + 16, 14, 6, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(x - 8, y + 3 + legCycle, 6, 13);
-      ctx.fillRect(x + 2, y + 3 - legCycle, 6, 13);
+      // Oyoqlar
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - 7, y + 3 + legCycle, 5, 13);
+      ctx.fillRect(x + 2, y + 3 - legCycle, 5, 13);
 
+      // Tana va kiyim (Ko'ylak / Sviter)
       ctx.fillStyle = bodyColor;
-      ctx.fillRect(x - 11, y - 16 + breathe, 22, 20);
+      ctx.fillRect(x - 10, y - 16 + breathe, 20, 19);
 
+      // Qo'llar
       ctx.fillStyle = '#fed7aa';
       if (hasCoffee) {
-        ctx.fillRect(x + 11, y - 11 + breathe, 6, 6);
+        ctx.fillRect(x + 10, y - 10 + breathe, 5, 5);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 13, y - 16 + breathe, 7, 8);
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(x + 12, y - 14 + breathe, 2, 4);
-        if (Math.random() < 0.3) {
-          smokeParticles.push({ x: x + 16, y: y - 18 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.7, life: 35, alpha: 0.8 });
+        ctx.fillRect(x + 12, y - 15 + breathe, 7, 7);
+        if (Math.random() < 0.25) {
+          smokeParticles.push({ x: x + 15, y: y - 16 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
         }
       } else {
-        ctx.fillRect(x - 15, y - 12 + breathe, 4, 12);
-        ctx.fillRect(x + 11, y - 12 + breathe, 4, 12);
+        ctx.fillRect(x - 13, y - 12 + breathe, 4, 11);
+        ctx.fillRect(x + 9, y - 12 + breathe, 4, 11);
       }
 
+      // Bosh va yuz
       ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(x - 8, y - 29 + breathe, 16, 14);
+      ctx.fillRect(x - 8, y - 29 + breathe, 16, 13);
 
+      // Ko'zlar
       ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x - 4, y - 24 + breathe, 3, 3);
-      ctx.fillRect(x + 3, y - 24 + breathe, 3, 3);
+      ctx.fillRect(x - 4, y - 24 + breathe, 2, 2);
+      ctx.fillRect(x + 2, y - 24 + breathe, 2, 2);
 
+      // Soch
       ctx.fillStyle = hairColor;
-      ctx.fillRect(x - 10, y - 35 + breathe, 20, 8);
-      ctx.fillRect(x - 10, y - 31 + breathe, 4, 7);
+      ctx.fillRect(x - 9, y - 34 + breathe, 18, 7);
+      ctx.fillRect(x - 9, y - 30 + breathe, 3, 5);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 41);
-      ctx.shadowBlur = 0;
+      // VIDEODAGI AGENT STATUS BADGE (QORA PLASHKA)
+      const badgeW = Math.max(ctx.measureText(status).width + 16, 75);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(x - (badgeW / 2), y - 62, badgeW, 24, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      // Ism va Role
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.fillText(name, x - (badgeW / 2) + 6, y - 50);
+
+      // Status
+      ctx.fillStyle = '#10b981';
+      ctx.font = '7.5px monospace';
+      ctx.fillText(status, x - (badgeW / 2) + 6, y - 41);
     }
 
-    function drawEnvironment() {
-      // Zamin
-      ctx.fillStyle = '#161311';
+    // 2. VIDEODAGI KABI OCH RANGLI IZOMETRIK OFIS INTERYERI
+    function drawIsometricOffice() {
+      // Asosiy pol (Videodagi och krem/bej laminat)
+      ctx.fillStyle = '#f1ece4';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.strokeStyle = '#231d19';
+
+      // Parket teksturasi
+      ctx.strokeStyle = '#e2dad0';
       ctx.lineWidth = 1;
-      for (let y = 100; y < canvas.height; y += 22) {
-        ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(canvas.width - 40, y); ctx.stroke();
+      for (let y = 0; y < canvas.height; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
       }
 
-      // Devorlar
-      ctx.fillStyle = '#2b2d42';
-      ctx.fillRect(0, 0, canvas.width, 100);
-      ctx.fillStyle = '#1f202e';
-      ctx.fillRect(0, 90, canvas.width, 10);
-
-      // WC Eshigi
-      ctx.fillStyle = '#181a24';
-      ctx.fillRect(10, 20, 30, 80);
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('WC', 18, 16);
-
-      // Motivatsion ramka (Jasurning orqasida)
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(55, 30, 42, 50);
-      ctx.strokeStyle = '#334155';
+      // SHISHA DEVORLI MEETING ROOM (YUQORIDA)
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.35)';
+      ctx.fillRect(190, 30, 260, 95);
+      ctx.strokeStyle = '#64748b';
       ctx.lineWidth = 2;
-      ctx.strokeRect(55, 30, 42, 50);
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 5px monospace';
-      ctx.fillText('GOOD', 63, 44);
-      ctx.fillText('TRADERS', 59, 52);
-      ctx.fillText('BETTER', 61, 60);
-      ctx.fillText('PEOPLE', 60, 68);
+      ctx.strokeRect(190, 30, 260, 95);
 
-      // Deraza va kiber shahar
-      ctx.fillStyle = '#ea580c';
-      ctx.fillRect(230, 20, 140, 55);
-      ctx.fillStyle = '#1e1b4b';
-      ctx.fillRect(242, 42, 18, 33);
-      ctx.fillRect(266, 30, 24, 45);
-      ctx.fillRect(302, 48, 22, 27);
-      ctx.fillRect(336, 36, 18, 39);
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(230, 20, 140, 55);
-
-      // Mister Whalening Katta Divani
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(215, 205, 170, 55);
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(205, 205, 12, 55); ctx.fillRect(383, 205, 12, 55);
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(250, 270, 100, 24);
-
-      // Jasurning batafsil Kofe Stoli va Bar tumbochkasi
-      ctx.fillStyle = '#271c14';
-      ctx.fillRect(50, 120, 105, 42);
-      ctx.fillStyle = '#452b1b';
-      ctx.fillRect(48, 118, 109, 5);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillRect(75, 134, 12, 2);
-      ctx.fillRect(115, 134, 12, 2);
-
-      // Espresso mashinasi (Detalli)
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(60, 92, 34, 26);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillRect(64, 94, 26, 6);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(65, 103, 4, 4);
+      // Meeting stoli va stullar
       ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(74, 104, 8, 3);
+      ctx.beginPath();
+      ctx.ellipse(320, 78, 65, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.stroke();
 
-      // Stoldagi finjonlar
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(102, 112, 6, 6); ctx.fillRect(100, 114, 2, 3);
-      ctx.fillRect(114, 112, 6, 6); ctx.fillRect(112, 114, 2, 3);
+      // Meeting Room Divani (Whale turadigan joy)
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(295, 105, 50, 16);
 
-      // Metall axlat qutisi
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(32, 138, 14, 22);
-      ctx.fillStyle = '#475569';
-      ctx.fillRect(30, 136, 18, 3);
+      // ISH STOLLARI (VIDEODAGI KABI YOG'OCH STOLLAR VA NOUTBUKLAR)
+      function drawDesk(x, y, hasLaptop = true) {
+        // Stol soyasi
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.fillRect(x - 4, y + 26, 68, 6);
+        // Yog'och stol usti
+        ctx.fillStyle = '#fde68a';
+        ctx.fillRect(x, y, 60, 28);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(x, y + 25, 60, 3); // Qirrasi
+        // Stol oyoqlari
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(x + 2, y + 28, 4, 15);
+        ctx.fillRect(x + 54, y + 28, 4, 15);
 
-      if (Math.random() < 0.35) {
-        smokeParticles.push({ x: 78, y: 92, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 35, alpha: 0.8 });
+        // Noutbuk / Monitor
+        if (hasLaptop) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(x + 18, y + 4, 24, 16);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(x + 20, y + 6, 20, 12);
+        }
       }
 
-      // Alexning Terminallari
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(430, 125, 130, 38);
-      const bColor = Math.sin(tick * 0.05) > 0 ? '#10b981' : '#059669';
-      const rColor = Math.cos(tick * 0.06) > 0 ? '#ef4444' : '#b91c1c';
-      ctx.fillStyle = bColor; ctx.fillRect(436, 95, 32, 28);
-      ctx.fillStyle = '#6366f1'; ctx.fillRect(476, 90, 38, 33);
-      ctx.fillStyle = rColor; ctx.fillRect(522, 95, 32, 28);
+      // Markazdagi ish stollari (Jasur va Alex)
+      drawDesk(150, 200, true);
+      drawDesk(430, 200, true);
+      drawDesk(150, 270, false);
+      drawDesk(430, 270, false);
+
+      // SERVER XONASI SHKAF VA CALL-CENTER (O'NG CHEKKADA)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(575, 40, 48, 120);
+      // Server chiroqchalari
+      for (let sy = 50; sy < 150; sy += 12) {
+        ctx.fillStyle = (tick % 30 < 15) ? '#10b981' : '#ef4444';
+        ctx.fillRect(585, sy, 5, 4);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(595, sy, 18, 2);
+      }
+
+      // DAM OLISH HUDUDI (PING-PONG STOLI - PASTKI O'NGDA)
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(490, 340, 95, 45);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(490, 340, 95, 45);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(536, 340, 3, 45); // To'r
+
+      // KOFE VA CHOY BURCHAGI (CHAP BURCHAK)
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(30, 140, 70, 32);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(40, 120, 24, 20); // Kofe mashinasi
+      if (Math.random() < 0.35) {
+        smokeParticles.push({ x: 52, y: 118, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
+      }
+
+      // O'SIMLIKLAR (GULTOVURLAR)
+      function drawPlant(px, py) {
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(px, py, 14, 14);
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.ellipse(px + 7, py - 4, 12, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      drawPlant(115, 60);
+      drawPlant(470, 60);
+      drawPlant(30, 340);
     }
 
     function handleSmoke() {
@@ -724,54 +673,58 @@
         p.x += p.vx;
         p.y += p.vy;
         p.life--;
-        p.alpha = p.life / 35;
-        ctx.fillStyle = `rgba(226, 232, 240, ${p.alpha})`;
-        ctx.fillRect(p.x, p.y, 3, 3);
+        p.alpha = p.life / 30;
+        ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+        ctx.fillRect(p.x, p.y, 2.5, 2.5);
         if (p.life <= 0) smokeParticles.splice(i, 1);
       }
     }
 
+    // AGENTLARNING AVTONOM HAYOT VA VAZIFALAR SIKLI
     function updateNPCs() {
+      if (tick % 180 === 0) {
+        logIdx = (logIdx + 1) % hqLogs.length;
+        document.getElementById('live-hq-ticker').innerText = hqLogs[logIdx];
+      }
+
       npcs.forEach(npc => {
         npc.timer--;
 
         if (npc.timer <= 0) {
+          // Jasur
           if (npc.id === 'jasur') {
-            const jasurActions = [
-              { name: 'coffee', x: npc.baseX, y: npc.baseY, coffee: true, time: 260 },
-              { name: 'window', x: 260, y: 125, coffee: true, time: 210 },
-              { name: 'wc', x: 45, y: 125, coffee: false, time: 180 },
-              { name: 'wander', x: 170, y: 200, coffee: true, time: 160 }
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: 'Scanning 15m FVG', time: 240, coffee: false },
+              { x: 65, y: 155, status: 'Brewing Coffee', time: 180, coffee: true },
+              { x: 320, y: 90, status: 'Reporting to Whale', time: 200, coffee: true },
+              { x: 510, y: 350, status: 'Ping-Pong break', time: 150, coffee: false }
             ];
-            const nextAct = jasurActions[Math.floor(Math.random() * jasurActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 100);
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
           }
 
+          // Alex
           if (npc.id === 'alex') {
-            const alexActions = [
-              { name: 'desk', x: npc.baseX, y: npc.baseY, coffee: false, time: 360 },
-              { name: 'coffee', x: 140, y: 155, coffee: true, time: 170 },
-              { name: 'window', x: 340, y: 125, coffee: false, time: 190 },
-              { name: 'stretch', x: 430, y: 230, coffee: false, time: 150 }
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: 'Testing CISD Script', time: 300, coffee: false },
+              { x: 570, y: 140, status: 'Checking Servers', time: 180, coffee: false },
+              { x: 65, y: 155, status: 'Coffee refill', time: 160, coffee: true }
             ];
-            const nextAct = alexActions[Math.floor(Math.random() * alexActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 120);
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
           }
 
+          // Whale
           if (npc.id === 'whale') {
-            const whaleActions = [
-              { name: 'sofa', x: npc.baseX, y: npc.baseY, coffee: true, time: 420 },
-              { name: 'stroll', x: 280, y: 320, coffee: true, time: 210 },
-              { name: 'center', x: 320, y: 190, coffee: true, time: 190 }
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: 'Reviewing Leaderboard', time: 360, coffee: true },
+              { x: 320, y: 240, status: 'Inspecting Desks', time: 200, coffee: true }
             ];
-            const nextAct = whaleActions[Math.floor(Math.random() * whaleActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 150);
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
           }
         }
 
@@ -779,8 +732,8 @@
         const dy = npc.targetY - npc.y;
         const dist = Math.hypot(dx, dy);
         if (dist > 3) {
-          npc.x += (dx / dist) * 0.85;
-          npc.y += (dy / dist) * 0.85;
+          npc.x += (dx / dist) * 0.9;
+          npc.y += (dy / dist) * 0.9;
           npc.isMoving = true;
         } else {
           npc.isMoving = false;
@@ -801,15 +754,17 @@
       }
     }
 
+    // ASOSIY RENDER SIKLI
     function renderLoop() {
       if (!loungeActive || !ctx) return;
       tick++;
 
-      drawEnvironment();
+      drawIsometricOffice();
       handleSmoke();
       updateNPCs();
       updatePlayer();
 
+      // Y-Sorting (Kim oldinda bo'lsa oxirida chiziladi)
       let renderables = [
         { ...player, isPlayer: true },
         ...npcs.map(n => ({ ...n, isPlayer: false }))
@@ -818,29 +773,27 @@
 
       renderables.forEach(obj => {
         if (obj.isPlayer) {
-          drawPixelHuman(obj.x, obj.y, obj.color, '#ffffff', obj.name, obj.isMoving);
-        } else if (obj.id === 'jasur') {
-          drawJasur(obj.x, obj.y, obj.isMoving, obj.coffee);
+          drawAgent(obj.x, obj.y, obj.color, '#ffffff', obj.name, 'Trader', 'Online (You)', obj.isMoving);
         } else {
-          drawPixelHuman(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.isMoving, obj.coffee);
+          drawAgent(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.role, obj.status, obj.isMoving, obj.coffee);
         }
       });
 
       let nearNpc = getNearbyNPC();
       if (nearNpc) {
         ctx.fillStyle = '#6366f1';
-        ctx.fillRect(nearNpc.x - 26, nearNpc.y - 62, 52, 17);
+        ctx.fillRect(nearNpc.x - 26, nearNpc.y - 78, 52, 16);
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 9px monospace';
-        ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 50);
+        ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 67);
       }
 
       requestAnimationFrame(renderLoop);
     }
 
     function movePlayer(dx, dy) {
-      player.targetX = Math.max(60, Math.min(canvas.width - 60, player.targetX + dx));
-      player.targetY = Math.max(130, Math.min(canvas.height - 40, player.targetY + dy));
+      player.targetX = Math.max(40, Math.min(canvas.width - 40, player.targetX + dx));
+      player.targetY = Math.max(90, Math.min(canvas.height - 30, player.targetY + dy));
     }
 
     function getNearbyNPC() {
@@ -851,8 +804,8 @@
       const npc = getNearbyNPC();
       if (!npc) return;
       currentTargetNpc = npc;
-      document.getElementById('dialog-npc-name').innerText = npc.name;
-      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qarab kofesini ho'pladi. Savolingni ber..."`;
+      document.getElementById('dialog-npc-name').innerText = `${npc.name} (${npc.role})`;
+      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qaradi. Hozirgi vazifasi: ${npc.status}. Savolingiz bormi?"`;
       document.getElementById('dialog-box').classList.remove('hidden');
     }
 
@@ -868,7 +821,7 @@
       if (!txt) return;
 
       const replyBox = document.getElementById('dialog-reply');
-      replyBox.innerText = "O'ylayapti...";
+      replyBox.innerText = "Agent hisoblamoqda...";
       input.value = '';
 
       try {
@@ -880,16 +833,16 @@
         const d = await res.json();
         replyBox.innerText = `"${d.reply}"`;
       } catch (e) {
-        replyBox.innerText = '"Tarmoqda nosozlik, birozdan keyin kel..."';
+        replyBox.innerText = '"Agent aloqada emas, birozdan keyin urining..."';
       }
     }
 
     window.addEventListener('keydown', (e) => {
       if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -22);
-      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 22);
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-22, 0);
-      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(22, 0);
+      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -20);
+      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 20);
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-20, 0);
+      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(20, 0);
       if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
       if (['Escape'].includes(e.code)) closeLoungeModal();
     });
