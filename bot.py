@@ -23,7 +23,9 @@ def get_env(key, default=""):
     val = os.environ.get(key, default)
     return val.strip() if val else default
 
-TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", "6722502116:AAH8nMf9Er0Al0yR_S5kmPlSMRFadRoT8uk")
+TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN")
+if not TELEGRAM_BOT_TOKEN:
+    raise RuntimeError("TELEGRAM_BOT_TOKEN environment variable is required")
 GEMINI_API_KEY = get_env("GEMINI_API_KEY")
 GROQ_API_KEY = get_env("GROQ_API_KEY")
 SPREADSHEET_ID = get_env("SPREADSHEET_ID")
@@ -224,7 +226,7 @@ def home():
         title="Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.",
         username="@trader",
         api_base="https://tradebot-xelo.onrender.com",
-        bot_url="https://t.me/your_bot_username",
+        bot_url=get_env("BOT_USERNAME", "your_bot_username"),
         trades=trades,
         comments=comments_store
     )
@@ -327,39 +329,48 @@ def get_leaderboard():
 # --- OBSIDIAN HQ: LIVE AGENT LOGS VA TASKS ENDPOINT ---
 @app.route('/api/agent_tasks', methods=['GET'])
 def get_agent_tasks():
-    """Izometrik HQ ofisdagi Live Ticker va statuslar uchun jonli ma'lumotlar"""
+    """OBSIDIAN HQ uchun jonli agent statuslari."""
+    agents = {
+        "jasur": {
+            "name": "Jasur", "role": "ICT Market Analyst",
+            "current_task": latest_ict_status.get("BTC", "Scanning BTC 15m liquidity"),
+            "location": "Research Desk"
+        },
+        "alex": {
+            "name": "Alex", "role": "Algo & Quant Dev",
+            "current_task": "Backtesting CISD engine v2.4",
+            "location": "Quant Lab"
+        },
+        "whale": {
+            "name": "Mister Whale", "role": "Risk Manager",
+            "current_task": "Reviewing portfolio exposure",
+            "location": "Command Room"
+        },
+        "nova": {
+            "name": "Nova", "role": "Market Research",
+            "current_task": "Scanning macro & crypto headlines",
+            "location": "News Desk"
+        },
+        "atlas": {
+            "name": "Atlas", "role": "Ops & Infrastructure",
+            "current_task": "Checking API / WebSocket health",
+            "location": "Server Room"
+        }
+    }
     return jsonify({
         "status": "success",
         "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
-        "agents": {
-            "jasur": {
-                "name": "Jasur",
-                "role": "ICT Market Analyst",
-                "current_task": latest_ict_status.get("BTC", "Scanning 15m Liquidity"),
-                "location": "Central Desk"
-            },
-            "alex": {
-                "name": "Alex",
-                "role": "Algo & Quant Dev",
-                "current_task": "Backtesting CISD v2.4",
-                "location": "Server Terminal"
-            },
-            "whale": {
-                "name": "Mister Whale",
-                "role": "Capital & Risk Manager",
-                "current_task": "Reviewing Portfolio PnL",
-                "location": "VIP Lounge"
-            }
-        },
+        "agents": agents,
         "logs": [
-            f"⚡️ Jasur: {latest_ict_status.get('BTC')}",
-            "💻 Alex: PineScript & Python ICT Engine online",
+            f"⚡️ Jasur: {latest_ict_status.get('BTC', 'Scanning BTC 15m liquidity')}",
+            "💻 Alex: PineScript & Python ICT engine online",
             "🐋 Mister Whale: Risk threshold set to 1.5% max drawdown",
-            "📡 Network: Binance 15m WebSocket latency: 28ms"
+            "🧠 Nova: Macro / crypto news scan active",
+            "🛰️ Atlas: Binance API + WebSocket health check running"
         ]
     })
 
-# --- OBSIDIAN LOUNGE: AI AGENTLAR BILAN SUHBAT ---
+
 @app.route('/api/npc_chat', methods=['POST'])
 def npc_chat():
     try:
@@ -372,21 +383,28 @@ def npc_chat():
 
         prompts = {
             "jasur": (
-                "Sen — Jasur, kechasi bilan grafik qarab chiqqan, charchagan, lekin tajribali ICT treydersan. "
-                "Qo'lingda qahva, ko'zlaring qizargan. FVG, Turtle Soup, London/NY session likvidligi bo'yicha gapirasan. "
-                "Gaplaring qisqa (1-2 jumla), samimiy, Toshkent ko'cha shevasida, charchoq va o'tkir kinoya aralash bo'lsin. "
+                "Sen — Jasur, tajribali ICT treyder. FVG, Turtle Soup, liquidity sweep, CISD va "
+                "London/NY session haqida gapirasan. Javob 1-2 jumla, samimiy Toshkentcha uslubda. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             ),
             "alex": (
-                "Sen — Alex, sovuqqon algo-treyder va kordersan. Hissiyot nol, faqat matematika, kod va ICT algoritmi. "
-                "Change in State of Delivery (CISD), algoritmik muvozanat va backtest haqida gapirasan. "
-                "Qisqa (1-2 jumla), texnik va o'ta aniq javob ber. "
+                "Sen — Alex, sovuqqon algo-treyder va developer. CISD, backtest, risk/reward va "
+                "algoritmik mantiqni aniq tushuntirasan. Javob 1-2 jumla, texnik va qisqa. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             ),
             "whale": (
-                "Sen — Mister Whale, ko'p millionli kapital boshqaruvchisi, katta kit. O'ta vazmin, mulohazali va boy odamsan. "
-                "1-2 daqiqalik shovqinlarga parvo qilmaysan. Sabr, psixologiya va katta hovuzlarni tushuntirasan. "
-                "Qisqa (1-2 jumla), xotirjam va salobatli javob ber. "
+                "Sen — Mister Whale, vazmin kapital va risk menejerisan. Pozitsiya hajmi, drawdown, "
+                "risk/reward va psixologiyaga urg'u berasan. Javob 1-2 jumla, xotirjam. "
+                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+            ),
+            "nova": (
+                "Sen — Nova, market research agent. Makro yangiliklar, sentiment, katalizatorlar va "
+                "bozor kontekstini qisqa ajratasan. Tasdiqlanmagan faktni to'qima. 1-2 jumla. "
+                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+            ),
+            "atlas": (
+                "Sen — Atlas, DevOps va infrastructure agent. API, WebSocket, latency, uptime va "
+                "xatoliklarni diagnostika qilasan. Javob 1-2 jumla, konkret va texnik. "
                 f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
             )
         }
