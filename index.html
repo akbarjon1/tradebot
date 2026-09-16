@@ -3,537 +3,376 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian Lab — Paper Trading</title>
+  <title>Obsidian Lab — Mini App</title>
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              bg: '#f8fafc',
+              border: '#e2e8f0',
+              accent: '#4f46e5'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { 
-      background-color: #f8fafc; 
-      color: #0f172a; 
-      font-family: 'Plus Jakarta Sans', sans-serif; 
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
-    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .custom-scroll::-webkit-scrollbar { width: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
-<body class="p-4 sm:p-5 flex flex-col min-h-screen justify-between relative max-w-md mx-auto">
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
-  <!-- 1. MAJBURIY LOGIN (KIRISH) OYNASI -->
-  <div id="login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-5">
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-xs shadow-2xl text-center">
-      <div class="flex items-center justify-center mb-3">
-  <svg class="w-11 h-11" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
-    <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
-  </svg>
-</div>
-      <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Obsidian Terminal</h2>
-      <p class="text-xs text-slate-400 mt-1 mb-5">Savdoni boshlash va reytingda qatnashish uchun ismingizni kiriting</p>
-
-      <div class="mb-4 text-left">
-        <label class="text-[11px] font-bold text-slate-600 block mb-1">Telegram Nik yoki Ism:</label>
-        <input 
-          id="login-username-input" 
-          type="text" 
-          placeholder="@sizning_nik yoki Ismingiz"
-          maxlength="20"
-          class="w-full bg-slate-50 border border-slate-300 focus:border-slate-900 rounded-xl py-2.5 px-3 text-xs font-bold text-slate-900 outline-none transition"
-        />
+  <!-- TOP APP BAR -->
+  <header class="border-b border-brand-border bg-white/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-2.5">
+      <div class="flex items-center justify-center">
+        <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
+          <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
+        </svg>
       </div>
+      <div>
+        <span class="font-extrabold text-slate-900 text-sm tracking-tight block leading-tight">Obsidian Lab</span>
+        <span class="text-[10px] text-slate-400 font-mono">Paper-Trading</span>
+      </div>
+    </div>
 
-      <button 
-        type="button" 
-        onclick="submitLogin()" 
-        class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm cursor-pointer"
-      >
-        Terminalga kirish 🚀
+    <!-- USERNAME & STATUS -->
+    <div class="flex items-center gap-2">
+      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span id="nav-username">@trader</span> ✏️
       </button>
     </div>
-  </div>
+  </header>
 
-  <!-- Yuqori qism: Brend, Nik va Balans -->
-  <div>
-    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200">
-      <div class="flex items-center gap-2.5">
-        <div class="flex items-center justify-center">
-  <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
-    <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
-  </svg>
-</div>
-        <div>
-          <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Obsidian Lab</h1>
-          <!-- Foydalanuvchi Nikini tahrirlash -->
-          <div onclick="editMyUsername()" class="flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition">
-            <span id="display-username" class="text-[11px] font-bold text-slate-700">Yuklanmoqda...</span>
-            <span class="text-[9px] text-slate-400">✏️</span>
-          </div>
-        </div>
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
+    
+    <!-- BALANCE & FAUCET BAR -->
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
+        <span id="balance-val" class="font-mono text-xl font-extrabold text-slate-900">$10,000.00</span>
       </div>
-      
-      <div class="text-right flex items-center gap-2.5">
-        <button onclick="openLeaderboard()" class="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-600 hover:bg-amber-500/20 px-2.5 py-1.5 rounded-xl text-xs font-bold active:scale-95 transition">
-          <span>🏆</span> Reyting
+      <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold font-mono px-3 py-2 rounded-xl transition active:scale-95 shadow-sm">
+        + 10k olish ⚡️
+      </button>
+    </div>
+
+    <!-- PAIR SELECTOR & LIVE TICKER -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">
+          BTC / USDT
         </button>
-        <div>
-          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Virtual Balans</p>
-          <p id="balance" class="text-base font-extrabold text-slate-900 font-mono tracking-tight">$10,000.00</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Aktiv Tanlash (Tab) -->
-    <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/70 rounded-xl mb-4 text-xs font-bold">
-      <button id="btn-btc" onclick="switchAsset('BTCUSDT')" class="py-2 rounded-lg bg-white text-slate-900 shadow-sm transition">
-        BTC / USDT
-      </button>
-      <button id="btn-eth" onclick="switchAsset('ETHUSDT')" class="py-2 rounded-lg text-slate-500 hover:text-slate-800 transition">
-        ETH / USDT
-      </button>
-    </div>
-
-    <!-- Jonli Narx Kartasi -->
-    <div class="bg-white border border-slate-200/90 rounded-2xl p-6 text-center mb-4 shadow-sm relative overflow-hidden">
-      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 mb-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live Feed</span>
-      </div>
-      <div id="price" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-mono my-1">
-        $78,100.00
-      </div>
-      <p id="pair-label" class="text-[11px] font-semibold text-slate-400">BTCUSDT Realtime Index</p>
-    </div>
-
-    <!-- Ochiq Pozitsiya Card -->
-    <div id="position-card" class="hidden bg-white border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
-      <div class="flex justify-between items-center text-xs pb-3 mb-3 border-b border-slate-100">
-        <div>
-          <span class="text-slate-400 text-[11px]">Pozitsiya:</span>
-          <span id="pos-type" class="font-bold text-slate-900 ml-1"></span>
-        </div>
-        <div>
-          <span class="text-slate-400 text-[11px]">Hajm:</span>
-          <span id="pos-size" class="font-bold text-slate-900 font-mono ml-1"></span>
-        </div>
-      </div>
-
-      <div class="flex justify-between items-center text-xs text-slate-500 mb-3">
-        <span>Kirish narxi:</span>
-        <b id="pos-entry" class="text-slate-800 font-mono font-bold"></b>
-      </div>
-
-      <div class="flex justify-between items-center pt-2">
-        <div>
-          <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jonli PnL</p>
-          <p id="pos-pnl" class="text-base font-extrabold font-mono text-emerald-600">$0.00 (0.00%)</p>
-        </div>
-        <button onclick="closePosition()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/70 px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition">
-          Yopish ✕
+        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">
+          ETH / USDT
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- Pastki qism: Savdo Paneli -->
-  <div class="mt-auto pt-4">
-    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm mb-3">
-      <div class="flex justify-between items-center mb-2">
-        <label class="text-xs font-bold text-slate-700">Savdo hajmi ($):</label>
-        <span id="size-percent" class="text-[11px] font-semibold text-slate-400">10% balansdan</span>
-      </div>
-
-      <div class="relative mb-3">
-        <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
-        <input 
-          id="order-size-input" 
-          type="number" 
-          value="1000" 
-          min="10" 
-          oninput="onManualSizeChange()"
-          class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-8 pr-3 text-sm text-slate-900 font-bold font-mono focus:outline-none focus:border-slate-900 transition"
-        />
-      </div>
-
-      <div class="grid grid-cols-4 gap-1.5 font-mono text-xs">
-        <button type="button" onclick="setPercentSize(0.1)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">10%</button>
-        <button type="button" onclick="setPercentSize(0.25)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">25%</button>
-        <button type="button" onclick="setPercentSize(0.5)" class="py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 font-bold active:scale-95 transition">50%</button>
-        <button type="button" onclick="setPercentSize(1.0)" class="py-1.5 bg-slate-900 hover:bg-slate-800 rounded-lg text-white font-bold active:scale-95 transition">MAX</button>
-      </div>
+      <span class="text-xs font-mono text-emerald-600 font-bold flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="live-price">$78,100.00</span>
+      </span>
     </div>
 
-    <!-- Long / Short Tugmalari -->
-    <div class="grid grid-cols-2 gap-3">
-      <button type="button" id="btn-long" onclick="openPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm cursor-pointer">
-        <span class="text-sm">LONG 🟢</span>
-        <span class="text-[10px] text-emerald-100 font-normal">O'sishga</span>
-      </button>
-      <button type="button" id="btn-short" onclick="openPosition('SHORT')" class="bg-rose-600 hover:bg-rose-700 active:scale-95 transition text-white font-bold py-3.5 rounded-xl flex flex-col items-center justify-center shadow-sm cursor-pointer">
-        <span class="text-sm">SHORT 🔴</span>
-        <span class="text-[10px] text-rose-100 font-normal">Tushishga</span>
+    <!-- LIVE TRADINGVIEW CHART -->
+    <div class="h-64 rounded-2xl overflow-hidden border border-brand-border bg-slate-50 shadow-sm">
+      <iframe 
+        id="tradingview-frame"
+        class="w-full h-full border-0"
+        src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
+      ></iframe>
+    </div>
+
+    <!-- ACTIVE POSITION CARD -->
+    <div id="position-info" class="hidden bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 text-xs font-mono shadow-sm space-y-2">
+      <div class="flex justify-between font-bold text-sm">
+        <span id="pos-dir" class="text-emerald-600">LONG (10x)</span>
+        <span id="pos-pnl" class="text-emerald-600">$0.00 (+0.00%)</span>
+      </div>
+      <div class="flex justify-between text-[11px] text-slate-500">
+        <span>Garov: <b id="pos-sz">$0.00</b></span>
+        <span>Kirish narxi: <b id="pos-ent">$0.00</b></span>
+      </div>
+      <button onclick="closeCurrentPosition()" class="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">
+        Bitimni yopish ✕
       </button>
     </div>
-  </div>
 
-  <!-- Likvidatsiya Modali -->
-  <div id="liquidation-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-white border border-slate-200 p-6 rounded-3xl max-w-xs text-center shadow-xl">
-      <div class="text-3xl mb-2">💥</div>
-      <h2 class="text-slate-900 font-extrabold text-lg tracking-tight mb-2">Likvidatsiya!</h2>
-      <p class="text-xs text-slate-500 mb-5 leading-relaxed">
-        Obsidian AI: <br>
-        <span class="italic text-slate-700 font-medium">"Jigar, risk-menejmentsiz bozor hisobni tozalab qo'ydi. Xatoni tushunib, yangidan boshlaymiz!"</span>
-      </p>
-      <button onclick="resetBalance()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs transition active:scale-95">
-        Qayta urinish ($10,000 olish) 🔄
-      </button>
-    </div>
-  </div>
-
-  <!-- LEADERBOARD MODAL -->
-  <div id="leaderboard-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-5 max-w-xs w-full shadow-2xl">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-base">🏆</span>
-          <h3 class="font-extrabold text-slate-900 text-sm tracking-tight">Top Treyderlar</h3>
+    <!-- ORDER CONTROLS -->
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-4">
+      <!-- Amount Selection -->
+      <div>
+        <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
+          <input 
+            id="trade-amount" 
+            type="number" 
+            value="1000" 
+            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"
+          />
         </div>
-        <button onclick="document.getElementById('leaderboard-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-sm font-bold p-1">✕</button>
+        <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono">
+          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">10%</button>
+          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">25%</button>
+          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg hover:bg-slate-100 active:scale-95 transition">50%</button>
+          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg active:scale-95 transition">MAX</button>
+        </div>
       </div>
 
-      <div id="leaderboard-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto">
-        <p class="text-xs text-slate-400 text-center py-4">Yuklanmoqda...</p>
+      <!-- Leverage Selection -->
+      <div>
+        <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
+          <span>Leverage (Kredit yelkasi):</span>
+          <span id="lev-val" class="text-indigo-600 font-mono font-bold">10x</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
+          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="1">1x</button>
+          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="5">5x</button>
+          <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" data-l="10">10x</button>
+          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600" data-l="20">20x</button>
+        </div>
+      </div>
+
+      <!-- Execute Buttons -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm flex items-center justify-center gap-1">
+          Long 🟢
+        </button>
+        <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm flex items-center justify-center gap-1">
+          Short 🔴
+        </button>
       </div>
     </div>
-  </div>
 
+    <!-- LEADERBOARD ACCORDION / BOX -->
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-3">
+      <div class="flex justify-between items-center pb-2 border-b border-brand-border">
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders (Leaderboard)</h3>
+        <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
+      </div>
+      <div id="top-traders-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll text-xs font-mono">
+        <p class="text-slate-400 text-center py-4">Yuklanmoqda...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT ENGINE -->
   <script>
-    let tg = null;
-    try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-      }
-    } catch (e) {}
-
     const API_BASE = "https://tradebot-xelo.onrender.com";
-
-    function safeGetItem(key) {
-      try { return localStorage.getItem(key); } catch (e) { return null; }
-    }
-    function safeSetItem(key, val) {
-      try { localStorage.setItem(key, val); } catch (e) {}
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
     }
 
-    function getUserId() {
-      const u = tg?.initDataUnsafe?.user;
-      if (u && u.id) return String(u.id);
+    function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+    function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
 
-      let localId = safeGetItem('obs_uid');
-      if (!localId) {
-        localId = 'id_' + Math.floor(Math.random() * 899999 + 100000);
-        safeSetItem('obs_uid', localId);
+    // Telegram User ID yoki brauzer uchun avto-ID
+    function getTelegramUID() {
+      if (tg?.initDataUnsafe?.user?.id) {
+        return String(tg.initDataUnsafe.user.id);
       }
-      return localId;
+      let id = safeGet('obs_tma_uid');
+      if (!id) {
+        id = 'tg_' + Math.floor(Math.random() * 899999 + 100000);
+        safeSet('obs_tma_uid', id);
+      }
+      return id;
     }
 
-    let userId = getUserId();
-    let myUsername = safeGetItem('obs_confirmed_username');
+    // Foydalanuvchi Telegram Username
+    function getTelegramUsername() {
+      if (tg?.initDataUnsafe?.user?.username) {
+        return '@' + tg.initDataUnsafe.user.username;
+      }
+      if (tg?.initDataUnsafe?.user?.first_name) {
+        return tg.initDataUnsafe.user.first_name;
+      }
+      return safeGet('obs_tma_username') || '@trader';
+    }
 
-    let KEY_BALANCE = `obs_bal_${userId}`;
-    let KEY_POSITIONS = `obs_pos_v2_${userId}`;
+    let userId = getTelegramUID();
+    let myUsername = getTelegramUsername();
+    let balance = 10000.0;
+    let currentAsset = "BTCUSDT";
+    let currentLeverage = 10;
+    const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
+    let position = null;
 
-    let balance = 10000;
-    let currentAsset = 'BTCUSDT';
-    const prices = { BTCUSDT: 78100.00, ETHUSDT: 2500.00 };
-    let positions = { BTCUSDT: null, ETHUSDT: null };
+    function init() {
+      const savedBal = safeGet(`obs_bal_${userId}`);
+      if (savedBal !== null && !isNaN(parseFloat(savedBal))) {
+        balance = parseFloat(savedBal);
+      }
 
-    // LOGIN TEKSHIRUVI
-    function checkLoginStatus() {
-      const modal = document.getElementById('login-modal');
-      // Agar avval ism kiritgan bo'lsa modalni yopamiz
-      if (myUsername && myUsername.trim() !== '' && myUsername !== 'Trader') {
-        modal.classList.add('hidden');
-        document.getElementById('display-username').innerText = myUsername;
-        initData();
+      const savedPos = safeGet(`obs_pos_${userId}`);
+      if (savedPos) {
+        try { position = JSON.parse(savedPos); } catch(e) { position = null; }
+      }
+
+      document.getElementById('nav-username').innerText = myUsername;
+      updateUI();
+      fetchLeaderboard();
+      setPercent(0.1);
+    }
+
+    function updateUI() {
+      const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('balance-val').innerText = bStr;
+      
+      // Faucet mantiqi: Ochiq bitim bo'lmasa va balans < 10k bo'lsa tugma chiqadi
+      const topUpBtn = document.getElementById('btn-topup');
+      if (topUpBtn) {
+        if (!position && balance < 10000) {
+          topUpBtn.classList.remove('hidden');
+        } else {
+          topUpBtn.classList.add('hidden');
+        }
+      }
+
+      const posCard = document.getElementById('position-info');
+      if (position) {
+        posCard.classList.remove('hidden');
+        document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
+        document.getElementById('pos-sz').innerText = `$${position.size.toFixed(2)}`;
+        document.getElementById('pos-ent').innerText = `$${position.entryPrice.toFixed(2)}`;
       } else {
-        // Avtomatik Telegram nikini inputga taklif sifatida yozib turamiz
-        const u = tg?.initDataUnsafe?.user;
-        const defaultName = u?.username ? `@${u.username}` : (u?.first_name || '');
-        const input = document.getElementById('login-username-input');
-        if (input && defaultName) input.value = defaultName;
-        modal.classList.remove('hidden');
+        posCard.classList.add('hidden');
       }
     }
 
-    // KIRISH TUGMASI BOSILGANDA
-    function submitLogin() {
-      const input = document.getElementById('login-username-input');
-      let entered = input.value.trim();
-
-      if (!entered || entered.length < 2) {
-        alert("Iltimos, ismingiz yoki @username'ingizni kiriting!");
+    // 10K BALANS TO'LDIRISH (FAUCET)
+    async function claimFaucet() {
+      if (position) {
+        alert("Ochiq bitimingiz mavjud! Avval uni yoping.");
+        return;
+      }
+      if (balance >= 10000) {
+        alert("Balansingiz yetarli!");
         return;
       }
 
-      // Agar birinchi belgisi @ bo'lmasa, o'zimiz qo'shamiz
-      if (!entered.startsWith('@')) {
-        entered = '@' + entered;
-      }
+      balance = 10000.00;
+      safeSet(`obs_bal_${userId}`, balance);
+      updateUI();
 
-      myUsername = entered;
-      safeSetItem('obs_confirmed_username', myUsername);
-
-      document.getElementById('login-modal').classList.add('hidden');
-      document.getElementById('display-username').innerText = myUsername;
-
-      initData();
-      syncBalanceWithServer();
+      await syncWithSheets();
+      alert("Hisobingiz muvaffaqiyatli $10,000 ga to'ldirildi! 🚀");
     }
 
     function editMyUsername() {
-      const newName = prompt("Telegram @username'ingizni o'zgartiring:", myUsername);
-      if (newName && newName.trim().length > 1) {
-        let clean = newName.trim();
+      const val = prompt("Ism yoki @username kiriting:", myUsername);
+      if (val && val.trim().length > 1) {
+        let clean = val.trim();
         if (!clean.startsWith('@')) clean = '@' + clean;
         myUsername = clean;
-        safeSetItem('obs_confirmed_username', myUsername);
-        document.getElementById('display-username').innerText = myUsername;
-        syncBalanceWithServer();
+        safeSet('obs_tma_username', myUsername);
+        document.getElementById('nav-username').innerText = myUsername;
+        syncWithSheets();
       }
     }
 
-    function persistData(key, value) {
-      const valStr = typeof value === 'object' ? JSON.stringify(value) : value.toString();
-      safeSetItem(key, valStr);
-      try {
-        if (tg?.CloudStorage) tg.CloudStorage.setItem(key, valStr);
-      } catch (e) {}
-    }
-
-    function initData() {
-      const localBal = safeGetItem(KEY_BALANCE);
-      const localPos = safeGetItem(KEY_POSITIONS);
-
-      if (localBal !== null) {
-        balance = parseFloat(localBal);
-      } else {
-        balance = 10000;
-        persistData(KEY_BALANCE, balance);
-      }
-
-      if (localPos) {
-        try {
-          positions = JSON.parse(localPos);
-        } catch (e) {
-          positions = { BTCUSDT: null, ETHUSDT: null };
+    function setLev(l) {
+      currentLeverage = l;
+      document.getElementById('lev-val').innerText = `${l}x`;
+      document.querySelectorAll('.lev-btn').forEach(b => {
+        if (parseInt(b.getAttribute('data-l')) === l) {
+          b.className = "lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm";
+        } else {
+          b.className = "lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600";
         }
-      }
-
-      setPercentSize(0.1);
-      applyUI();
-      updatePriceUI(prices[currentAsset]);
-    }
-
-    function applyUI() {
-      document.getElementById('balance').innerText = "$" + balance.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      checkLiquidationStatus();
-
-      const currentPos = positions[currentAsset];
-      if (currentPos) {
-        document.getElementById('pos-type').innerText = `${currentPos.type} (${currentAsset === 'BTCUSDT' ? 'BTC' : 'ETH'})`;
-        document.getElementById('pos-size').innerText = "$" + currentPos.size.toFixed(2);
-        document.getElementById('pos-entry').innerText = "$" + currentPos.entryPrice.toLocaleString('en-US', {minimumFractionDigits: 2});
-        document.getElementById('position-card').classList.remove('hidden');
-      } else {
-        document.getElementById('position-card').classList.add('hidden');
-      }
-    }
-
-    function switchAsset(asset) {
-      currentAsset = asset;
-      const btcBtn = document.getElementById('btn-btc');
-      const ethBtn = document.getElementById('btn-eth');
-      const pairLabel = document.getElementById('pair-label');
-
-      if (asset === 'BTCUSDT') {
-        pairLabel.innerText = "BTCUSDT Realtime Index";
-        btcBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
-        ethBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
-      } else {
-        pairLabel.innerText = "ETHUSDT Realtime Index";
-        ethBtn.className = "py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
-        btcBtn.className = "py-2 rounded-lg text-slate-500 hover:text-slate-800 transition";
-      }
-
-      applyUI();
-      updatePriceUI(prices[currentAsset]);
-    }
-
-    function updatePriceUI(price) {
-      document.getElementById('price').innerText = "$" + price.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
       });
     }
 
-    function openPosition(type) {
-      try {
-        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      } catch(e){}
+    function setPercent(p) {
+      const val = Math.max(10, Math.floor(balance * p));
+      document.getElementById('trade-amount').value = val;
+    }
 
-      const livePrice = prices[currentAsset] || (currentAsset === 'BTCUSDT' ? 78100 : 2500);
-      const inputEl = document.getElementById('order-size-input');
-      const orderSize = parseFloat(inputEl.value) || 0;
+    function switchAsset(sym) {
+      currentAsset = sym;
+      const btcBtn = document.getElementById('btn-tab-btc');
+      const ethBtn = document.getElementById('btn-tab-eth');
+      const frame = document.getElementById('tradingview-frame');
 
-      if (orderSize < 10) {
-        alert("Minimal savdo hajmi $10!");
-        return;
-      }
-      if (orderSize > balance) {
-        alert("Balansingizda mablag' yetarli emas!");
-        return;
-      }
-
-      if (positions[currentAsset] && positions[currentAsset].type !== type) {
-        closePosition(currentAsset);
-      }
-
-      const existingPos = positions[currentAsset];
-      if (existingPos && existingPos.type === type) {
-        const totalSize = existingPos.size + orderSize;
-        const avgEntry = ((existingPos.entryPrice * existingPos.size) + (livePrice * orderSize)) / totalSize;
-        existingPos.size = totalSize;
-        existingPos.entryPrice = avgEntry;
-        balance -= orderSize;
+      if (sym === 'BTCUSDT') {
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
       } else {
-        balance -= orderSize;
-        positions[currentAsset] = {
-          type: type,
-          entryPrice: livePrice,
-          size: orderSize,
-          asset: currentAsset
-        };
-      }
-
-      persistData(KEY_BALANCE, balance);
-      persistData(KEY_POSITIONS, positions);
-      applyUI();
-      calculatePnL(currentAsset, livePrice);
-    }
-
-    function calculatePnL(symbol, currentPrice) {
-      const pos = positions[symbol];
-      if (!pos) return;
-
-      let diff = (currentPrice - pos.entryPrice) / pos.entryPrice;
-      if (pos.type === 'SHORT') diff = -diff;
-
-      const pnlUSD = pos.size * diff;
-      const pnlPercent = diff * 100;
-
-      if (currentAsset === symbol) {
-        const pnlEl = document.getElementById('pos-pnl');
-        if (pnlEl) {
-          pnlEl.innerText = `${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%)`;
-          pnlEl.className = pnlUSD >= 0 ? 'text-base font-extrabold font-mono text-emerald-600' : 'text-base font-extrabold font-mono text-rose-600';
-        }
-      }
-
-      if (pnlPercent <= -100) {
-        closePosition(symbol, true);
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
       }
     }
 
-    function closePosition(symbol = currentAsset, isLiquidated = false) {
-      const pos = positions[symbol];
-      if (!pos) return;
+    function executeOrder(type) {
+      const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
+      if (amount < 10) return alert("Minimal savdo miqdori $10!");
+      if (amount > balance) return alert("Balansda mablag' yetarli emas!");
 
-      if (!isLiquidated) {
-        const livePrice = prices[symbol];
-        let diff = (livePrice - pos.entryPrice) / pos.entryPrice;
-        if (pos.type === 'SHORT') diff = -diff;
+      if (position) closeCurrentPosition();
 
-        const pnlUSD = pos.size * diff;
-        balance += Math.max(0, (pos.size + pnlUSD));
-      }
+      balance -= amount;
+      position = {
+        type: type,
+        size: amount,
+        leverage: currentLeverage,
+        entryPrice: prices[currentAsset],
+        asset: currentAsset
+      };
 
-      positions[symbol] = null;
-      persistData(KEY_POSITIONS, positions);
-      persistData(KEY_BALANCE, balance);
+      safeSet(`obs_bal_${userId}`, balance);
+      safeSet(`obs_pos_${userId}`, JSON.stringify(position));
 
-      applyUI();
-      syncBalanceWithServer();
+      updateUI();
+      syncWithSheets();
     }
 
-    function setPercentSize(ratio) {
-      const calculated = Math.max(10, Math.floor(balance * ratio));
-      document.getElementById('order-size-input').value = calculated;
-      document.getElementById('size-percent').innerText = `${Math.round(ratio * 100)}% balansdan`;
+    function closeCurrentPosition() {
+      if (!position) return;
+      const live = prices[position.asset || currentAsset];
+      let diff = (live - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+
+      const pnlUSD = position.size * diff * position.leverage;
+      balance += Math.max(0, position.size + pnlUSD);
+
+      position = null;
+      safeSet(`obs_bal_${userId}`, balance);
+      try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
+
+      updateUI();
+      syncWithSheets();
     }
 
-    function onManualSizeChange() {
-      const inputVal = parseFloat(document.getElementById('order-size-input').value) || 0;
-      if (balance > 0) {
-        const pct = ((inputVal / balance) * 100).toFixed(0);
-        document.getElementById('size-percent').innerText = `${pct}% balansdan`;
-      }
-    }
-
-    function checkLiquidationStatus() {
-      if (balance < 10 && !positions.BTCUSDT && !positions.ETHUSDT) {
-        document.getElementById('liquidation-modal').classList.remove('hidden');
-      }
-    }
-
-    function resetBalance() {
-      balance = 10000;
-      positions = { BTCUSDT: null, ETHUSDT: null };
-      persistData(KEY_BALANCE, balance);
-      persistData(KEY_POSITIONS, positions);
-      document.getElementById('liquidation-modal').classList.add('hidden');
-      applyUI();
-      syncBalanceWithServer();
-    }
-
-    // 1. Foydalanuvchi nikini o'zgartirish funksiyasi
-    async function editMyUsername() {
-      const current = safeGetItem('obs_confirmed_username') || myUsername;
-      const entered = prompt("Telegram @username yoki ismingizni kiriting:", current);
-      
-      if (entered && entered.trim().length > 1) {
-        let clean = entered.trim();
-        if (!clean.startsWith('@')) clean = '@' + clean;
-        
-        myUsername = clean;
-        safeSetItem('obs_confirmed_username', myUsername);
-        
-        const nameEl = document.getElementById('display-username');
-        if (nameEl) nameEl.innerText = myUsername;
-
-        // Yangi nikni darhol Google Sheets'ga jo'natamiz
-        await syncBalanceWithServer();
-
-        // Agar Leaderboard ochiq bo'lsa, uni ham yangilab olamiz
-        const modal = document.getElementById('leaderboard-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-          openLeaderboard();
-        }
-      }
-    }
-
-    // 2. Google Sheets jadvaliga yuborish (Skrinshotdagi funksiyangiz o'rniga)
-    async function syncBalanceWithServer() {
-      if (!myUsername || myUsername === 'Trader') return;
-
+    async function syncWithSheets() {
       try {
         await fetch(`${API_BASE}/api/update_balance`, {
           method: 'POST',
@@ -544,69 +383,57 @@
             balance: Number(balance.toFixed(2))
           })
         });
-      } catch (e) {
-        console.error("Sinxronlashda xatolik:", e);
-      }
+        fetchLeaderboard();
+      } catch (e) {}
     }
 
-    async function openLeaderboard() {
-      document.getElementById('leaderboard-modal').classList.remove('hidden');
-      const container = document.getElementById('leaderboard-list');
-      container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Yuklanmoqda...</p>`;
-
+    async function fetchLeaderboard() {
+      const list = document.getElementById('top-traders-list');
       try {
-        const res = await fetch(`${API_BASE}/api/leaderboard`);
+        const res = await fetch(`${API_BASE}/api/leaderboard?t=${Date.now()}`);
         const data = await res.json();
-
-        if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
-          container.innerHTML = data.leaders.map((item, idx) => {
-            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-            const balVal = parseFloat(item.Balance) || 0;
-            const displayBal = balVal.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
-
-            return `
-              <div class="flex items-center justify-between p-2 rounded-xl ${idx < 3 ? 'bg-amber-50/70 border border-amber-100' : 'bg-slate-50'} text-xs">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold font-mono text-slate-500 w-5">${medal}</span>
-                  <span class="font-semibold text-slate-800">${item.Username}</span>
-                </div>
-                <span class="font-bold font-mono text-emerald-600">$${displayBal}</span>
+        if (data.status === 'success' && data.leaders.length > 0) {
+          list.innerHTML = data.leaders.map((u, i) => `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-brand-border">
+              <div class="flex items-center gap-2 truncate">
+                <span class="font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
+                <span class="font-semibold text-slate-800 truncate max-w-[120px]">${u.Username}</span>
               </div>
-            `;
-          }).join('');
+              <span class="font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+            </div>
+          `).join('');
         } else {
-          container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Hozircha reyting bo'sh</p>`;
+          list.innerHTML = `<p class="text-slate-400 text-center py-4">Reyting bo'sh</p>`;
         }
       } catch (e) {
-        container.innerHTML = `<p class="text-xs text-rose-500 text-center py-4">Reytingni yuklab bo'lmadi</p>`;
+        list.innerHTML = `<p class="text-rose-500 text-center py-4">Yuklab bo'lmadi</p>`;
       }
     }
 
-    async function updateLivePrice() {
+    async function updateTicker() {
       try {
         const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
         const d = await res.json();
-        if (d.price) {
-          prices[currentAsset] = parseFloat(d.price);
-        }
+        if (d.price) prices[currentAsset] = parseFloat(d.price);
       } catch (e) {
-        const delta = (Math.random() - 0.49) * (currentAsset === 'BTCUSDT' ? 15 : 2);
-        prices[currentAsset] += delta;
+        prices[currentAsset] += (Math.random() - 0.49) * 10;
       }
 
-      updatePriceUI(prices[currentAsset]);
+      document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
-      if (positions[currentAsset]) {
-        calculatePnL(currentAsset, prices[currentAsset]);
+      if (position) {
+        const liveP = prices[position.asset || currentAsset];
+        let diff = (liveP - position.entryPrice) / position.entryPrice;
+        if (position.type === 'SHORT') diff = -diff;
+        const pnl = position.size * diff * position.leverage;
+        const pnlEl = document.getElementById('pos-pnl');
+        pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
+        pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
       }
     }
 
-    // Ishga tushirish
-    checkLoginStatus();
-    setInterval(updateLivePrice, 1000);
+    init();
+    setInterval(updateTicker, 1000);
   </script>
 </body>
 </html>
