@@ -321,7 +321,7 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI ---
+# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI (GRAFIK RASMLARI BILAN) ---
 def calculate_rsi(prices, period=14):
     """Shamchalar yopilish narxlaridan RSI indikatorini aniqlash"""
     if len(prices) < period + 1:
@@ -337,7 +337,7 @@ def calculate_rsi(prices, period=14):
     return round(100 - (100 / (1 + rs)), 2)
 
 def scan_and_post_ai_signals():
-    """Har 15 daqiqada bozorni skaner qilib, kanalga tahliliy signal chiqaruvchi modul"""
+    """Har 15 daqiqada bozorni skaner qilib, kanalga rasmli signal chiqaruvchi modul"""
     symbols = ["BTCUSDT", "ETHUSDT"]
     print("🚀 [AI Radar] Bozor skaneri 24/7 rejimida ishga tushdi!")
     
@@ -380,7 +380,7 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                     uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
                     now_time = uzb_time.strftime("%H:%M")
 
-                    post_text = (
+                    post_caption = (
                         f"⚡️ <b>OBSIDIAN RADAR // AI MARKET SIGNAL</b>\n"
                         f"━━━━━━━━━━━━━━━━━━━━\n"
                         f"📊 <b>Aktiv:</b> #{sym}\n"
@@ -393,14 +393,22 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                         f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
                     )
 
-                    # Kanalga yuborish
-                    bot.send_message(CHANNEL_CHAT_ID, post_text, parse_mode="HTML")
-                    
+                    # Jonli TradingView grafik snapshot havolasi
+                    chart_img_url = f"https://api.chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:{sym}&interval=15m&theme=dark&width=800&height=450"
+
+                    try:
+                        # 1. Rasm bilan birga chiqarish
+                        bot.send_photo(CHANNEL_CHAT_ID, chart_img_url, caption=post_caption, parse_mode="HTML")
+                    except Exception as img_err:
+                        # Rasmda xatolik bo'lsa, matn baribir boradi
+                        print(f"Rasmni yuborishda ogohlantirish: {img_err}")
+                        bot.send_message(CHANNEL_CHAT_ID, post_caption, parse_mode="HTML")
+
                     # Google Sheets'ga qayd etish
                     save_trade_to_sheets(f"AI: {sym}", clean_text)
-                    print(f"LOG: [AI Radar] {sym} bo'yicha signal kanalga chiqdi!")
+                    print(f"LOG: [AI Radar] {sym} rasmli signali kanalga chiqdi!")
 
-                time.sleep(5)  # Juftliklar orasidagi pauza
+                time.sleep(5)
 
         except Exception as err:
             print(f"LOG: [AI Radar] Skanerda ogohlantirish: {err}")
@@ -421,10 +429,39 @@ def handle_start(message):
     bot.reply_to(
         message, 
         "⚡️ *Obsidian Lab Paper-Trading platformasiga xush kelibsiz!*\n\n"
-        "Virtual $10,000 balans bilan savdo qilish uchun quyidagi tugmani bosing:",
+        "Virtual $10,000 balans bilan savdo qilish uchun quyidagi tugmani bosing:\n\n"
+        "🛠 _Adminlar uchun test buyrug'i:_ `/test_signal`",
         reply_markup=markup,
         parse_mode="Markdown"
     )
+
+# Kanalga rasmli test signali yuborish buyrug'i
+@bot.message_handler(commands=['test_signal'])
+def handle_test_signal(message):
+    uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
+    now_time = uzb_time.strftime("%H:%M")
+    
+    test_caption = (
+        f"⚡️ <b>OBSIDIAN RADAR // TEST SIGNAL</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"📊 <b>Aktiv:</b> #BTCUSDT\n"
+        f"💵 <b>Narx:</b> $76,300.00\n"
+        f"📈 <b>RSI (15m):</b> 28.5 (Oversold)\n"
+        f"⏱ <b>Vaqt:</b> {now_time}\n\n"
+        f"📍 <b>Yo'nalish:</b> LONG 🟢\n"
+        f"🎯 <b>Take-Profit:</b> $78,500.00\n"
+        f"🛑 <b>Stop-Loss:</b> $75,100.00\n"
+        f"💡 <b>Sabab:</b> Tizim muvaffaqiyatli sinovdan o'tkazildi, grafik va ma'lumotlar to'liq ishlayapti!\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
+    )
+    chart_img = "https://api.chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:BTCUSDT&interval=15m&theme=dark&width=800&height=450"
+
+    try:
+        bot.send_photo(CHANNEL_CHAT_ID, chart_img, caption=test_caption, parse_mode="HTML")
+        bot.reply_to(message, "✅ Rasmli test signali kanalga yuborildi!")
+    except Exception as e:
+        bot.reply_to(message, f"❌ Kanalga yuborishda xatolik: {e}")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
@@ -593,7 +630,7 @@ if __name__ == "__main__":
     t_news = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
     t_news.start()
 
-    # 4. AI Bozor Skaneri (Har 15 daqiqada tahlil qilib, kanalga chiqaradi)
+    # 4. AI Bozor Skaneri (Har 15 daqiqada rasmli tahlil qilib, kanalga chiqaradi)
     t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
     t_radar.start()
 
