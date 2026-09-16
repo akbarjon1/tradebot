@@ -17,7 +17,6 @@ from groq import Groq
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from flask_cors import CORS
 
-
 # --- 1. SOZLAMALAR VA KALITLAR ---
 def get_env(key, default=""):
     val = os.environ.get(key, default)
@@ -25,7 +24,6 @@ def get_env(key, default=""):
         return default
     return str(val).strip()
 
-# Xatoliksiz to'g'ridan-to'g'ri ishga tushuvchi token
 DEFAULT_BOT_TOKEN = "6722502116:AAH8nMf9Er0Al0yR_S5kmPlSMRFadRoT8uk"
 TELEGRAM_BOT_TOKEN = get_env("TELEGRAM_BOT_TOKEN", DEFAULT_BOT_TOKEN)
 if not TELEGRAM_BOT_TOKEN:
@@ -52,36 +50,18 @@ if GEMINI_API_KEY:
     try:
         gemini_client = genai.Client(api_key=GEMINI_API_KEY)
     except Exception as e:
-        print(f"⚠️ Gemini ulanishda ogohlantirish: {e}")
+        print(f"⚠️ Gemini ogohlantirish: {e}")
 
 groq_client = None
 if GROQ_API_KEY:
     try:
         groq_client = Groq(api_key=GROQ_API_KEY)
     except Exception as e:
-        print(f"⚠️ Groq ulanishda ogohlantirish: {e}")
+        print(f"⚠️ Groq ogohlantirish: {e}")
 
-# Google Sheets mijozi
+# Google Sheets
 sheet = None
 spreadsheet = None
-
-def format_google_sheet(sh, sp):
-    try:
-        sheet_id = sh.id
-        requests_list = [
-            {
-                "updateSheetProperties": {
-                    "properties": {
-                        "sheetId": sheet_id,
-                        "gridProperties": {"frozenRowCount": 1}
-                    },
-                    "fields": "gridProperties.frozenRowCount"
-                }
-            }
-        ]
-        sp.batch_update({"requests": requests_list})
-    except Exception:
-        pass
 
 if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
     try:
@@ -92,7 +72,6 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
         spreadsheet = gc.open_by_key(SPREADSHEET_ID)
         sheet = spreadsheet.sheet1
         print("✅ Google Sheets ulandi!")
-        format_google_sheet(sheet, spreadsheet)
     except Exception as e:
         print(f"⚠️ Google Sheets ogohlantirish: {e}")
 
@@ -100,7 +79,7 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
 CORS(app)
 
-# --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
+# --- 2. AI TAHLIL ---
 def get_ai_analysis(prompt: str) -> str:
     if gemini_client:
         try:
@@ -134,7 +113,6 @@ def get_ai_analysis(prompt: str) -> str:
 
     return None
 
-# --- 3. GOOGLE SHEETS FUNKSIYALARI ---
 def get_trades_from_sheets():
     if not sheet:
         return []
@@ -153,6 +131,7 @@ def get_trades_from_sheets():
         return []
 
 def save_trade_to_sheets(title, content):
+    global sent_trade_ids
     if not sheet:
         return False, "Google Sheets ulanmagan"
     try:
@@ -160,53 +139,16 @@ def save_trade_to_sheets(title, content):
         uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
         date_str = uzb_time.strftime("%Y-%m-%d")
         sheet.append_row([t_id, title[:100], content[:2000], date_str])
+        sent_trade_ids.add(t_id)  # Qayta jo'natmasligi uchun keshga oladi
         return True, "Muvaffaqiyatli saqlandi"
     except Exception as e:
         return False, str(e)
 
-# --- 4. FLASK WEB SAYTI VA API ENDPOINTS ---
-CHANNEL_ID = "-5436696482"
-comments_store = []
-
+# --- 3. FLASK API ---
 @app.route('/', methods=['GET'])
 def home():
     trades = get_trades_from_sheets()
-    return render_template(
-        'index.html',
-        title="Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.",
-        username="@trader",
-        api_base="https://tradebot-xelo.onrender.com",
-        bot_url="https://t.me/your_bot_username",
-        trades=trades,
-        comments=comments_store
-    )
-
-@app.route('/add_comment', methods=['POST'])
-def add_comment():
-    user_comment = request.form.get('comment')
-    if user_comment:
-        uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
-        now_time = uzb_time.strftime("%Y-%m-%d %H:%M")
-
-        comments_store.insert(0, {
-            'text': user_comment,
-            'created_at': now_time
-        })
-        try:
-            tg_text = (
-                f"💬 *OBSIDIAN LAB // FEEDBACK*\n"
-                f"⏱ *Vaqt:* `{now_time}`\n"
-                f"👤 *Manba:* `Web Terminal`\n"
-                f"───────────────────\n\n"
-                f"📝 *Fikr / Izoh:*\n"
-                f"« {user_comment} »\n\n"
-                f"▫️ _Status: Qabul qilindi_"
-            )
-            bot.send_message(CHANNEL_ID, tg_text, parse_mode="Markdown")
-        except Exception as e:
-            print(f"Kanalga yuborishda xatolik: {e}")
-
-    return redirect(url_for('home'))
+    return render_template('index.html', trades=trades)
 
 @app.route('/api/update_balance', methods=['POST'])
 def update_balance():
@@ -218,11 +160,10 @@ def update_balance():
         balance = float(data.get("balance", 10000.0))
 
         if not spreadsheet or not user_id:
-            return jsonify({"status": "error", "message": "Noto'g'ri ma'lumot"}), 400
+            return jsonify({"status": "error"}), 400
 
         ws = spreadsheet.worksheet("Leaderboard")
         all_vals = ws.get_all_values()
-
         row_to_update = None
         for i, row in enumerate(all_vals[1:], start=2):
             if len(row) >= 1 and row[0].strip() == user_id:
@@ -230,14 +171,13 @@ def update_balance():
                 break
 
         formatted_bal = f"{balance:.2f}"
-
         if row_to_update:
             ws.update_cell(row_to_update, 2, username)
             ws.update_cell(row_to_update, 3, formatted_bal)
         else:
             ws.append_row([user_id, username, formatted_bal])
 
-        return jsonify({"status": "success", "updated_row": row_to_update})
+        return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -247,106 +187,52 @@ def get_leaderboard():
     try:
         if not spreadsheet:
             return jsonify({"status": "success", "leaders": []})
-
-        try:
-            ws = spreadsheet.worksheet("Leaderboard")
-        except Exception:
-            return jsonify({"status": "success", "leaders": []})
-
+        ws = spreadsheet.worksheet("Leaderboard")
         records = ws.get_all_records()
         valid_leaders = []
-
         for r in records:
-            raw_bal = str(r.get("Balance", "0")).replace(" ", "").replace("\xa0", "").replace(",", ".")
+            raw_bal = str(r.get("Balance", "0")).replace(" ", "").replace(",", ".")
             try:
                 bal_val = float(raw_bal)
             except Exception:
                 bal_val = 0.0
-
             valid_leaders.append({
                 "User ID": str(r.get("User ID", "")),
                 "Username": str(r.get("Username", "Trader")),
                 "Balance": bal_val
             })
-
         sorted_leaders = sorted(valid_leaders, key=lambda x: x["Balance"], reverse=True)[:10]
         return jsonify({"status": "success", "leaders": sorted_leaders})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# --- OBSIDIAN HQ: LIVE AGENT LOGS VA TASKS ENDPOINT ---
-@app.route('/api/agent_tasks', methods=['GET'])
-def get_agent_tasks():
-    return jsonify({
-        "status": "success",
-        "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
-        "agents": {
-            "jasur": {
-                "name": "Jasur",
-                "role": "ICT Market Analyst",
-                "current_task": latest_ict_status.get("BTC", "Scanning 15m Liquidity"),
-                "location": "Central Desk"
-            },
-            "alex": {
-                "name": "Alex",
-                "role": "Algo & Quant Dev",
-                "current_task": "Backtesting CISD v2.4",
-                "location": "Server Terminal"
-            },
-            "whale": {
-                "name": "Mister Whale",
-                "role": "Capital & Risk Manager",
-                "current_task": "Reviewing Portfolio PnL",
-                "location": "VIP Lounge"
-            }
-        },
-        "logs": [
-            f"⚡️ Jasur: {latest_ict_status.get('BTC')}",
-            "💻 Alex: PineScript & Python ICT Engine online",
-            "🐋 Mister Whale: Risk threshold set to 1.5% max drawdown",
-            "📡 Network: Binance 15m WebSocket latency: 28ms"
-        ]
-    })
-
-# --- OBSIDIAN LOUNGE: AI AGENTLAR BILAN SUHBAT ---
 @app.route('/api/npc_chat', methods=['POST'])
 def npc_chat():
     try:
         data = request.get_json(force=True) or {}
         npc_id = data.get("npc_id", "jasur")
         user_msg = data.get("message", "").strip()
-
         if not user_msg:
             return jsonify({"status": "error", "reply": "Biror narsa gapir, jigar."}), 400
 
         prompts = {
             "jasur": (
-                "Sen — Jasur, kechasi bilan grafik qarab chiqqan, charchagan, lekin tajribali ICT treydersan. "
-                "Qo'lingda qahva, ko'zlaring qizargan. FVG, Turtle Soup, London/NY session likvidligi bo'yicha gapirasan. "
-                "Gaplaring qisqa (1-2 jumla), samimiy, Toshkent ko'cha shevasida, charchoq va o'tkir kinoya aralash bo'lsin. "
-                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+                "Sen — Jasur, tuni bilan grafik tahlil qilgan, charchagan Toshkentlik ICT treydersan. "
+                "Qo'lingda kofe, ko'zlaring qizargan. FVG va Turtle Soup haqida gapirasan. "
+                "Javobing 1-2 jumla, samimiy, charchoq va o'tkir kinoya aralash bo'lsin. "
+                f"Foydalanuvchi aytdi: '{user_msg}'. Javob ber:"
             ),
             "alex": (
-                "Sen — Alex, sovuqqon algo-treyder va kordersan. Hissiyot nol, faqat matematika, kod va ICT algoritmi. "
-                "Change in State of Delivery (CISD), algoritmik muvozanat va backtest haqida gapirasan. "
-                "Qisqa (1-2 jumla), texnik va o'ta aniq javob ber. "
-                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+                "Sen — Alex, sovuqqon algo-treyder va kordersan. Faqat matematika, kod va ICT algoritmi bilan gapirasan. "
+                f"Javobing 1-2 jumla, aniq va texnik bo'lsin. Savol: '{user_msg}'"
             ),
             "whale": (
-                "Sen — Mister Whale, ko'p millionli kapital boshqaruvchisi, katta kit. O'ta vazmin, mulohazali va boy odamsan. "
-                "1-2 daqiqalik shovqinlarga parvo qilmaysan. Sabr, psixologiya va katta hovuzlarni tushuntirasan. "
-                "Qisqa (1-2 jumla), xotirjam va salobatli javob ber. "
-                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+                "Sen — Mister Whale, million dollarlik kapital egasisan. O'ta vazmin, mulohazali va boy odamsan. "
+                f"Javobing 1-2 jumla, xotirjam va salobatli bo'lsin. Savol: '{user_msg}'"
             )
         }
-
-        chosen_prompt = prompts.get(npc_id, prompts["jasur"])
-        ai_reply = get_ai_analysis(chosen_prompt)
-
-        if not ai_reply:
-            ai_reply = "Hozircha server band, birozdan keyin kel..."
-
-        return jsonify({"status": "success", "reply": ai_reply})
+        reply = get_ai_analysis(prompts.get(npc_id, prompts["jasur"])) or "Uyg'oqman, nima gap jigar?"
+        return jsonify({"status": "success", "reply": reply})
     except Exception as e:
         return jsonify({"status": "error", "reply": f"Xatolik: {e}"}), 500
 
@@ -354,12 +240,9 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 5. ICT (SMART MONEY CONCEPTS) AVTO-SIGNAL SKANERI ---
+# --- 4. SIGNAL SKANERI ---
 def scan_and_post_ai_signals():
-    global latest_ict_status
     symbols = ["BTCUSDT", "ETHUSDT"]
-    print("🚀 [AI Radar // ICT Edition] Smart Money skaneri ishga tushdi!")
-    
     while True:
         try:
             for sym in symbols:
@@ -367,156 +250,41 @@ def scan_and_post_ai_signals():
                 res = requests.get(url, timeout=10)
                 if res.status_code != 200:
                     continue
-
-                candles_raw = res.json()
-                current_price = float(candles_raw[-1][4])
-
-                candles_ohlc = []
-                for c in candles_raw[-15:]:
-                    t_str = datetime.datetime.fromtimestamp(c[0]/1000).strftime("%H:%M")
-                    candles_ohlc.append({
-                        "t": t_str,
-                        "open": float(c[1]),
-                        "high": float(c[2]),
-                        "low": float(c[3]),
-                        "close": float(c[4])
-                    })
-
-                prompt = f"""
-Sen ICT (Inner Circle Trader) va Smart Money Concepts bo'yicha professional institutsional treydersan.
-Quyida {sym} aktivining 15 daqiqalik so'nggi shamchalari berilgan (Open, High, Low, Close):
-{json.dumps(candles_ohlc)}
-Joriy jonli narx: {current_price}
-
-Quyidagi ICT konseptlarini qat'iy tekshir:
-1. Liquidity Sweep / Turtle Soup
-2. CISD (Change In State of Delivery)
-3. FVG (Fair Value Gap)
-4. Target (BSL yoki SSL)
-
-Agar to'laqonli ICT kirish nuqtasi bo'lsa:
-SIGNAL_FOUND
-📍 Yo'nalish: [LONG yoki SHORT]
-🎯 Take-Profit (BSL/SSL): [aniq narx]
-🛑 Stop-Loss (Invalidation): [aniq narx]
-💡 ICT Tahlil: [1-2 jumla o'zbek tilida]
-
-Aks holda FAQAT "NO_SIGNAL" deb yoz.
-"""
+                candles = res.json()
+                current_price = float(candles[-1][4])
+                prompt = f"{sym} 15m ICT setup tekshir. Joriy narx: {current_price}. Agar Turtle Soup/FVG bo'lsa SIGNAL_FOUND bilan boshla, aks holda NO_SIGNAL deb yoz."
                 ai_verdict = get_ai_analysis(prompt)
-
                 if ai_verdict and "SIGNAL_FOUND" in ai_verdict:
                     clean_text = ai_verdict.replace("SIGNAL_FOUND", "").strip()
-                    uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
-                    now_time = uzb_time.strftime("%H:%M")
-
-                    latest_ict_status["BTC" if "BTC" in sym else "ETH"] = f"ICT Setup detected on {sym}!"
-
-                    post_caption = (
-                        f"⚡️ <b>OBSIDIAN RADAR // ICT ALGO SIGNAL</b>\n"
-                        f"━━━━━━━━━━━━━━━━━━━━\n"
-                        f"📊 <b>Aktiv:</b> #{sym}\n"
-                        f"💵 <b>Narx:</b> ${current_price:,.2f}\n"
-                        f"⏱ <b>Vaqt:</b> {now_time}\n\n"
-                        f"{clean_text}\n\n"
-                        f"━━━━━━━━━━━━━━━━━━━━\n"
-                        f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
-                    )
-
-                    try:
-                        bot.send_message(CHANNEL_CHAT_ID, post_caption, parse_mode="HTML")
-                    except Exception as err:
-                        print(f"Kanalga yuborishda xatolik: {err}")
-
+                    bot.send_message(CHANNEL_CHAT_ID, f"⚡️ <b>OBSIDIAN ICT SIGNAL</b>\n#{sym} - ${current_price}\n\n{clean_text}", parse_mode="HTML")
                     save_trade_to_sheets(f"ICT: {sym}", clean_text)
-                else:
-                    latest_ict_status["BTC" if "BTC" in sym else "ETH"] = f"Scanning {sym} 15m Liquidity..."
-
                 time.sleep(5)
-
-        except Exception as err:
-            print(f"LOG: [AI Radar] Ogohlantirish: {err}")
-
+        except Exception as e:
+            print(f"Radar xatolik: {e}")
         time.sleep(900)
 
-# --- 6. TELEGRAM BOT HANDLERLAR ---
-@bot.message_handler(commands=['start'])
-def handle_start(message):
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    tma_button = KeyboardButton(
-        text="🚀 Savdo Terminalini ochish", 
-        web_app=WebAppInfo(url="https://akbarjon1.github.io/tradebot/")
-    )
-    markup.add(tma_button)
-
-    bot.reply_to(
-        message, 
-        "⚡️ *Obsidian Lab Paper-Trading platformasiga xush kelibsiz!*\n\n"
-        "Virtual $10,000 balans bilan savdo qilish uchun quyidagi tugmani bosing:",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
-
-@bot.message_handler(commands=['test_signal'])
-def handle_test_signal(message):
-    uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
-    now_time = uzb_time.strftime("%H:%M")
-    
-    test_caption = (
-        f"⚡️ <b>OBSIDIAN RADAR // ICT ALGO SIGNAL</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📊 <b>Aktiv:</b> #BTCUSDT\n"
-        f"💵 <b>Narx:</b> $76,300.00\n"
-        f"⏱ <b>Vaqt:</b> {now_time}\n\n"
-        f"📍 <b>Yo'nalish:</b> LONG 🟢\n"
-        f"🎯 <b>Take-Profit (BSL):</b> $78,500.00\n"
-        f"🛑 <b>Stop-Loss (Invalidation):</b> $75,100.00\n"
-        f"💡 <b>ICT Tahlil:</b> 15m Sell-side likvidligi (Turtle Soup) olindi va bullish CISD yuz berdi.\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
-    )
-    try:
-        bot.send_message(CHANNEL_CHAT_ID, test_caption, parse_mode="HTML")
-        bot.reply_to(message, "✅ Test signali kanalga yuborildi!")
-    except Exception as e:
-        bot.reply_to(message, f"❌ Xatolik: {e}")
-
-@bot.message_handler(func=lambda message: True)
-def handle_trade_message(message):
-    user_text = message.text
-    user_id = message.from_user.id
-
-    if user_id not in user_histories:
-        user_histories[user_id] = []
-
-    history_text = "\n".join(user_histories[user_id][-6:])
-
-    prompt = (
-        "Sen — Toshkentlik kripto-treyder do'stsan. Telegramda yaqin do'sting bilan gaplashyapsan.\n"
-        "- Qisqa, samimiy va erkin gapir.\n"
-        f"Oldingi gaplar:\n{history_text}\n\n"
-        f"Do'sting: {user_text}\nSen:"
-    )
-
-    try:
-        content = get_ai_analysis(prompt) or "Uyg'oqman, nima gap jigar?"
-        user_histories[user_id].append(f"Foydalanuvchi: {user_text}")
-        user_histories[user_id].append(f"Sen: {content}")
-        bot.send_message(message.chat.id, content)
-    except Exception as e:
-        bot.send_message(message.chat.id, f"Xatolik: {e}")
-
-# --- 7. GOOGLE SHEETS MONITORING ---
+# --- 5. GOOGLE SHEETS MONITORING (XATOLIK TO'G'RILANDI) ---
 sent_trade_ids = set()
 
 def monitor_new_trades():
     global sent_trade_ids
+    # 1. Dastlabki mavjud barcha eski bitimlarni yig'ib olish (Qayta jo'natmaslik uchun)
+    try:
+        existing = get_trades_from_sheets()
+        for t in existing:
+            if t.get("id"):
+                sent_trade_ids.add(str(t["id"]).strip())
+        print(f"📦 Boshlang'ich {len(sent_trade_ids)} ta eski bitim eslab qolindi.")
+    except Exception as e:
+        print(f"Eski bitimlarni olishda ogohlantirish: {e}")
+
+    # 2. Faqat haqiqiy yangi bitimlarni kuzatish sikli
     while True:
         try:
-            time.sleep(60)
+            time.sleep(45)
             trades = get_trades_from_sheets()
             for trade in trades:
-                t_id = trade.get("id")
+                t_id = str(trade.get("id", "")).strip()
                 if t_id and t_id not in sent_trade_ids:
                     title = trade.get("title", "Yangi Bitim")
                     content = trade.get("content", "")
@@ -524,15 +292,25 @@ def monitor_new_trades():
                     try:
                         bot.send_message(CHANNEL_CHAT_ID, signal_text, parse_mode="HTML")
                         sent_trade_ids.add(t_id)
-                    except Exception:
-                        pass
+                    except Exception as send_err:
+                        print(f"Kanalga yuborishda xatolik: {send_err}")
         except Exception:
             pass
 
-# --- 8. AVTOMATIK YANGILIKLAR TIZIMI ---
+# --- 6. AVTOMATIK YANGILIKLAR TIZIMI (XATOLIK TO'G'RILANDI) ---
 SEEN_NEWS = set()
 
 def fetch_and_post_crypto_news():
+    global SEEN_NEWS
+    # Dastlabki yangiliklarni yozib olish (qayta-qayta yubormasligi uchun)
+    try:
+        feed = feedparser.parse("https://cointelegraph.com/rss")
+        for entry in feed.entries[:5]:
+            if entry.get("link"):
+                SEEN_NEWS.add(entry.get("link"))
+    except Exception:
+        pass
+
     while True:
         try:
             feed_url = "https://cointelegraph.com/rss"
@@ -543,7 +321,7 @@ def fetch_and_post_crypto_news():
                 raw_summary = latest.get("summary", "")[:400]
                 link = latest.get("link", "")
 
-                if link not in SEEN_NEWS:
+                if link and link not in SEEN_NEWS:
                     clean_summary = re.sub(r'<[^>]+>', '', raw_summary).strip()
                     prompt = f"""Sen kripto yangiliklarini o'zbek tilida qisqa (2 jumla) tushuntiruvchi AIsan.
 Sarlavha: {title}
@@ -565,11 +343,20 @@ Format:
 
         time.sleep(3600)
 
-# --- 9. ISHGA TUSHIRISH ---
+@bot.message_handler(commands=['start'])
+def handle_start(message):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(KeyboardButton("🚀 Savdo Terminalini ochish", web_app=WebAppInfo(url="https://akbarjon1.github.io/tradebot/")))
+    bot.reply_to(message, "⚡️ *Obsidian Lab platformasiga xush kelibsiz!*", reply_markup=markup, parse_mode="Markdown")
+
+@bot.message_handler(func=lambda m: True)
+def handle_msg(m):
+    p = f"Sen samimiy Toshkentlik treydersan. Qisqa javob ber. Savol: {m.text}"
+    bot.send_message(m.chat.id, get_ai_analysis(p) or "Eshitaman jigar!")
+
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     threading.Thread(target=monitor_new_trades, daemon=True).start()
     threading.Thread(target=fetch_and_post_crypto_news, daemon=True).start()
     threading.Thread(target=scan_and_post_ai_signals, daemon=True).start()
-
     bot.infinity_polling()
