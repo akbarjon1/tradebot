@@ -58,8 +58,13 @@
       </div>
     </div>
 
-    <!-- USERNAME & STATUS -->
+    <!-- O'YIN TUGMASI VA USERNAME -->
     <div class="flex items-center gap-2">
+      <!-- O'YINGA KIRISH MINIMALIST TUGMASI -->
+      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
+        <span>🎮</span> Lounge
+      </button>
+
       <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span id="nav-username">@trader</span> ✏️
@@ -67,7 +72,7 @@
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
+  <!-- MAIN CONTAINER (ASOSIY TERMINAL) -->
   <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
     
     <!-- BALANCE & FAUCET BAR -->
@@ -125,7 +130,6 @@
 
     <!-- ORDER CONTROLS -->
     <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-4">
-      <!-- Amount Selection -->
       <div>
         <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
         <div class="relative">
@@ -145,7 +149,6 @@
         </div>
       </div>
 
-      <!-- Leverage Selection -->
       <div>
         <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
           <span>Leverage (Kredit yelkasi):</span>
@@ -204,6 +207,55 @@
     </div>
 
   </main>
+
+  <!-- ========================================== -->
+  <!-- 🕹️ OBSIDIAN LOUNGE: FULLSCREEN RETRO MODAL -->
+  <!-- ========================================== -->
+  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-4 selection:bg-indigo-600">
+    <!-- Top Modal Header -->
+    <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN LOUNGE // v1.0</h2>
+      </div>
+      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1.5 rounded-xl hover:bg-rose-900 transition">
+        ✕ Terminalga qaytish
+      </button>
+    </div>
+
+    <!-- Center Canvas Area -->
+    <div class="flex-1 my-3 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl">
+      <canvas id="lounge-canvas" width="360" height="240" class="w-full h-full max-w-lg object-contain image-rendering-pixelated"></canvas>
+
+      <!-- On-Screen Controls for Mobile -->
+      <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-80 select-none">
+        <div></div>
+        <button onclick="movePlayer(0, -12)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▲</button>
+        <div></div>
+        <button onclick="movePlayer(-12, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">◀</button>
+        <button onclick="interactWithNearby()" class="w-9 h-9 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-[10px] font-bold shadow flex items-center justify-center">TALK</button>
+        <button onclick="movePlayer(12, 0)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▶</button>
+        <div></div>
+        <button onclick="movePlayer(0, 12)" class="w-9 h-9 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">▼</button>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- RPG Dialog Box inside Modal -->
+    <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-lg mx-auto w-full">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+        <span id="dialog-npc-name" class="font-bold text-indigo-400">☕️ Jasur (Treyder)</span>
+        <button onclick="closeDialog()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div id="dialog-reply" class="text-slate-200 leading-relaxed text-[11px] min-h-[30px]">
+        "E, kel jigar! Yana qaysidir shitcoinda minus qildingmi?"
+      </div>
+      <div class="flex gap-1.5 pt-1">
+        <input id="dialog-input" type="text" placeholder="Biror narsa so'rang..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500" />
+        <button onclick="sendNpcMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-[11px] font-bold">Yuborish</button>
+      </div>
+    </div>
+  </div>
 
   <!-- JAVASCRIPT ENGINE -->
   <script>
@@ -363,7 +415,6 @@
       const slRaw = parseFloat(document.getElementById('trade-sl').value);
       const curPrice = prices[currentAsset];
 
-      // TP va SL kiritilgan bo'lsa mantiqini tekshirish
       if (!isNaN(tpRaw)) {
         if (type === 'LONG' && tpRaw <= curPrice) return alert("LONG uchun TP joriy narxdan baland bo'lishi kerak!");
         if (type === 'SHORT' && tpRaw >= curPrice) return alert("SHORT uchun TP joriy narxdan past bo'lishi kerak!");
@@ -386,7 +437,6 @@
         sl: !isNaN(slRaw) ? slRaw : null
       };
 
-      // Kiritish maydonlarini tozalash
       document.getElementById('trade-tp').value = '';
       document.getElementById('trade-sl').value = '';
 
@@ -476,7 +526,6 @@
         pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
         pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
 
-        // AVTOMATIK TAKE-PROFIT VA STOP-LOSS NAZORATI
         if (position.type === 'LONG') {
           if (position.tp && liveP >= position.tp) {
             closeCurrentPosition(`🎯 Take-Profit ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
@@ -498,6 +547,132 @@
         }
       }
     }
+
+    // ==========================================
+    // 🕹️ OBSIDIAN LOUNGE CANVAS GAME ENGINE
+    // ==========================================
+    const canvas = document.getElementById('lounge-canvas');
+    const ctx = canvas ? canvas.getContext('2d') : null;
+
+    let player = { x: 180, y: 120, w: 12, h: 12, color: '#6366F1' };
+    let currentTargetNpc = null;
+    let loungeActive = false;
+
+    const npcs = [
+      { id: 'jasur', name: '☕️ Jasur (Charchagan Treyder)', x: 60, y: 60, color: '#f59e0b', desc: 'Coffee' },
+      { id: 'alex', name: '💻 Alex (Algo-ICT)', x: 300, y: 60, color: '#10b981', desc: 'Trading Desk' },
+      { id: 'whale', name: '🐋 Mister Whale (Kit)', x: 180, y: 200, color: '#38bdf8', desc: 'VIP Sofa' }
+    ];
+
+    function openLoungeModal() {
+      document.getElementById('lounge-modal').classList.remove('hidden');
+      loungeActive = true;
+      drawLounge();
+    }
+
+    function closeLoungeModal() {
+      document.getElementById('lounge-modal').classList.add('hidden');
+      closeDialog();
+      loungeActive = false;
+    }
+
+    function drawLounge() {
+      if (!ctx || !loungeActive) return;
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#131b2e';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 24) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(40, 30, 40, 20);
+      ctx.fillRect(280, 30, 60, 20);
+      ctx.fillRect(150, 215, 60, 16);
+
+      npcs.forEach(n => {
+        ctx.fillStyle = n.color;
+        ctx.fillRect(n.x - 6, n.y - 6, 12, 12);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '8px "JetBrains Mono", monospace';
+        ctx.fillText(n.name.split(' ')[1], n.x - 12, n.y - 10);
+      });
+
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x - 6, player.y - 6, player.w, player.h);
+
+      let nearNpc = getNearbyNPC();
+      if (nearNpc) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillText('💬 [TALK]', nearNpc.x - 14, nearNpc.y + 18);
+      }
+    }
+
+    function movePlayer(dx, dy) {
+      if (!loungeActive) return;
+      player.x = Math.max(15, Math.min(canvas.width - 15, player.x + dx));
+      player.y = Math.max(15, Math.min(canvas.height - 15, player.y + dy));
+      drawLounge();
+    }
+
+    function getNearbyNPC() {
+      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 32) || null;
+    }
+
+    function interactWithNearby() {
+      if (!loungeActive) return;
+      const npc = getNearbyNPC();
+      if (!npc) return;
+      currentTargetNpc = npc;
+      document.getElementById('dialog-npc-name').innerText = npc.name;
+      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qarab bosh irg'adi. Savolingni ber..."`;
+      document.getElementById('dialog-box').classList.remove('hidden');
+    }
+
+    function closeDialog() {
+      document.getElementById('dialog-box').classList.add('hidden');
+      currentTargetNpc = null;
+    }
+
+    async function sendNpcMessage() {
+      if (!currentTargetNpc) return;
+      const input = document.getElementById('dialog-input');
+      const txt = input.value.trim();
+      if (!txt) return;
+
+      const replyBox = document.getElementById('dialog-reply');
+      replyBox.innerText = "O'ylayapti...";
+      input.value = '';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/npc_chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ npc_id: currentTargetNpc.id, message: txt })
+        });
+        const d = await res.json();
+        replyBox.innerText = `"${d.reply}"`;
+      } catch (e) {
+        replyBox.innerText = '"Tarmoqda nosozlik, keyinroq gaplashamiz..."';
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (!loungeActive) return;
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -12);
+      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 12);
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-12, 0);
+      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(12, 0);
+      if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
+      if (['Escape'].includes(e.code)) closeLoungeModal();
+    });
 
     init();
     setInterval(updateTicker, 1000);
