@@ -45,11 +45,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="flex items-center justify-center">
-  <svg class="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
-    <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
-  </svg>
-</div>
+          <svg class="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
+            <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
+          </svg>
+        </div>
         <span class="font-extrabold text-slate-900 text-lg tracking-tight">Obsidian Lab</span>
       </div>
 
@@ -126,9 +126,13 @@
           </span>
         </div>
 
+        <!-- VIRTUAL DEPOSIT VA 10K FAUCET TUGMASI -->
         <div class="flex items-center gap-3">
           <span class="text-xs text-slate-400 font-bold">Virtual Depozit:</span>
           <span id="balance-val" class="font-mono text-xs font-extrabold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl">$10,000.00</span>
+          <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold font-mono px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
+            <span>+</span> 10k olish ⚡️
+          </button>
         </div>
       </div>
 
@@ -284,6 +288,16 @@
       const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       document.getElementById('balance-val').innerText = bStr;
       
+      // 10k dan past bo'lsa Faucet tugmasi chiqadi, aks holda yashiriladi
+      const topUpBtn = document.getElementById('btn-topup');
+      if (topUpBtn) {
+        if (balance < 10000) {
+          topUpBtn.classList.remove('hidden');
+        } else {
+          topUpBtn.classList.add('hidden');
+        }
+      }
+
       const posCard = document.getElementById('position-info');
       if (position) {
         posCard.classList.remove('hidden');
@@ -291,6 +305,21 @@
       } else {
         posCard.classList.add('hidden');
       }
+    }
+
+    // 10K BALANS TO'LDIRISH (FAUCET) FUNKSIYASI
+    async function claimFaucet() {
+      if (balance >= 10000) {
+        alert("Balansingiz yetarli! Balans $10,000 dan pastga tushgandagina to'ldirish mumkin.");
+        return;
+      }
+
+      balance = 10000.00;
+      safeSet(`obs_bal_${userId}`, balance);
+      updateUI();
+
+      await syncWithSheets();
+      alert("Hisobingiz muvaffaqiyatli $10,000 ga to'ldirildi! 🚀");
     }
 
     function editMyUsername() {
