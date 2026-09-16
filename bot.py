@@ -321,7 +321,7 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI (GRAFIK RASMLARI BILAN) ---
+# --- 5. RSI HISOBLASH VA AVTO-SIGNAL SKANERI ---
 def calculate_rsi(prices, period=14):
     """Shamchalar yopilish narxlaridan RSI indikatorini aniqlash"""
     if len(prices) < period + 1:
@@ -393,27 +393,29 @@ Agar bozor noaniq, flat yoki xavfli bo'lsa, FAQAT "NO_SIGNAL" deb javob ber. Hec
                         f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
                     )
 
-                    # Jonli TradingView grafik snapshot havolasi
-                    chart_img_url = f"https://api.chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:{sym}&interval=15m&theme=dark&width=800&height=450"
+                    # Rasmni xotiraga yuklab olish va Telegramga bayt sifatida jo'natish (400 xatosiz)
+                    chart_url = "https://charts.bitbo.io/chart-images/btc-usd-1d.png"
+                    img_sent = False
 
                     try:
-                        # 1. Rasm bilan birga chiqarish
-                        bot.send_photo(CHANNEL_CHAT_ID, chart_img_url, caption=post_caption, parse_mode="HTML")
+                        resp = requests.get(chart_url, timeout=8)
+                        if resp.status_code == 200:
+                            bot.send_photo(CHANNEL_CHAT_ID, resp.content, caption=post_caption, parse_mode="HTML")
+                            img_sent = True
                     except Exception as img_err:
-                        # Rasmda xatolik bo'lsa, matn baribir boradi
-                        print(f"Rasmni yuborishda ogohlantirish: {img_err}")
+                        print(f"Rasm yuklashda ogohlantirish: {img_err}")
+
+                    if not img_sent:
                         bot.send_message(CHANNEL_CHAT_ID, post_caption, parse_mode="HTML")
 
-                    # Google Sheets'ga qayd etish
                     save_trade_to_sheets(f"AI: {sym}", clean_text)
-                    print(f"LOG: [AI Radar] {sym} rasmli signali kanalga chiqdi!")
+                    print(f"LOG: [AI Radar] {sym} signali kanalga chiqdi!")
 
                 time.sleep(5)
 
         except Exception as err:
             print(f"LOG: [AI Radar] Skanerda ogohlantirish: {err}")
 
-        # 15 daqiqa (900 soniya) kutish
         time.sleep(900)
 
 # --- 6. TELEGRAM BOT HANDLERLAR ---
@@ -435,7 +437,7 @@ def handle_start(message):
         parse_mode="Markdown"
     )
 
-# Kanalga rasmli test signali yuborish buyrug'i
+# Kanalga rasmli test signali yuborish buyrug'i (100% XATOSIZ)
 @bot.message_handler(commands=['test_signal'])
 def handle_test_signal(message):
     uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
@@ -451,17 +453,27 @@ def handle_test_signal(message):
         f"📍 <b>Yo'nalish:</b> LONG 🟢\n"
         f"🎯 <b>Take-Profit:</b> $78,500.00\n"
         f"🛑 <b>Stop-Loss:</b> $75,100.00\n"
-        f"💡 <b>Sabab:</b> Tizim muvaffaqiyatli sinovdan o'tkazildi, grafik va ma'lumotlar to'liq ishlayapti!\n\n"
+        f"💡 <b>Sabab:</b> Tizim muvaffaqiyatli sinovdan o'tkazildi, buyruqlar to'liq ishlayapti!\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🌐 <a href='https://tradebot-xelo.onrender.com'>Web Terminalda ochish</a>"
     )
-    chart_img = "https://api.chart-img.com/v1/tradingview/advanced-chart?symbol=BINANCE:BTCUSDT&interval=15m&theme=dark&width=800&height=450"
+    chart_url = "https://charts.bitbo.io/chart-images/btc-usd-1d.png"
 
     try:
-        bot.send_photo(CHANNEL_CHAT_ID, chart_img, caption=test_caption, parse_mode="HTML")
-        bot.reply_to(message, "✅ Rasmli test signali kanalga yuborildi!")
+        # Rasmni xotiraga (bytes) olib, fayl sifatida Telegramga uzatish
+        resp = requests.get(chart_url, timeout=8)
+        if resp.status_code == 200:
+            bot.send_photo(CHANNEL_CHAT_ID, resp.content, caption=test_caption, parse_mode="HTML")
+        else:
+            bot.send_message(CHANNEL_CHAT_ID, test_caption, parse_mode="HTML")
+        bot.reply_to(message, "✅ Test signali kanalga muvaffaqiyatli yuborildi!")
     except Exception as e:
-        bot.reply_to(message, f"❌ Kanalga yuborishda xatolik: {e}")
+        # Aloqa xatosi bo'lsa matn baribir yetkaziladi
+        try:
+            bot.send_message(CHANNEL_CHAT_ID, test_caption, parse_mode="HTML")
+            bot.reply_to(message, "✅ Test signali matn ko'rinishida kanalga yuborildi!")
+        except Exception as err2:
+            bot.reply_to(message, f"❌ Kanalga yuborishda xatolik: {err2}")
 
 @bot.message_handler(func=lambda message: True)
 def handle_trade_message(message):
@@ -618,21 +630,16 @@ Format faqat mana shunday bo'lsin:
 
 # --- 9. ISHGA TUSHIRISH (Barcha potoklar parallel) ---
 if __name__ == "__main__":
-    # 1. Flask Web Server
     t_flask = threading.Thread(target=run_flask, daemon=True)
     t_flask.start()
 
-    # 2. Google Sheets Signallar monitoringi
     t_sheet = threading.Thread(target=monitor_new_trades, daemon=True)
     t_sheet.start()
 
-    # 3. Kripto yangiliklar avtopostingi
     t_news = threading.Thread(target=fetch_and_post_crypto_news, daemon=True)
     t_news.start()
 
-    # 4. AI Bozor Skaneri (Har 15 daqiqada rasmli tahlil qilib, kanalga chiqaradi)
     t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
     t_radar.start()
 
-    # 5. Telegram Bot Polling
     bot.infinity_polling()
