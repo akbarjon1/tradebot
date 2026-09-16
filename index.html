@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian Lab — Mini App</title>
+  <title>Obsidian Lab — HQ & Open World</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,13 +14,8 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
-          },
-          colors: {
-            brand: { bg: '#f8fafc', border: '#e2e8f0', accent: '#4f46e5' }
-          }
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] },
+          colors: { brand: { bg: '#f8fafc', border: '#e2e8f0', accent: '#4f46e5' } }
         }
       }
     }
@@ -42,15 +37,13 @@
       </svg>
       <div>
         <span class="font-extrabold text-slate-900 text-sm tracking-tight block leading-tight">Obsidian Lab</span>
-        <span class="text-[10px] text-slate-400 font-mono">Paper-Trading</span>
+        <span class="text-[10px] text-slate-400 font-mono">Open World HQ</span>
       </div>
     </div>
-
     <div class="flex items-center gap-2">
       <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
-        <span>🎮</span> Lounge
+        <span>🎮</span> Open World HQ
       </button>
-
       <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span id="nav-username">@trader</span> ✏️
@@ -65,137 +58,49 @@
         <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
         <span id="balance-val" class="font-mono text-xl font-extrabold text-slate-900">$10,000.00</span>
       </div>
-      <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold font-mono px-3 py-2 rounded-xl transition active:scale-95 shadow-sm">
-        + 10k olish ⚡️
-      </button>
     </div>
-
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
-        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">ETH / USDT</button>
-      </div>
-      <span class="text-xs font-mono text-emerald-600 font-bold flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="live-price">$78,100.00</span>
-      </span>
-    </div>
-
     <div class="h-64 rounded-2xl overflow-hidden border border-brand-border bg-slate-50 shadow-sm">
       <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
-    </div>
-
-    <div id="position-info" class="hidden bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 text-xs font-mono shadow-sm space-y-2">
-      <div class="flex justify-between font-bold text-sm">
-        <span id="pos-dir" class="text-emerald-600">LONG (10x)</span>
-        <span id="pos-pnl" class="text-emerald-600">$0.00 (+0.00%)</span>
-      </div>
-      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 border-t border-indigo-100/60 pt-2">
-        <div>Garov: <b id="pos-sz" class="text-slate-800">$0.00</b></div>
-        <div>Kirish: <b id="pos-ent" class="text-slate-800">$0.00</b></div>
-        <div>TP: <b id="pos-tp-txt" class="text-emerald-600">—</b></div>
-        <div>SL: <b id="pos-sl-txt" class="text-rose-600">—</b></div>
-      </div>
-      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">Bitimni yopish ✕</button>
-    </div>
-
-    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-4">
-      <div>
-        <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
-        <div class="relative">
-          <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
-          <input id="trade-amount" type="number" value="1000" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"/>
-        </div>
-        <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono">
-          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">10%</button>
-          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">25%</button>
-          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">50%</button>
-          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg">MAX</button>
-        </div>
-      </div>
-
-      <div>
-        <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
-          <span>Leverage:</span>
-          <span id="lev-val" class="text-indigo-600 font-mono font-bold">10x</span>
-        </div>
-        <div class="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
-          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="1">1x</button>
-          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="5">5x</button>
-          <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" data-l="10">10x</button>
-          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="20">20x</button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <div>
-          <label class="text-[11px] font-bold text-slate-500 block mb-1">Take Profit ($):</label>
-          <input id="trade-tp" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-emerald-500"/>
-        </div>
-        <div>
-          <label class="text-[11px] font-bold text-slate-500 block mb-1">Stop Loss ($):</label>
-          <input id="trade-sl" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-rose-500"/>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Long 🟢</button>
-        <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Short 🔴</button>
-      </div>
-    </div>
-
-    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-3">
-      <div class="flex justify-between items-center pb-2 border-b border-brand-border">
-        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders</h3>
-        <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
-      </div>
-      <div id="top-traders-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll text-xs font-mono">
-        <p class="text-slate-400 text-center py-4">Yuklanmoqda...</p>
-      </div>
     </div>
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OBSIDIAN LOUNGE: LIVING OFFICE HQ -->
+  <!-- 🕹️ OPEN WORLD WORLD MAP MODAL (HQ & STREET) -->
   <!-- ========================================== -->
-  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-3 selection:bg-indigo-600">
-    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+  <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-2 selection:bg-indigo-600">
+    <div class="flex justify-between items-center px-2 py-1.5 border-b border-slate-800 bg-slate-900/90 rounded-xl">
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN LIVING OFFICE // HQ</h2>
+        <span id="room-indicator" class="text-xs font-mono font-bold text-emerald-400">📍 Xona: Office (HQ)</span>
       </div>
-      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-3 py-1 rounded-xl hover:bg-rose-900 transition">
-        ✕ Chiqish
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- OVOZLI CHAT (MIC) TUGMASI -->
+        <button id="mic-btn" onclick="toggleVoiceChat()" class="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg hover:bg-slate-700 transition">
+          🎙️ Muted
+        </button>
+        <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-2.5 py-1 rounded-lg hover:bg-rose-900 transition">
+          ✕ Chiqish
+        </button>
+      </div>
     </div>
 
-    <!-- CANVAS CONTAINER (SENSOR BOSHQARUV BILAN) -->
-    <div id="canvas-wrapper" class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#161311] shadow-2xl touch-none select-none">
-      <canvas id="lounge-canvas" width="600" height="400" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
-
-      <!-- SENSOR JOYSTICK VIZUAL HALQASI -->
-      <div id="touch-stick-base" class="hidden absolute w-20 h-20 rounded-full border-2 border-indigo-500/40 bg-indigo-900/20 pointer-events-none -translate-x-1/2 -translate-y-1/2">
-        <div id="touch-stick-knob" class="absolute w-8 h-8 rounded-full bg-indigo-500 shadow-lg top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+    <!-- CANVAS & CHAT CONTAINER -->
+    <div class="flex-1 my-2 relative flex flex-col items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#161311] shadow-2xl">
+      <div id="canvas-wrapper" class="relative w-full flex-1 flex items-center justify-center touch-none select-none">
+        <canvas id="lounge-canvas" width="640" height="380" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
+        <div id="touch-stick-base" class="hidden absolute w-20 h-20 rounded-full border-2 border-indigo-500/40 bg-indigo-900/20 pointer-events-none -translate-x-1/2 -translate-y-1/2">
+          <div id="touch-stick-knob" class="absolute w-8 h-8 rounded-full bg-indigo-500 shadow-lg top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
       </div>
 
-      <!-- INTERAKTIV TALK TUGMASI (MOBILDA HAM KO'RINADI) -->
-      <button id="mobile-talk-btn" onclick="interactWithNearby()" class="absolute bottom-4 right-4 bg-indigo-600 active:bg-indigo-500 text-white font-mono font-bold text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-1.5 border border-indigo-400/40">
-        <span>💬</span> TALK
-      </button>
-    </div>
-
-    <!-- DIALOG BOX -->
-    <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-xl mx-auto w-full">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-1">
-        <span id="dialog-npc-name" class="font-bold text-indigo-400">Jasur (Charchagan Treyder)</span>
-        <button onclick="closeDialog()" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-      <div id="dialog-reply" class="text-slate-200 leading-relaxed text-[11px] min-h-[30px]">
-        "E, kel jigar! Yana qaysidir shitcoinda minus qildingmi?"
-      </div>
-      <div class="flex gap-1.5 pt-1">
-        <input id="dialog-input" type="text" placeholder="Biror narsa so'rang..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500" />
-        <button onclick="sendNpcMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-[11px] font-bold">Yuborish</button>
+      <!-- ONLINE MULTIPLAYER CHAT BOX (PASTKI QISMDAGI CHAT) -->
+      <div class="w-full bg-slate-900/95 border-t border-slate-800 p-2 flex flex-col gap-1 max-h-28">
+        <div id="chat-messages" class="flex-1 overflow-y-auto custom-scroll text-[10px] font-mono space-y-1 max-h-16 px-1">
+          <div class="text-slate-500 italic">Tizim: Chatga xush kelibsiz! Boshqa o'yinchilar bilan yozishingiz mumkin.</div>
+        </div>
+        <div class="flex gap-1.5">
+          <input id="multiplayer-chat-input" type="text" placeholder="Xona bo'yicha yozish..." class="flex-1 bg-slate-800 text-white px-2.5 py-1.5 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500 font-mono" />
+          <button onclick="sendMultiplayerChat()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-[11px] font-bold font-mono">Yuborish</button>
+        </div>
       </div>
     </div>
   </div>
@@ -214,7 +119,6 @@
       safeSet('obs_tma_uid', id);
       return id;
     }
-
     function getTelegramUsername() {
       if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
       if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
@@ -223,732 +127,272 @@
 
     let userId = getTelegramUID();
     let myUsername = getTelegramUsername();
-    let balance = 10000.0;
-    let currentAsset = "BTCUSDT";
-    let currentLeverage = 10;
-    const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
-    let position = null;
-
-    function init() {
-      const savedBal = safeGet(`obs_bal_${userId}`);
-      if (savedBal !== null && !isNaN(parseFloat(savedBal))) balance = parseFloat(savedBal);
-      const savedPos = safeGet(`obs_pos_${userId}`);
-      if (savedPos) { try { position = JSON.parse(savedPos); } catch(e) { position = null; } }
-      document.getElementById('nav-username').innerText = myUsername;
-      if (player) player.name = myUsername;
-      updateUI();
-      fetchLeaderboard();
-      setPercent(0.1);
-    }
-
-    function updateUI() {
-      document.getElementById('balance-val').innerText = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      const topUpBtn = document.getElementById('btn-topup');
-      if (topUpBtn) {
-        if (!position && balance < 10000) topUpBtn.classList.remove('hidden');
-        else topUpBtn.classList.add('hidden');
-      }
-
-      const posCard = document.getElementById('position-info');
-      if (position) {
-        posCard.classList.remove('hidden');
-        document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
-        document.getElementById('pos-sz').innerText = `$${position.size.toFixed(2)}`;
-        document.getElementById('pos-ent').innerText = `$${position.entryPrice.toFixed(2)}`;
-        document.getElementById('pos-tp-txt').innerText = position.tp ? `$${position.tp.toFixed(2)}` : 'Yo‘q';
-        document.getElementById('pos-sl-txt').innerText = position.sl ? `$${position.sl.toFixed(2)}` : 'Yo‘q';
-      } else {
-        posCard.classList.add('hidden');
-      }
-    }
-
-    async function claimFaucet() {
-      if (position) return alert("Ochiq bitimingiz bor!");
-      if (balance >= 10000) return alert("Balans yetarli!");
-      balance = 10000.00;
-      safeSet(`obs_bal_${userId}`, balance);
-      updateUI();
-      await syncWithSheets();
-      alert("Hisobingiz $10,000 ga to'ldirildi! 🚀");
-    }
-
-    function editMyUsername() {
-      const val = prompt("Ism yoki @username:", myUsername);
-      if (val && val.trim().length > 1) {
-        let clean = val.trim();
-        if (!clean.startsWith('@')) clean = '@' + clean;
-        myUsername = clean;
-        player.name = myUsername;
-        safeSet('obs_tma_username', myUsername);
-        document.getElementById('nav-username').innerText = myUsername;
-        syncWithSheets();
-      }
-    }
-
-    function setLev(l) {
-      currentLeverage = l;
-      document.getElementById('lev-val').innerText = `${l}x`;
-      document.querySelectorAll('.lev-btn').forEach(b => {
-        b.className = parseInt(b.getAttribute('data-l')) === l 
-          ? "lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" 
-          : "lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600";
-      });
-    }
-
-    function setPercent(p) {
-      document.getElementById('trade-amount').value = Math.max(10, Math.floor(balance * p));
-    }
-
-    function switchAsset(sym) {
-      currentAsset = sym;
-      const btcBtn = document.getElementById('btn-tab-btc');
-      const ethBtn = document.getElementById('btn-tab-eth');
-      const frame = document.getElementById('tradingview-frame');
-      if (sym === 'BTCUSDT') {
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-      } else {
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-      }
-    }
-
-    function executeOrder(type) {
-      const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
-      if (amount < 10) return alert("Minimal savdo $10!");
-      if (amount > balance) return alert("Mablag' yetarli emas!");
-
-      const tpRaw = parseFloat(document.getElementById('trade-tp').value);
-      const slRaw = parseFloat(document.getElementById('trade-sl').value);
-      const curPrice = prices[currentAsset];
-
-      if (position) closeCurrentPosition();
-
-      balance -= amount;
-      position = {
-        type: type, size: amount, leverage: currentLeverage,
-        entryPrice: curPrice, asset: currentAsset,
-        tp: !isNaN(tpRaw) ? tpRaw : null, sl: !isNaN(slRaw) ? slRaw : null
-      };
-
-      document.getElementById('trade-tp').value = '';
-      document.getElementById('trade-sl').value = '';
-      safeSet(`obs_bal_${userId}`, balance);
-      safeSet(`obs_pos_${userId}`, JSON.stringify(position));
-      updateUI();
-      syncWithSheets();
-    }
-
-    function closeCurrentPosition(reason = null) {
-      if (!position) return;
-      const live = prices[position.asset || currentAsset];
-      let diff = (live - position.entryPrice) / position.entryPrice;
-      if (position.type === 'SHORT') diff = -diff;
-      const pnlUSD = position.size * diff * position.leverage;
-      balance += Math.max(0, position.size + pnlUSD);
-      position = null;
-      safeSet(`obs_bal_${userId}`, balance);
-      try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
-      updateUI();
-      syncWithSheets();
-      if (reason) alert(reason);
-    }
-
-    async function syncWithSheets() {
-      try {
-        await fetch(`${API_BASE}/api/update_balance`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, username: myUsername, balance: Number(balance.toFixed(2)) })
-        });
-        fetchLeaderboard();
-      } catch (e) {}
-    }
-
-    async function fetchLeaderboard() {
-      const list = document.getElementById('top-traders-list');
-      try {
-        const res = await fetch(`${API_BASE}/api/leaderboard?t=${Date.now()}`);
-        const data = await res.json();
-        if (data.status === 'success' && data.leaders.length > 0) {
-          list.innerHTML = data.leaders.map((u, i) => `
-            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-brand-border">
-              <div class="flex items-center gap-2 truncate">
-                <span class="font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
-                <span class="font-semibold text-slate-800 truncate max-w-[120px]">${u.Username}</span>
-              </div>
-              <span class="font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-            </div>
-          `).join('');
-        }
-      } catch (e) {}
-    }
-
-    async function updateTicker() {
-      try {
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
-        const d = await res.json();
-        if (d.price) prices[currentAsset] = parseFloat(d.price);
-      } catch (e) {
-        prices[currentAsset] += (Math.random() - 0.49) * 10;
-      }
-      document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-
-      if (position) {
-        const liveP = prices[position.asset || currentAsset];
-        let diff = (liveP - position.entryPrice) / position.entryPrice;
-        if (position.type === 'SHORT') diff = -diff;
-        const pnl = position.size * diff * position.leverage;
-        const pnlEl = document.getElementById('pos-pnl');
-        pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
-        pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
-
-        if (position.type === 'LONG') {
-          if (position.tp && liveP >= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
-          if (position.sl && liveP <= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
-        } else {
-          if (position.tp && liveP <= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
-          if (position.sl && liveP >= position.sl) closeCurrentPosition(`🛑 Stop-Loss! Narx: $${liveP}`);
-        }
-      }
-    }
 
     // ==========================================
-    // 🕹️ OBSIDIAN LIVING OFFICE ENGINE (HQ SPIDER-MAN)
+    // 🌍 OPEN WORLD MAP & ROOMS ENGINE
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
     const canvasWrapper = document.getElementById('canvas-wrapper');
 
     let loungeActive = false;
-    let currentTargetNpc = null;
     let tick = 0;
     let smokeParticles = [];
 
-    // O'YINCHI (SPIDER-MAN)
+    // Xonalar: 'office', 'hall', 'jasur_room', 'alex_room', 'whale_room', 'street'
+    let currentRoom = 'office';
+
     let player = {
-      x: 300, y: 340, targetX: 300, targetY: 340,
-      vx: 0, vy: 0,
-      speed: 3.2, isMoving: false,
-      name: myUsername || '@trader'
+      x: 320, y: 300, vx: 0, vy: 0, speed: 3.2, isMoving: false, name: myUsername
     };
 
-    // NPC LAR
-    const npcs = [
-      {
-        id: 'jasur', name: '☕️ Jasur',
-        x: 130, y: 170, targetX: 130, targetY: 170,
-        baseX: 130, baseY: 170,
-        bodyColor: '#d97706', hairColor: '#451a03',
-        state: 'idle', timer: 100, coffee: true
-      },
-      {
-        id: 'alex', name: '💻 Alex',
-        x: 470, y: 160, targetX: 470, targetY: 160,
-        baseX: 470, baseY: 160,
-        bodyColor: '#10b981', hairColor: '#0f172a',
-        state: 'typing', timer: 150, coffee: false
-      },
-      {
-        id: 'whale', name: '🐋 Mister Whale',
-        x: 300, y: 240, targetX: 300, targetY: 240,
-        baseX: 300, baseY: 240,
-        bodyColor: '#0284c7', hairColor: '#ffffff',
-        state: 'chilling', timer: 200, coffee: true
-      }
-    ];
+    let onlinePlayers = [];
+    let chatMessages = [];
+    let voiceActive = false;
+    let mediaStream = null;
 
     function openLoungeModal() {
       player.name = myUsername;
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
       requestAnimationFrame(renderLoop);
+      setInterval(syncMultiplayerData, 1000);
     }
 
     function closeLoungeModal() {
       document.getElementById('lounge-modal').classList.add('hidden');
-      closeDialog();
       loungeActive = false;
+      if (voiceActive) toggleVoiceChat();
     }
 
-    // 🕷️ CHIQISH: HAQIQIY DETALLI PIKSEL SPIDER-MAN
+    // --- MULTIPLAYER SERVER SYNC ---
+    async function syncMultiplayerData() {
+      if (!loungeActive) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/multiplayer/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, username: myUsername, x: player.x, y: player.y, room: currentRoom })
+        });
+        const d = await res.json();
+        if (d.status === 'success') { onlinePlayers = d.players; }
+
+        const chatRes = await fetch(`${API_BASE}/api/multiplayer/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ room: currentRoom })
+        });
+        const chatD = await chatRes.json();
+        if (chatD.status === 'success') {
+          chatMessages = chatD.messages;
+          renderChatBox();
+        }
+      } catch (e) {}
+    }
+
+    async function sendMultiplayerChat() {
+      const input = document.getElementById('multiplayer-chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        await fetch(`${API_BASE}/api/multiplayer/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender: myUsername, text: text, room: currentRoom })
+        });
+        syncMultiplayerData();
+      } catch (e) {}
+    }
+
+    function renderChatBox() {
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = chatMessages.map(m => `<div><b>${m.sender}</b> [${m.time}]: ${m.text}</div>`).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // Ovozli chat simulyatsiyasi (WebRTC / Mic stream)
+    async function toggleVoiceChat() {
+      const btn = document.getElementById('mic-btn');
+      if (!voiceActive) {
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          voiceActive = true;
+          btn.innerText = "🎙️ Live (ON)";
+          btn.className = "text-xs font-mono font-bold text-emerald-300 bg-emerald-950 border border-emerald-700 px-2.5 py-1 rounded-lg";
+        } catch (e) {
+          alert("Mikrofonga ruxsat berilmadi yoki mavjud emas!");
+        }
+      } else {
+        if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); }
+        voiceActive = false;
+        btn.innerText = "🎙️ Muted";
+        btn.className = "text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg";
+      }
+    }
+
+    // --- SPIDER-MAN CHIZISH ---
     function drawSpiderMan(x, y, label, isMoving) {
       const legCycle = isMoving ? Math.sin(tick * 0.45) * 4.5 : 0;
       const breathe = Math.sin(tick * 0.08) * 1.5;
 
-      // Soya
       ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
 
-      // 1. Qizil etiklar (Red Boots)
-      ctx.fillStyle = '#dc2626';
-      ctx.fillRect(x - 9, y + 12 + legCycle, 8, 5);
-      ctx.fillRect(x + 2, y + 12 - legCycle, 8, 5);
-      ctx.fillStyle = '#0f172a'; // Taglik
-      ctx.fillRect(x - 9, y + 16 + legCycle, 8, 2);
-      ctx.fillRect(x + 2, y + 16 - legCycle, 8, 2);
+      // Etiklar va shim
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y + 12 + legCycle, 8, 5); ctx.fillRect(x + 2, y + 12 - legCycle, 8, 5);
+      ctx.fillStyle = '#1d4ed8'; ctx.fillRect(x - 8, y + 2 + legCycle, 6, 11); ctx.fillRect(x + 2, y + 2 - legCycle, 6, 11);
 
-      // 2. Moviy shim (Classic Blue Spidey Pants)
-      ctx.fillStyle = '#1d4ed8';
-      ctx.fillRect(x - 8, y + 2 + legCycle, 6, 11);
-      ctx.fillRect(x + 2, y + 2 - legCycle, 6, 11);
+      // Tana va o'rgimchak logosi
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 11, y - 16 + breathe, 22, 19);
+      ctx.fillStyle = '#000000'; ctx.fillRect(x - 2, y - 10 + breathe, 4, 6);
 
-      // 3. Tana: Qizil ko'krak va Moviy yon qismlar
-      ctx.fillStyle = '#dc2626'; // Qizil asos
-      ctx.fillRect(x - 11, y - 16 + breathe, 22, 19);
-      ctx.fillStyle = '#1d4ed8'; // Ko'k qovurg'a chiziqlari
-      ctx.fillRect(x - 11, y - 14 + breathe, 3, 17);
-      ctx.fillRect(x + 8, y - 14 + breathe, 3, 17);
+      // Bosh va ko'zlar
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y - 31 + breathe, 18, 16);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 6, y - 25 + breathe, 4, 3); ctx.fillRect(x + 2, y - 25 + breathe, 4, 3);
 
-      // Ko'krakdagi qora o'rgimchak emblemasi (Black Spider Logo)
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(x - 2, y - 10 + breathe, 4, 6);
-      ctx.fillRect(x - 4, y - 12 + breathe, 2, 2);
-      ctx.fillRect(x + 2, y - 12 + breathe, 2, 2);
-      ctx.fillRect(x - 5, y - 6 + breathe, 2, 3);
-      ctx.fillRect(x + 3, y - 6 + breathe, 2, 3);
-
-      // 4. Qo'llar (Qizil qo'lqop + Ko'k yelka)
-      ctx.fillStyle = '#1d4ed8'; // Yelka
-      ctx.fillRect(x - 14, y - 13 + breathe, 4, 5);
-      ctx.fillRect(x + 10, y - 13 + breathe, 4, 5);
-      ctx.fillStyle = '#dc2626'; // Qizil qo'lqoplar
-      ctx.fillRect(x - 14, y - 8 + breathe, 4, 9);
-      ctx.fillRect(x + 10, y - 8 + breathe, 4, 9);
-
-      // 5. Bosh / Maskasi (Qizil Spidey Niqobi)
-      ctx.fillStyle = '#dc2626';
-      ctx.fillRect(x - 9, y - 31 + breathe, 18, 16);
-
-      // Veb-to'r chiziqlari (Niqobdagi nozik to'rlar)
-      ctx.fillStyle = '#991b1b';
-      ctx.fillRect(x - 1, y - 31 + breathe, 2, 16);
-      ctx.fillRect(x - 9, y - 23 + breathe, 18, 1);
-
-      // 6. Oq-qora o'rgimchak ko'zlari (Classic White/Black Eyes)
-      ctx.fillStyle = '#000000'; // Qora hoshiya
-      ctx.fillRect(x - 7, y - 26 + breathe, 6, 5);
-      ctx.fillRect(x + 1, y - 26 + breathe, 6, 5);
-      ctx.fillStyle = '#ffffff'; // Oq ko'z qorachig'i
-      ctx.fillRect(x - 6, y - 25 + breathe, 4, 3);
-      ctx.fillRect(x + 2, y - 25 + breathe, 4, 3);
-
-      // Ism yozuvi
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.9)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(`🕷 ${label}`, x - (ctx.measureText(`🕷 ${label}`).width / 2), y - 43);
-      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      ctx.fillText(`🕷 ${label}`, x - (ctx.measureText(`🕷 ${label}`).width / 2), y - 38);
     }
 
-    // JASURNI CHIZISH
-    function drawJasur(x, y, isMoving, hasCoffee) {
-      const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
-      const breathe = Math.sin(tick * 0.08) * 1.5;
-      const isDrinking = hasCoffee && (Math.sin(tick * 0.04) > 0.4);
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x - 9, y + 13 + legCycle, 8, 4);
-      ctx.fillRect(x + 2, y + 13 - legCycle, 8, 4);
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(x - 9, y + 10 + legCycle, 7, 3);
-      ctx.fillRect(x + 3, y + 10 - legCycle, 7, 3);
-
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(x - 8, y + 2 + legCycle, 6, 9);
-      ctx.fillRect(x + 2, y + 2 - legCycle, 6, 9);
-
-      ctx.fillStyle = '#a16207';
-      ctx.fillRect(x - 12, y - 16 + breathe, 24, 19);
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(x - 2, y - 16 + breathe, 4, 8);
-      ctx.fillStyle = '#78350f';
-      ctx.fillRect(x - 8, y - 4 + breathe, 16, 5);
-
-      ctx.fillStyle = '#a16207';
-      ctx.fillRect(x - 15, y - 13 + breathe, 4, 11);
-
-      if (hasCoffee) {
-        if (isDrinking) {
-          ctx.fillStyle = '#fed7aa';
-          ctx.fillRect(x + 4, y - 20 + breathe, 5, 5);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x - 2, y - 24 + breathe, 8, 8);
-          if (Math.random() < 0.3) {
-            smokeParticles.push({ x: x + 2, y: y - 25 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.6, life: 25, alpha: 0.8 });
-          }
-        } else {
-          ctx.fillStyle = '#fed7aa';
-          ctx.fillRect(x + 11, y - 10 + breathe, 5, 5);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 13, y - 15 + breathe, 8, 8);
-          ctx.fillStyle = '#64748b';
-          ctx.fillRect(x + 12, y - 13 + breathe, 2, 4);
-          if (Math.random() < 0.25) {
-            smokeParticles.push({ x: x + 17, y: y - 17 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.7, life: 30, alpha: 0.8 });
-          }
-        }
-      } else {
-        ctx.fillRect(x + 11, y - 13 + breathe, 4, 11);
-      }
-
-      ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(x - 9, y - 30 + breathe, 18, 15);
-
-      ctx.fillStyle = '#dc2626';
-      ctx.fillRect(x - 6, y - 24 + breathe, 5, 3);
-      ctx.fillRect(x + 2, y - 24 + breathe, 5, 3);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(x - 4, y - 24 + breathe, 2, 2);
-      ctx.fillRect(x + 4, y - 24 + breathe, 2, 2);
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(x - 6, y - 26 + breathe, 5, 2);
-      ctx.fillRect(x + 2, y - 26 + breathe, 5, 2);
-
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(x - 12, y - 37 + breathe, 24, 9);
-      ctx.fillRect(x - 11, y - 29 + breathe, 4, 7);
-      ctx.fillRect(x + 8, y - 29 + breathe, 4, 6);
-      ctx.fillRect(x - 5, y - 29 + breathe, 3, 3);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.9)';
-      ctx.shadowBlur = 4;
-      ctx.fillText('☕️ Jasur', x - (ctx.measureText('☕️ Jasur').width / 2), y - 44);
-      ctx.shadowBlur = 0;
-    }
-
-    // ODDIY QAHRAMONLAR (ALEX VA WHALE)
-    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
-      const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
-      const breathe = Math.sin(tick * 0.08) * 1.5;
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-      ctx.beginPath();
-      ctx.ellipse(x, y + 16, 15, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(x - 8, y + 3 + legCycle, 6, 13);
-      ctx.fillRect(x + 2, y + 3 - legCycle, 6, 13);
-
-      ctx.fillStyle = bodyColor;
-      ctx.fillRect(x - 11, y - 16 + breathe, 22, 20);
-
-      ctx.fillStyle = '#fed7aa';
-      if (hasCoffee) {
-        ctx.fillRect(x + 11, y - 11 + breathe, 6, 6);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 13, y - 16 + breathe, 7, 8);
-        ctx.fillStyle = '#64748b';
-        ctx.fillRect(x + 12, y - 14 + breathe, 2, 4);
-        if (Math.random() < 0.3) {
-          smokeParticles.push({ x: x + 16, y: y - 18 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.7, life: 35, alpha: 0.8 });
-        }
-      } else {
-        ctx.fillRect(x - 15, y - 12 + breathe, 4, 12);
-        ctx.fillRect(x + 11, y - 12 + breathe, 4, 12);
-      }
-
-      ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(x - 8, y - 29 + breathe, 16, 14);
-
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x - 4, y - 24 + breathe, 3, 3);
-      ctx.fillRect(x + 3, y - 24 + breathe, 3, 3);
-
-      ctx.fillStyle = hairColor;
-      ctx.fillRect(x - 10, y - 35 + breathe, 20, 8);
-      ctx.fillRect(x - 10, y - 31 + breathe, 4, 7);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 41);
-      ctx.shadowBlur = 0;
-    }
-
+    // --- MAP & ROOM RENDERING ---
     function drawEnvironment() {
-      ctx.fillStyle = '#161311';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.strokeStyle = '#231d19';
-      ctx.lineWidth = 1;
-      for (let y = 100; y < canvas.height; y += 22) {
-        ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(canvas.width - 40, y); ctx.stroke();
-      }
+      ctx.fillStyle = '#161311'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#2b2d42';
-      ctx.fillRect(0, 0, canvas.width, 100);
-      ctx.fillStyle = '#1f202e';
-      ctx.fillRect(0, 90, canvas.width, 10);
+      if (currentRoom === 'office') {
+        document.getElementById('room-indicator').innerText = "📍 Xona: Office (HQ)";
+        // Ofis zamin va eshik (Hallga chiqish uchun pastda eshik)
+        ctx.fillStyle = '#2b2d42'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#334155'; ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+        
+        // Stollar va Jasur
+        ctx.fillStyle = '#fde68a'; ctx.fillRect(150, 150, 80, 40);
+        drawPixelHuman(190, 170, '#d97706', '#451a03', 'Jasur', false, true);
 
-      ctx.fillStyle = '#181a24';
-      ctx.fillRect(10, 20, 30, 80);
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('WC', 18, 16);
+        // Hallga chiqish eshigi (Pastda)
+        ctx.fillStyle = '#475569'; ctx.fillRect(270, 360, 100, 20);
+        ctx.fillStyle = '#ffffff'; ctx.font = '10px monospace'; ctx.fillText('🚪 HALLGA CHIQISH', 275, 374);
 
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(55, 30, 42, 50);
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(55, 30, 42, 50);
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 5px monospace';
-      ctx.fillText('GOOD', 63, 44);
-      ctx.fillText('TRADERS', 59, 52);
-      ctx.fillText('BETTER', 61, 60);
-      ctx.fillText('PEOPLE', 60, 68);
+      } else if (currentRoom === 'hall') {
+        document.getElementById('room-indicator').innerText = "📍 Xona: Hall (Koridor)";
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#ea580c';
-      ctx.fillRect(230, 20, 140, 55);
-      ctx.fillStyle = '#1e1b4b';
-      ctx.fillRect(242, 42, 18, 33);
-      ctx.fillRect(266, 30, 24, 45);
-      ctx.fillRect(302, 48, 22, 27);
-      ctx.fillRect(336, 36, 18, 39);
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(230, 20, 140, 55);
+        // 3 ta eshik (Jasur, Alex, Whale xonalari) va Tashqariga eshik
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(80, 40, 90, 25); ctx.fillStyle = '#fff'; ctx.fillText('🚪 JASUR XONASI', 85, 56);
+        ctx.fillRect(275, 40, 90, 25); ctx.fillText('🚪 ALEX XONASI', 282, 56);
+        ctx.fillRect(470, 40, 90, 25); ctx.fillText('🚪 WHALE XONASI', 475, 56);
 
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(215, 205, 170, 55);
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(205, 205, 12, 55); ctx.fillRect(383, 205, 12, 55);
-      ctx.fillStyle = '#451a03';
-      ctx.fillRect(250, 270, 100, 24);
+        // Ko'chaga chiqish eshigi (Pastda)
+        ctx.fillStyle = '#10b981'; ctx.fillRect(260, 355, 120, 25);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 10px monospace'; ctx.fillText('🌳 KO\'CHAGA CHIQISH', 270, 371);
 
-      ctx.fillStyle = '#271c14';
-      ctx.fillRect(50, 120, 105, 42);
-      ctx.fillStyle = '#452b1b';
-      ctx.fillRect(48, 118, 109, 5);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillRect(75, 134, 12, 2);
-      ctx.fillRect(115, 134, 12, 2);
+      } else if (currentRoom === 'jasur_room' || currentRoom === 'alex_room' || currentRoom === 'whale_room') {
+        document.getElementById('room-indicator').innerText = `📍 Xona: ${currentRoom.toUpperCase()}`;
+        ctx.fillStyle = '#1e1b4b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(60, 92, 34, 26);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillRect(64, 94, 26, 6);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(65, 103, 4, 4);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(74, 104, 8, 3);
+        if (currentRoom === 'jasur_room') drawPixelHuman(320, 200, '#d97706', '#451a03', 'Jasur', false, true);
+        if (currentRoom === 'alex_room') drawPixelHuman(320, 200, '#10b981', '#0f172a', 'Alex', false, false);
+        if (currentRoom === 'whale_room') drawPixelHuman(320, 200, '#0284c7', '#ffffff', 'Mister Whale', false, true);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(102, 112, 6, 6); ctx.fillRect(100, 114, 2, 3);
-      ctx.fillRect(114, 112, 6, 6); ctx.fillRect(112, 114, 2, 3);
+        // Hallga qaytish
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(270, 355, 100, 25);
+        ctx.fillStyle = '#fff'; ctx.fillText('🚪 HALLGA QAYTISH', 275, 371);
 
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(32, 138, 14, 22);
-      ctx.fillStyle = '#475569';
-      ctx.fillRect(30, 136, 18, 3);
+      } else if (currentRoom === 'street') {
+        document.getElementById('room-indicator').innerText = "📍 Joy: Ko'cha & Daryo qirg'og'i";
+        // Osmon va bulutlar
+        ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 0, canvas.width, 140);
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        let cloudOffset = (tick * 0.2) % canvas.width;
+        ctx.fillRect(100 - cloudOffset, 30, 60, 20); ctx.fillRect(400 - cloudOffset, 60, 80, 25);
 
-      if (Math.random() < 0.35) {
-        smokeParticles.push({ x: 78, y: 92, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 35, alpha: 0.8 });
-      }
-
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(430, 125, 130, 38);
-      const bColor = Math.sin(tick * 0.05) > 0 ? '#10b981' : '#059669';
-      const rColor = Math.cos(tick * 0.06) > 0 ? '#ef4444' : '#b91c1c';
-      ctx.fillStyle = bColor; ctx.fillRect(436, 95, 32, 28);
-      ctx.fillStyle = '#6366f1'; ctx.fillRect(476, 90, 38, 33);
-      ctx.fillStyle = rColor; ctx.fillRect(522, 95, 32, 28);
-    }
-
-    function handleSmoke() {
-      for (let i = smokeParticles.length - 1; i >= 0; i--) {
-        let p = smokeParticles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life--;
-        p.alpha = p.life / 35;
-        ctx.fillStyle = `rgba(226, 232, 240, ${p.alpha})`;
-        ctx.fillRect(p.x, p.y, 3, 3);
-        if (p.life <= 0) smokeParticles.splice(i, 1);
-      }
-    }
-
-    function updateNPCs() {
-      npcs.forEach(npc => {
-        npc.timer--;
-
-        if (npc.timer <= 0) {
-          if (npc.id === 'jasur') {
-            const jasurActions = [
-              { name: 'coffee', x: npc.baseX, y: npc.baseY, coffee: true, time: 260 },
-              { name: 'window', x: 260, y: 125, coffee: true, time: 210 },
-              { name: 'wc', x: 45, y: 125, coffee: false, time: 180 },
-              { name: 'wander', x: 170, y: 200, coffee: true, time: 160 }
-            ];
-            const nextAct = jasurActions[Math.floor(Math.random() * jasurActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 100);
-          }
-
-          if (npc.id === 'alex') {
-            const alexActions = [
-              { name: 'desk', x: npc.baseX, y: npc.baseY, coffee: false, time: 360 },
-              { name: 'coffee', x: 140, y: 155, coffee: true, time: 170 },
-              { name: 'window', x: 340, y: 125, coffee: false, time: 190 },
-              { name: 'stretch', x: 430, y: 230, coffee: false, time: 150 }
-            ];
-            const nextAct = alexActions[Math.floor(Math.random() * alexActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 120);
-          }
-
-          if (npc.id === 'whale') {
-            const whaleActions = [
-              { name: 'sofa', x: npc.baseX, y: npc.baseY, coffee: true, time: 420 },
-              { name: 'stroll', x: 280, y: 320, coffee: true, time: 210 },
-              { name: 'center', x: 320, y: 190, coffee: true, time: 190 }
-            ];
-            const nextAct = whaleActions[Math.floor(Math.random() * whaleActions.length)];
-            npc.targetX = nextAct.x; npc.targetY = nextAct.y;
-            npc.coffee = nextAct.coffee;
-            npc.timer = nextAct.time + Math.floor(Math.random() * 150);
-          }
+        // Daryo va suv oqishi
+        ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 140, canvas.width, 90);
+        ctx.fillStyle = '#38bdf8';
+        for (let x = (tick * 2) % 40; x < canvas.width; x += 40) {
+          ctx.fillRect(x, 175, 20, 4); ctx.fillRect(x + 15, 205, 25, 4);
         }
 
-        const dx = npc.targetX - npc.x;
-        const dy = npc.targetY - npc.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 3) {
-          npc.x += (dx / dist) * 0.85;
-          npc.y += (dy / dist) * 0.85;
-          npc.isMoving = true;
-        } else {
-          npc.isMoving = false;
-        }
-      });
+        // Yoshi katta baliqchi qariya
+        ctx.fillStyle = '#b45309'; ctx.fillRect(80, 220, 20, 25);
+        ctx.fillStyle = '#fed7aa'; ctx.fillRect(82, 210, 16, 14); // Bosh
+        // Qarmoq
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(92, 222); ctx.lineTo(140, 180); ctx.stroke();
+
+        // Binoning oldidagi mashinalar (Lambo, Gelik, Malibu 2)
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 230, canvas.width, 150); // Yo'l
+        // Gelik (Qora)
+        ctx.fillStyle = '#000000'; ctx.fillRect(220, 260, 50, 24);
+        // Lambo (Qizil)
+        ctx.fillStyle = '#dc2626'; ctx.fillRect(300, 265, 55, 20);
+        // Malibu 2 (Oq)
+        ctx.fillStyle = '#f8fafc'; ctx.fillRect(380, 263, 60, 22);
+        // Mashina chiroqlari zavad bo'lib yongan
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(220, 266, 4, 4); ctx.fillRect(300, 271, 4, 4); ctx.fillRect(380, 269, 4, 4);
+
+        // Binoga qaytish eshigi
+        ctx.fillStyle = '#6366f1'; ctx.fillRect(20, 280, 80, 40);
+        ctx.fillStyle = '#fff'; ctx.fillText('🏢 BINOGA KIRISH', 25, 305);
+      }
     }
 
-    // SPIDER-MAN HARAKATLANISH FIZIKASI
+    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.beginPath(); ctx.ellipse(x, y + 16, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = bodyColor; ctx.fillRect(x - 10, y - 16, 20, 19);
+      ctx.fillStyle = '#fed7aa'; ctx.fillRect(x - 8, y - 29, 16, 13);
+      ctx.fillStyle = hairColor; ctx.fillRect(x - 9, y - 34, 18, 7);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 40);
+    }
+
     function updatePlayer() {
-      // Sensor yoki Klaviatura tezligi orqali harakatlanish
       if (Math.abs(player.vx) > 0.1 || Math.abs(player.vy) > 0.1) {
         player.x += player.vx * player.speed;
         player.y += player.vy * player.speed;
-        player.targetX = player.x;
-        player.targetY = player.y;
         player.isMoving = true;
-      } else {
-        // Klaviaturada bosilganda targetga intilish
-        const dx = player.targetX - player.x;
-        const dy = player.targetY - player.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 3) {
-          player.x += (dx / dist) * player.speed;
-          player.y += (dy / dist) * player.speed;
-          player.isMoving = true;
-        } else {
-          player.isMoving = false;
+      } else { player.isMoving = false; }
+
+      // Xonalararo o'tish eshiklari mantiqi
+      if (currentRoom === 'office' && player.y > 345 && player.x > 260 && player.x > 260 && player.x < 380) {
+        currentRoom = 'hall'; player.y = 70;
+      } else if (currentRoom === 'hall') {
+        if (player.y < 50) {
+          if (player.x > 70 && player.x < 180) { currentRoom = 'jasur_room'; player.y = 320; }
+          else if (player.x > 265 && player.x < 375) { currentRoom = 'alex_room'; player.y = 320; }
+          else if (player.x > 460 && player.x < 570) { currentRoom = 'whale_room'; player.y = 320; }
+        } else if (player.y > 345 && player.x > 250 && player.x < 390) {
+          currentRoom = 'street'; player.x = 100; player.y = 300;
         }
+      } else if (currentRoom.includes('_room') && player.y > 340) {
+        currentRoom = 'hall'; player.y = 75;
+      } else if (currentRoom === 'street' && player.x < 50 && player.y > 270 && player.y < 330) {
+        currentRoom = 'office'; player.x = 320; player.y = 320;
       }
 
-      // Devor chegarasi
-      player.x = Math.max(60, Math.min(canvas.width - 60, player.x));
-      player.y = Math.max(130, Math.min(canvas.height - 40, player.y));
+      player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
+      player.y = Math.max(30, Math.min(canvas.height - 30, player.y));
     }
 
     function renderLoop() {
       if (!loungeActive || !ctx) return;
       tick++;
-
       drawEnvironment();
-      handleSmoke();
-      updateNPCs();
       updatePlayer();
 
-      let renderables = [
-        { ...player, isPlayer: true },
-        ...npcs.map(n => ({ ...n, isPlayer: false }))
-      ];
-      renderables.sort((a, b) => a.y - b.y);
+      // O'zingiz (Spider-Man)
+      drawSpiderMan(player.x, player.y, player.name, player.isMoving);
 
-      renderables.forEach(obj => {
-        if (obj.isPlayer) {
-          drawSpiderMan(obj.x, obj.y, obj.name, obj.isMoving);
-        } else if (obj.id === 'jasur') {
-          drawJasur(obj.x, obj.y, obj.isMoving, obj.coffee);
-        } else {
-          drawPixelHuman(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.isMoving, obj.coffee);
-        }
+      // Boshqa online o'yinchilarni chizish
+      onlinePlayers.forEach(p => {
+        drawSpiderMan(p.x, p.y, p.username, false);
       });
-
-      let nearNpc = getNearbyNPC();
-      if (nearNpc) {
-        ctx.fillStyle = '#6366f1';
-        ctx.fillRect(nearNpc.x - 26, nearNpc.y - 62, 52, 17);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 50);
-      }
 
       requestAnimationFrame(renderLoop);
     }
 
-    function getNearbyNPC() {
-      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 55) || null;
-    }
-
-    function interactWithNearby() {
-      const npc = getNearbyNPC();
-      if (!npc) return;
-      currentTargetNpc = npc;
-      document.getElementById('dialog-npc-name').innerText = npc.name;
-      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qarab kofesini ho'pladi. Savolingni ber..."`;
-      document.getElementById('dialog-box').classList.remove('hidden');
-    }
-
-    function closeDialog() {
-      document.getElementById('dialog-box').classList.add('hidden');
-      currentTargetNpc = null;
-    }
-
-    async function sendNpcMessage() {
-      if (!currentTargetNpc) return;
-      const input = document.getElementById('dialog-input');
-      const txt = input.value.trim();
-      if (!txt) return;
-
-      const replyBox = document.getElementById('dialog-reply');
-      replyBox.innerText = "O'ylayapti...";
-      input.value = '';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/npc_chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ npc_id: currentTargetNpc.id, message: txt })
-        });
-        const d = await res.json();
-        replyBox.innerText = `"${d.reply}"`;
-      } catch (e) {
-        replyBox.innerText = '"Tarmoqda nosozlik, birozdan keyin kel..."';
-      }
-    }
-
-    // ==========================================
-    // 📱 TELEFON UCHUN SENSORLI ANALOG JOYSTICK
-    // ==========================================
+    // --- SENSOR & KEYBOARD ---
     const stickBase = document.getElementById('touch-stick-base');
     const stickKnob = document.getElementById('touch-stick-knob');
     let touchOrigin = null;
@@ -956,13 +400,8 @@
     canvasWrapper.addEventListener('touchstart', (e) => {
       const touch = e.touches[0];
       const rect = canvasWrapper.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-
-      touchOrigin = { x, y };
-      stickBase.style.left = `${x}px`;
-      stickBase.style.top = `${y}px`;
-      stickKnob.style.transform = `translate(-50%, -50%)`;
+      touchOrigin = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+      stickBase.style.left = `${touchOrigin.x}px`; stickBase.style.top = `${touchOrigin.y}px`;
       stickBase.classList.remove('hidden');
     }, { passive: false });
 
@@ -970,77 +409,33 @@
       if (!touchOrigin) return;
       const touch = e.touches[0];
       const rect = canvasWrapper.getBoundingClientRect();
-      const currentX = touch.clientX - rect.left;
-      const currentY = touch.clientY - rect.top;
-
-      const dx = currentX - touchOrigin.x;
-      const dy = currentY - touchOrigin.y;
+      const dx = (touch.clientX - rect.left) - touchOrigin.x;
+      const dy = (touch.clientY - rect.top) - touchOrigin.y;
       const dist = Math.hypot(dx, dy);
-      const maxDist = 36;
-
-      const angle = Math.atan2(dy, dx);
-      const clampedDist = Math.min(dist, maxDist);
-
-      const knobX = Math.cos(angle) * clampedDist;
-      const knobY = Math.sin(angle) * clampedDist;
-
-      stickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
-
-      if (dist > 5) {
-        player.vx = (dx / dist);
-        player.vy = (dy / dist);
-      } else {
-        player.vx = 0;
-        player.vy = 0;
-      }
+      if (dist > 5) { player.vx = dx / dist; player.vy = dy / dist; }
       e.preventDefault();
     }, { passive: false });
 
-    function resetTouch() {
-      touchOrigin = null;
-      player.vx = 0;
-      player.vy = 0;
-      stickBase.classList.add('hidden');
-    }
-
+    function resetTouch() { touchOrigin = null; player.vx = 0; player.vy = 0; stickBase.classList.add('hidden'); }
     canvasWrapper.addEventListener('touchend', resetTouch);
     canvasWrapper.addEventListener('touchcancel', resetTouch);
 
-    // ==========================================
-    // 💻 KOMPYUTER UCHUN WASD VA STRELKALAR
-    // ==========================================
     const keys = {};
-    window.addEventListener('keydown', (e) => {
-      if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
-      keys[e.code] = true;
-      if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
-      if (['Escape'].includes(e.code)) closeLoungeModal();
-    });
+    window.addEventListener('keydown', (e) => { if (document.activeElement.tagName === 'INPUT') return; keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
-    window.addEventListener('keyup', (e) => {
-      keys[e.code] = false;
-    });
-
-    function handleKeyboardMovement() {
-      if (touchOrigin) return; // Touch faol bo'lsa klaviatura aralashmaydi
-      let moveX = 0;
-      let moveY = 0;
-
-      if (keys['KeyW'] || keys['ArrowUp']) moveY -= 1;
-      if (keys['KeyS'] || keys['ArrowDown']) moveY += 1;
-      if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
-      if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
-
-      if (moveX !== 0 || moveY !== 0) {
-        const len = Math.hypot(moveX, moveY);
-        player.vx = moveX / len;
-        player.vy = moveY / len;
-      } else if (!touchOrigin) {
-        player.vx = 0;
-        player.vy = 0;
-      }
-    }
-    setInterval(handleKeyboardMovement, 1000 / 60);
+    setInterval(() => {
+      if (touchOrigin) return;
+      let mx = 0, my = 0;
+      if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
+      if (keys['KeyS'] || keys['ArrowDown']) my += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+      if (mx !== 0 || my !== 0) {
+        const len = Math.hypot(mx, my);
+        player.vx = mx / len; player.vy = my / len;
+      } else { player.vx = 0; player.vy = 0; }
+    }, 1000 / 60);
 
     init();
     setInterval(updateTicker, 1000);
