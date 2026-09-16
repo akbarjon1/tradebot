@@ -112,11 +112,13 @@
         <span id="pos-dir" class="text-emerald-600">LONG (10x)</span>
         <span id="pos-pnl" class="text-emerald-600">$0.00 (+0.00%)</span>
       </div>
-      <div class="flex justify-between text-[11px] text-slate-500">
-        <span>Garov: <b id="pos-sz">$0.00</b></span>
-        <span>Kirish narxi: <b id="pos-ent">$0.00</b></span>
+      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 border-t border-indigo-100/60 pt-2">
+        <div>Garov: <b id="pos-sz" class="text-slate-800">$0.00</b></div>
+        <div>Kirish: <b id="pos-ent" class="text-slate-800">$0.00</b></div>
+        <div>TP: <b id="pos-tp-txt" class="text-emerald-600">—</b></div>
+        <div>SL: <b id="pos-sl-txt" class="text-rose-600">—</b></div>
       </div>
-      <button onclick="closeCurrentPosition()" class="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">
+      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">
         Bitimni yopish ✕
       </button>
     </div>
@@ -157,6 +159,28 @@
         </div>
       </div>
 
+      <!-- Take-Profit & Stop-Loss Fields -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <div>
+          <label class="text-[11px] font-bold text-slate-500 block mb-1">Take Profit ($):</label>
+          <input 
+            id="trade-tp" 
+            type="number" 
+            placeholder="Ixtiyoriy" 
+            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-emerald-500 placeholder:text-slate-400"
+          />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-slate-500 block mb-1">Stop Loss ($):</label>
+          <input 
+            id="trade-sl" 
+            type="number" 
+            placeholder="Ixtiyoriy" 
+            class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-rose-500 placeholder:text-slate-400"
+          />
+        </div>
+      </div>
+
       <!-- Execute Buttons -->
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm flex items-center justify-center gap-1">
@@ -193,7 +217,6 @@
     function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
     function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
 
-    // Telegram User ID yoki brauzer uchun avto-ID
     function getTelegramUID() {
       if (tg?.initDataUnsafe?.user?.id) {
         return String(tg.initDataUnsafe.user.id);
@@ -206,7 +229,6 @@
       return id;
     }
 
-    // Foydalanuvchi Telegram Username
     function getTelegramUsername() {
       if (tg?.initDataUnsafe?.user?.username) {
         return '@' + tg.initDataUnsafe.user.username;
@@ -246,7 +268,6 @@
       const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       document.getElementById('balance-val').innerText = bStr;
       
-      // Faucet mantiqi: Ochiq bitim bo'lmasa va balans < 10k bo'lsa tugma chiqadi
       const topUpBtn = document.getElementById('btn-topup');
       if (topUpBtn) {
         if (!position && balance < 10000) {
@@ -262,12 +283,13 @@
         document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
         document.getElementById('pos-sz').innerText = `$${position.size.toFixed(2)}`;
         document.getElementById('pos-ent').innerText = `$${position.entryPrice.toFixed(2)}`;
+        document.getElementById('pos-tp-txt').innerText = position.tp ? `$${position.tp.toFixed(2)}` : 'Yo‘q';
+        document.getElementById('pos-sl-txt').innerText = position.sl ? `$${position.sl.toFixed(2)}` : 'Yo‘q';
       } else {
         posCard.classList.add('hidden');
       }
     }
 
-    // 10K BALANS TO'LDIRISH (FAUCET)
     async function claimFaucet() {
       if (position) {
         alert("Ochiq bitimingiz mavjud! Avval uni yoping.");
@@ -337,6 +359,20 @@
       if (amount < 10) return alert("Minimal savdo miqdori $10!");
       if (amount > balance) return alert("Balansda mablag' yetarli emas!");
 
+      const tpRaw = parseFloat(document.getElementById('trade-tp').value);
+      const slRaw = parseFloat(document.getElementById('trade-sl').value);
+      const curPrice = prices[currentAsset];
+
+      // TP va SL kiritilgan bo'lsa mantiqini tekshirish
+      if (!isNaN(tpRaw)) {
+        if (type === 'LONG' && tpRaw <= curPrice) return alert("LONG uchun TP joriy narxdan baland bo'lishi kerak!");
+        if (type === 'SHORT' && tpRaw >= curPrice) return alert("SHORT uchun TP joriy narxdan past bo'lishi kerak!");
+      }
+      if (!isNaN(slRaw)) {
+        if (type === 'LONG' && slRaw >= curPrice) return alert("LONG uchun SL joriy narxdan past bo'lishi kerak!");
+        if (type === 'SHORT' && slRaw <= curPrice) return alert("SHORT uchun SL joriy narxdan baland bo'lishi kerak!");
+      }
+
       if (position) closeCurrentPosition();
 
       balance -= amount;
@@ -344,9 +380,15 @@
         type: type,
         size: amount,
         leverage: currentLeverage,
-        entryPrice: prices[currentAsset],
-        asset: currentAsset
+        entryPrice: curPrice,
+        asset: currentAsset,
+        tp: !isNaN(tpRaw) ? tpRaw : null,
+        sl: !isNaN(slRaw) ? slRaw : null
       };
+
+      // Kiritish maydonlarini tozalash
+      document.getElementById('trade-tp').value = '';
+      document.getElementById('trade-sl').value = '';
 
       safeSet(`obs_bal_${userId}`, balance);
       safeSet(`obs_pos_${userId}`, JSON.stringify(position));
@@ -355,7 +397,7 @@
       syncWithSheets();
     }
 
-    function closeCurrentPosition() {
+    function closeCurrentPosition(reason = null) {
       if (!position) return;
       const live = prices[position.asset || currentAsset];
       let diff = (live - position.entryPrice) / position.entryPrice;
@@ -370,6 +412,10 @@
 
       updateUI();
       syncWithSheets();
+
+      if (reason) {
+        alert(reason);
+      }
     }
 
     async function syncWithSheets() {
@@ -429,6 +475,27 @@
         const pnlEl = document.getElementById('pos-pnl');
         pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
         pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+
+        // AVTOMATIK TAKE-PROFIT VA STOP-LOSS NAZORATI
+        if (position.type === 'LONG') {
+          if (position.tp && liveP >= position.tp) {
+            closeCurrentPosition(`🎯 Take-Profit ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
+            return;
+          }
+          if (position.sl && liveP <= position.sl) {
+            closeCurrentPosition(`🛑 Stop-Loss ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
+            return;
+          }
+        } else if (position.type === 'SHORT') {
+          if (position.tp && liveP <= position.tp) {
+            closeCurrentPosition(`🎯 Take-Profit ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
+            return;
+          }
+          if (position.sl && liveP >= position.sl) {
+            closeCurrentPosition(`🛑 Stop-Loss ishladi! Narx: $${liveP.toLocaleString('en-US')}`);
+            return;
+          }
+        }
       }
     }
 
