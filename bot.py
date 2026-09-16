@@ -317,6 +317,45 @@ def get_leaderboard():
         print(f"Leaderboard olishda xatolik: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# --- OBSIDIAN LOUNGE: PIKSEL AI PERSONAJLAR BILAN SUHBAT ---
+@app.route('/api/npc_chat', methods=['POST'])
+def npc_chat():
+    try:
+        data = request.get_json(force=True) or {}
+        npc_id = data.get("npc_id", "jasur")
+        user_msg = data.get("message", "").strip()
+
+        if not user_msg:
+            return jsonify({"status": "error", "reply": "Biror narsa gapir, jigar."}), 400
+
+        prompts = {
+            "jasur": (
+                "Sen — Jasur, kechasi bilan grafik qarab chiqqan, charchagan, lekin tajribali Toshkentlik treydersan. "
+                "Qahva ichib o'tiribsan. Gaplaring qisqa (1-2 jumla), samimiy, Toshkent ko'cha shevasida, biroz charchoq va kinoya aralash bo'lsin. "
+                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+            ),
+            "alex": (
+                "Sen — Alex, sovuqqon algo-treyder va kordersan. Hissiyotlardan xolis, faqat ICT, FVG, BSL/SSL likvidlik "
+                "va algoritmik qoidalar bilan gaplashasan. Qisqa (1-2 jumla), aniq va professional javob ber. "
+                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+            ),
+            "whale": (
+                "Sen — Mister Whale, million dollarlik hamyon egasi, katta kit. O'ta xotirjam, mulohazali va boy odamsan. "
+                "Mayda 15 minutlik tebranishlarga kulib qaraysan, sabr va katta psixologiyani o'rgatasan. Qisqa (1-2 jumla) javob ber. "
+                f"Treyder senga aytdi: '{user_msg}'. Unga javob ber:"
+            )
+        }
+
+        chosen_prompt = prompts.get(npc_id, prompts["jasur"])
+        ai_reply = get_ai_analysis(chosen_prompt)
+
+        if not ai_reply:
+            ai_reply = "Hozircha tarmoq band, birozdan keyin kel..."
+
+        return jsonify({"status": "success", "reply": ai_reply})
+    except Exception as e:
+        return jsonify({"status": "error", "reply": f"Xatolik: {e}"}), 500
+
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
@@ -338,7 +377,6 @@ def scan_and_post_ai_signals():
                 candles_raw = res.json()
                 current_price = float(candles_raw[-1][4])
 
-                # Shamchalarning to'liq OHLC tuzilmasini yig'ish (Soyalarni hisoblash uchun)
                 candles_ohlc = []
                 for c in candles_raw[-15:]:
                     t_str = datetime.datetime.fromtimestamp(c[0]/1000).strftime("%H:%M")
@@ -434,7 +472,6 @@ def handle_start(message):
         parse_mode="Markdown"
     )
 
-# ICT formatidagi yangilangan test signali buyrug'i
 @bot.message_handler(commands=['test_signal'])
 def handle_test_signal(message):
     uzb_time = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
