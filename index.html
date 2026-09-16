@@ -474,34 +474,122 @@
       loungeActive = false;
     }
 
-    // KATTALASHTIRILGAN PIKSEL PERSONAJ DVIJOGI (~1.7x MASSHTAB)
+    // JASURNI ALOHIDA PIXEL-ART CHIZISH (HOODIE, QIZARGON KO'ZLAR, KOFE HO'PLASH)
+    function drawJasur(x, y, isMoving, hasCoffee) {
+      const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
+      const breathe = Math.sin(tick * 0.08) * 1.5;
+      const isDrinking = hasCoffee && (Math.sin(tick * 0.04) > 0.4);
+
+      // Soya
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 17, 16, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 1. Krossovkalar (Oq taglik, ko'k yuza)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x - 9, y + 13 + legCycle, 8, 4);
+      ctx.fillRect(x + 2, y + 13 - legCycle, 8, 4);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(x - 9, y + 10 + legCycle, 7, 3);
+      ctx.fillRect(x + 3, y + 10 - legCycle, 7, 3);
+
+      // 2. Ko'k jinsi shim
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(x - 8, y + 2 + legCycle, 6, 9);
+      ctx.fillRect(x + 2, y + 2 - legCycle, 6, 9);
+
+      // 3. Hoodie (Jigarrang kapyushonli sviter)
+      ctx.fillStyle = '#a16207';
+      ctx.fillRect(x - 12, y - 16 + breathe, 24, 19);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(x - 2, y - 16 + breathe, 4, 8);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - 8, y - 4 + breathe, 16, 5);
+
+      // 4. Qo'llar va Krujka
+      ctx.fillStyle = '#a16207';
+      ctx.fillRect(x - 15, y - 13 + breathe, 4, 11);
+
+      if (hasCoffee) {
+        if (isDrinking) {
+          ctx.fillStyle = '#fed7aa';
+          ctx.fillRect(x + 4, y - 20 + breathe, 5, 5);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x - 2, y - 24 + breathe, 8, 8);
+          if (Math.random() < 0.3) {
+            smokeParticles.push({ x: x + 2, y: y - 25 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.6, life: 25, alpha: 0.8 });
+          }
+        } else {
+          ctx.fillStyle = '#fed7aa';
+          ctx.fillRect(x + 11, y - 10 + breathe, 5, 5);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 13, y - 15 + breathe, 8, 8);
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(x + 12, y - 13 + breathe, 2, 4);
+          if (Math.random() < 0.25) {
+            smokeParticles.push({ x: x + 17, y: y - 17 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.7, life: 30, alpha: 0.8 });
+          }
+        }
+      } else {
+        ctx.fillRect(x + 11, y - 13 + breathe, 4, 11);
+      }
+
+      // 5. Yuz va Bosh
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(x - 9, y - 30 + breathe, 18, 15);
+
+      // 6. Charchagan, uyqusiz QIZARGON Ko'zlar
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(x - 6, y - 24 + breathe, 5, 3);
+      ctx.fillRect(x + 2, y - 24 + breathe, 5, 3);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(x - 4, y - 24 + breathe, 2, 2);
+      ctx.fillRect(x + 4, y - 24 + breathe, 2, 2);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(x - 6, y - 26 + breathe, 5, 2);
+      ctx.fillRect(x + 2, y - 26 + breathe, 5, 2);
+
+      // 7. To'zg'igan Sochlar
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(x - 12, y - 37 + breathe, 24, 9);
+      ctx.fillRect(x - 11, y - 29 + breathe, 4, 7);
+      ctx.fillRect(x + 8, y - 29 + breathe, 4, 6);
+      ctx.fillRect(x - 5, y - 29 + breathe, 3, 3);
+
+      // Ism yozuvi
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur = 4;
+      ctx.fillText('☕️ Jasur', x - (ctx.measureText('☕️ Jasur').width / 2), y - 44);
+      ctx.shadowBlur = 0;
+    }
+
+    // ODDIY PIKSEL PERSONAJ (ALEX, WHALE VA O'YINCHI UCHUN)
     function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving, hasCoffee = false) {
       const legCycle = isMoving ? Math.sin(tick * 0.4) * 4 : 0;
       const breathe = Math.sin(tick * 0.08) * 1.5;
 
-      // Katta soya
       ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
       ctx.beginPath();
       ctx.ellipse(x, y + 16, 15, 6, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Kengroq oyoqlar
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(x - 8, y + 3 + legCycle, 6, 13);
       ctx.fillRect(x + 2, y + 3 - legCycle, 6, 13);
 
-      // Tana va kiyim
       ctx.fillStyle = bodyColor;
       ctx.fillRect(x - 11, y - 16 + breathe, 22, 20);
 
-      // Qo'llar va Kofe
       ctx.fillStyle = '#fed7aa';
       if (hasCoffee) {
         ctx.fillRect(x + 11, y - 11 + breathe, 6, 6);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 13, y - 16 + breathe, 7, 8); // Krujka
+        ctx.fillRect(x + 13, y - 16 + breathe, 7, 8);
         ctx.fillStyle = '#64748b';
-        ctx.fillRect(x + 12, y - 14 + breathe, 2, 4); // Krujka ushlagichi
+        ctx.fillRect(x + 12, y - 14 + breathe, 2, 4);
         if (Math.random() < 0.3) {
           smokeParticles.push({ x: x + 16, y: y - 18 + breathe, vx: (Math.random() - 0.5) * 0.4, vy: -0.7, life: 35, alpha: 0.8 });
         }
@@ -510,21 +598,17 @@
         ctx.fillRect(x + 11, y - 12 + breathe, 4, 12);
       }
 
-      // Bosh va yuz
       ctx.fillStyle = '#fed7aa';
       ctx.fillRect(x - 8, y - 29 + breathe, 16, 14);
 
-      // Ko'zlar
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(x - 4, y - 24 + breathe, 3, 3);
       ctx.fillRect(x + 3, y - 24 + breathe, 3, 3);
 
-      // Sochlar
       ctx.fillStyle = hairColor;
       ctx.fillRect(x - 10, y - 35 + breathe, 20, 8);
       ctx.fillRect(x - 10, y - 31 + breathe, 4, 7);
 
-      // Ism doskachasi (Aniq va yorqin)
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -557,6 +641,19 @@
       ctx.font = 'bold 9px monospace';
       ctx.fillText('WC', 18, 16);
 
+      // Motivatsion ramka (Jasurning orqasida)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(55, 30, 42, 50);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(55, 30, 42, 50);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 5px monospace';
+      ctx.fillText('GOOD', 63, 44);
+      ctx.fillText('TRADERS', 59, 52);
+      ctx.fillText('BETTER', 61, 60);
+      ctx.fillText('PEOPLE', 60, 68);
+
       // Deraza va kiber shahar
       ctx.fillStyle = '#ea580c';
       ctx.fillRect(230, 20, 140, 55);
@@ -577,13 +674,38 @@
       ctx.fillStyle = '#451a03';
       ctx.fillRect(250, 270, 100, 24);
 
-      // Kofe Stoli (Jasur)
-      ctx.fillStyle = '#3f2e21';
-      ctx.fillRect(60, 125, 95, 38);
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(72, 100, 28, 26);
-      if (Math.random() < 0.4) {
-        smokeParticles.push({ x: 86, y: 98, vx: (Math.random() - 0.5) * 0.4, vy: -0.7, life: 35, alpha: 0.8 });
+      // Jasurning batafsil Kofe Stoli va Bar tumbochkasi
+      ctx.fillStyle = '#271c14';
+      ctx.fillRect(50, 120, 105, 42);
+      ctx.fillStyle = '#452b1b';
+      ctx.fillRect(48, 118, 109, 5);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(75, 134, 12, 2);
+      ctx.fillRect(115, 134, 12, 2);
+
+      // Espresso mashinasi (Detalli)
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(60, 92, 34, 26);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(64, 94, 26, 6);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(65, 103, 4, 4);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(74, 104, 8, 3);
+
+      // Stoldagi finjonlar
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(102, 112, 6, 6); ctx.fillRect(100, 114, 2, 3);
+      ctx.fillRect(114, 112, 6, 6); ctx.fillRect(112, 114, 2, 3);
+
+      // Metall axlat qutisi
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(32, 138, 14, 22);
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(30, 136, 18, 3);
+
+      if (Math.random() < 0.35) {
+        smokeParticles.push({ x: 78, y: 92, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 35, alpha: 0.8 });
       }
 
       // Alexning Terminallari
@@ -697,6 +819,8 @@
       renderables.forEach(obj => {
         if (obj.isPlayer) {
           drawPixelHuman(obj.x, obj.y, obj.color, '#ffffff', obj.name, obj.isMoving);
+        } else if (obj.id === 'jasur') {
+          drawJasur(obj.x, obj.y, obj.isMoving, obj.coffee);
         } else {
           drawPixelHuman(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.isMoving, obj.coffee);
         }
