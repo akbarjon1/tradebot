@@ -1,509 +1,86 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title | default('Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.') }}</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><path d='M16 6L7 24H19L16 6Z' fill='white'/><path d='M16 11L25 24H18L16 11Z' fill='white' fill-opacity='0.75'/></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
-          },
-          colors: {
-            brand: {
-              bg: '#f8fafc',
-              border: '#e2e8f0',
-              accent: '#4f46e5'
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body {
-      background-color: #f8fafc;
-      color: #0f172a;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Obsidian Lab — Build. Trade. Compete.</title>
+<meta name="theme-color" content="#f7f7f5">
+<style>
+:root{--bg:#f7f7f5;--paper:#fff;--ink:#111;--muted:#777;--line:#e7e7e2;--soft:#f0f0eb;--green:#177245;--red:#b33a3a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header{height:72px;border-bottom:1px solid var(--line);background:rgba(247,247,245,.94);backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
+.nav{max-width:1180px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em}.mark{width:28px;height:28px;border:1.5px solid #111;display:grid;place-items:center;font-size:12px}.brand span{font-size:15px}
+.links{display:flex;gap:7px}.links button{border:0;background:transparent;padding:9px 12px;color:#666;cursor:pointer;font-size:13px}.links button:hover,.links button.active{color:#111;background:#ecece7;border-radius:8px}
+.menu{display:none;border:1px solid var(--line);background:white;border-radius:8px;padding:8px 10px}
+main{max-width:1180px;margin:auto;padding:0 22px 70px}.page{display:none}.page.active{display:block}
+.hero{min-height:590px;display:grid;align-content:center;grid-template-columns:1.15fr .85fr;gap:70px;padding:80px 0}.eyebrow{font-size:11px;letter-spacing:.16em;color:#777;margin-bottom:22px}.hero h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.075em;margin:0 0 28px;max-width:780px}.hero p{font-size:17px;line-height:1.7;color:#6d6d68;max-width:570px;margin:0 0 34px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #111;background:#111;color:white;padding:12px 17px;border-radius:8px;cursor:pointer;font-size:13px}.btn.secondary{background:transparent;color:#111;border-color:var(--line)}.btn:hover{transform:translateY(-1px)}
+.statusbox{align-self:end;border:1px solid var(--line);background:white;padding:22px;border-radius:12px}.statusline{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:12px}.statusline:last-child{border:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2b8a57;margin-right:8px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{border:1px solid var(--line);background:white;border-radius:12px;padding:20px;min-height:150px;cursor:pointer;transition:.18s}.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.05)}.card small{color:#999}.card h3{margin:28px 0 8px;font-size:15px}.card p{font-size:12px;color:#777;line-height:1.5;margin:0}
+.sectionHead{padding:58px 0 24px;display:flex;align-items:end;justify-content:space-between;gap:20px}.sectionHead h2{font-size:34px;letter-spacing:-.05em;margin:0}.sectionHead p{color:#777;font-size:13px}
+.panel{border:1px solid var(--line);background:white;border-radius:12px;overflow:hidden}.toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}.input,.select{border:1px solid var(--line);background:#fafaf8;border-radius:7px;padding:9px 11px;font-size:12px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:15px 16px;border-bottom:1px solid var(--line);font-size:12px}.table th{color:#999;font-weight:500}.table tr:last-child td{border:0}.up{color:var(--green)}.down{color:var(--red)}
+.tradegrid{display:grid;grid-template-columns:1fr 330px;gap:14px}.chart{height:480px;display:grid;place-items:center;background:repeating-linear-gradient(0deg,#fff,#fff 39px,#f1f1ed 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#f1f1ed 80px);position:relative}.chart:after{content:"BTCUSDT  •  TradingView";position:absolute;left:18px;top:16px;color:#999;font:11px monospace}.fakechart{width:82%;height:50%;border-bottom:2px solid #222;border-left:1px solid #ddd;clip-path:polygon(0 80%,8% 70%,16% 74%,24% 55%,31% 62%,39% 42%,47% 50%,55% 32%,64% 37%,72% 20%,80% 28%,88% 10%,100% 16%,100% 100%,0 100%);background:#111}
+.order{padding:20px}.order h3{margin:0 0 18px;font-size:15px}.field{margin:12px 0}.field label{display:block;color:#888;font-size:11px;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:7px;background:#fafaf8}.full{width:100%;margin-top:10px}
+.office{display:grid;grid-template-columns:220px 1fr;min-height:580px}.side{border-right:1px solid var(--line);padding:16px}.side button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:11px;border-radius:7px;color:#777;font-size:12px;cursor:pointer}.side button.active,.side button:hover{background:#f0f0eb;color:#111}.officeview{padding:30px}.room{height:430px;border:1px solid var(--line);border-radius:10px;background:#f5f5f1;position:relative;overflow:hidden}.desk{position:absolute;width:190px;height:75px;border:1px solid #bbb;background:#fff;left:30%;top:45%;box-shadow:0 10px 25px #ddd}.screen{position:absolute;width:70px;height:45px;background:#202020;left:60px;top:-50px;border-radius:3px}.person{position:absolute;width:24px;height:34px;border-radius:12px 12px 6px 6px;background:#111;left:44%;top:55%;transition:.4s}.person:before{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#aaa;left:5px;top:-12px}.person.a{left:23%;top:31%}.person.b{left:70%;top:28%}.tag{position:absolute;font:10px monospace;color:#555}
+footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px monospace;display:flex;justify-content:space-between}
+.toast{position:fixed;right:20px;bottom:20px;background:#111;color:#fff;padding:12px 15px;border-radius:8px;font-size:12px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
+@media(max-width:800px){.links{display:none}.menu{display:block}.hero{grid-template-columns:1fr;padding:60px 0;min-height:auto;gap:45px}.cards{grid-template-columns:1fr 1fr}.tradegrid{grid-template-columns:1fr}.office{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto}.side button{min-width:max-content}.chart{height:360px}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}.hero h1{font-size:48px}.sectionHead{display:block}.sectionHead h2{font-size:28px}.table{min-width:650px}.panel{overflow-x:auto}footer{display:block;line-height:2}}
+</style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+<body>
+<header><div class="nav">
+<div class="brand"><div class="mark">O</div><span>OBSIDIAN LAB</span></div>
+<nav class="links" id="nav">
+<button data-page="home">Home</button><button data-page="markets">Markets</button><button data-page="trade">Trade</button><button data-page="leaderboard">Leaderboard</button><button data-page="office">Web Office</button>
+</nav><button class="menu" id="menu">☰</button>
+</div></header>
 
-  <!-- NAVIGATION BAR -->
-  <header class="border-b border-brand-border bg-white/80 backdrop-blur-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center">
-          <svg class="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
-            <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
-          </svg>
-        </div>
-        <span class="font-extrabold text-slate-900 text-lg tracking-tight">Obsidian Lab</span>
-      </div>
+<main>
+<section class="page active" id="home">
+<div class="hero"><div>
+<div class="eyebrow mono">OBSIDIAN LAB / SYSTEM ONLINE</div>
+<h1>Build.<br>Trade.<br>Compete.</h1>
+<p>A minimal paper-trading environment for people who want to study markets, execute ideas and compete without risking real capital.</p>
+<div class="actions"><button class="btn" onclick="go('trade')">Open terminal</button><button class="btn secondary" onclick="go('markets')">Explore markets</button></div>
+</div>
+<div class="statusbox mono"><div class="statusline"><span>MARKET DATA</span><span><i class="dot"></i>ONLINE</span></div><div class="statusline"><span>TRADING MODE</span><span>PAPER</span></div><div class="statusline"><span>NETWORK</span><span>STABLE</span></div><div class="statusline"><span>USERS</span><span id="users">—</span></div></div></div>
+<div class="cards">
+<div class="card" onclick="go('markets')"><small>01 / MARKETS</small><h3>Market overview →</h3><p>Watch BTC, ETH and the assets available in the terminal.</p></div>
+<div class="card" onclick="go('trade')"><small>02 / TRADE</small><h3>Trading terminal →</h3><p>Paper trade with persistent balance and positions.</p></div>
+<div class="card" onclick="go('leaderboard')"><small>03 / RANKING</small><h3>Leaderboard →</h3><p>Compare performance with the Obsidian community.</p></div>
+<div class="card" onclick="go('office')"><small>04 / OFFICE</small><h3>Web Office →</h3><p>Enter the virtual HQ and interact with the lab.</p></div>
+</div>
+</section>
 
-      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
-        <a href="#terminal" class="text-slate-900 font-bold border-b-2 border-indigo-600 pb-1">Trade</a>
-        <a href="#terminal" class="hover:text-slate-900 transition">Markets</a>
-        <a href="#leaderboard" class="hover:text-slate-900 transition">Leaderboard</a>
-      </nav>
+<section class="page" id="markets"><div class="sectionHead"><div><div class="eyebrow mono">01 / MARKETS</div><h2>Markets</h2></div><p>Live-style paper market overview</p></div>
+<div class="panel"><div class="toolbar"><input class="input" id="search" placeholder="Search asset..." oninput="filterMarkets()"><select class="select"><option>All assets</option><option>Crypto</option></select></div>
+<table class="table"><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>STATUS</th><th></th></tr></thead><tbody id="marketRows"></tbody></table></div></section>
 
-      <div class="flex items-center gap-4">
-        <button onclick="editMyUsername()" class="hidden sm:flex items-center gap-2 text-xs font-mono font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span id="nav-username">{{ username | default('@trader') }}</span> ✏️
-        </button>
-        <a href="#terminal" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm active:scale-95">
-          Get Started
-        </a>
-      </div>
-    </div>
-  </header>
+<section class="page" id="trade"><div class="sectionHead"><div><div class="eyebrow mono">02 / TRADE</div><h2>Trading terminal</h2></div><p>Paper execution · no real funds</p></div>
+<div class="tradegrid"><div class="panel chart"><div class="fakechart"></div></div><div class="panel order"><h3>Order</h3><div class="field"><label>ASSET</label><select id="asset"><option>BTCUSDT</option><option>ETHUSDT</option></select></div><div class="field"><label>SIDE</label><select id="side"><option>LONG / BUY</option><option>SHORT / SELL</option></select></div><div class="field"><label>SIZE (USDT)</label><input id="size" type="number" value="100"></div><div class="field"><label>LEVERAGE</label><select id="lev"><option>1x</option><option selected>10x</option><option>20x</option></select></div><button class="btn full" onclick="executeTrade()">Execute paper trade</button><button class="btn secondary full" onclick="show('Positions are stored locally in this browser.')">View positions</button></div></div></section>
 
-  <!-- HERO SECTION -->
-  <section class="pt-16 pb-12 px-4 sm:px-8 max-w-5xl mx-auto text-center relative">
-    <p class="text-[11px] font-extrabold tracking-[0.2em] text-slate-400 uppercase mb-3">Crypto Trading Platform</p>
-    <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-5">
-      Trade Smarter.<br>
-      <span class="text-slate-900">Real Markets.</span> <span class="text-slate-400">Zero Risk.</span>
-    </h1>
-    <p class="text-sm sm:text-base text-slate-500 max-w-xl mx-auto mb-8 font-normal leading-relaxed">
-      A next-generation crypto trading platform. Real market data, advanced tools, and a risk-free environment to sharpen your edge.
-    </p>
+<section class="page" id="leaderboard"><div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p>Paper performance</p></div>
+<div class="panel"><table class="table"><thead><tr><th>#</th><th>TRADER</th><th>BALANCE</th><th>P&L</th></tr></thead><tbody id="leaders"><tr><td>01</td><td>@trader</td><td>$10,000.00</td><td class="up">+0.00%</td></tr><tr><td>02</td><td>@obsidian</td><td>$9,840.20</td><td class="down">−1.60%</td></tr><tr><td>03</td><td>@alpha</td><td>$9,620.50</td><td class="down">−3.80%</td></tr></tbody></table></div></section>
 
-    <div class="flex flex-wrap items-center justify-center gap-3 mb-12">
-      <a href="#terminal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 active:scale-95 transition flex items-center gap-2">
-        Launch App <span>→</span>
-      </a>
-      <a href="{{ bot_url | default('https://t.me/') }}" target="_blank" class="bg-white hover:bg-slate-50 text-slate-800 border border-brand-border font-bold text-sm px-6 py-3.5 rounded-2xl shadow-sm active:scale-95 transition flex items-center gap-2">
-        <svg class="w-4 h-4 fill-current text-sky-500" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-        Telegram Bot
-      </a>
-    </div>
-
-    <div class="grid grid-cols-3 max-w-xs mx-auto text-center border-t border-brand-border pt-6 text-xs font-mono">
-      <div>
-        <b class="text-slate-900 text-sm block font-extrabold">100K+</b>
-        <span class="text-slate-400 text-[10px]">Traders</span>
-      </div>
-      <div>
-        <b class="text-slate-900 text-sm block font-extrabold">$2.4B+</b>
-        <span class="text-slate-400 text-[10px]">Volume</span>
-      </div>
-      <div>
-        <b class="text-slate-900 text-sm block font-extrabold">150+</b>
-        <span class="text-slate-400 text-[10px]">Countries</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- FLOATING TERMINAL SECTION -->
-  <section id="terminal" class="max-w-7xl mx-auto px-4 sm:px-8 pb-16 w-full">
-    <div class="bg-white border border-brand-border rounded-3xl p-4 sm:p-6 shadow-2xl shadow-slate-200/80">
-      
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 mb-5 border-b border-brand-border">
-        <div class="flex items-center gap-3">
-          <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">
-            BTC / USDT
-          </button>
-          <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">
-            ETH / USDT
-          </button>
-          <span class="text-xs font-mono text-emerald-600 font-bold ml-2 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="live-price">$78,100.00</span>
-          </span>
-        </div>
-
-        <!-- DEPOZIT VA FAUCET TUGMASI -->
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-slate-400 font-bold">Virtual Depozit:</span>
-          <span id="balance-val" class="font-mono text-xs font-extrabold text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl">$10,000.00</span>
-          <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold font-mono px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1 shadow-sm">
-            <span>+</span> 10k olish ⚡️
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- Candlestick Chart -->
-        <div class="lg:col-span-6 h-[460px] rounded-2xl overflow-hidden border border-brand-border bg-slate-50">
-          <iframe 
-            id="tradingview-frame"
-            class="w-full h-full border-0"
-            src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
-          ></iframe>
-        </div>
-
-        <!-- Order Box -->
-        <div class="lg:col-span-3 bg-slate-50 border border-brand-border rounded-2xl p-5 flex flex-col justify-between h-[460px]">
-          <div>
-            <div class="grid grid-cols-2 gap-1 bg-slate-200/70 p-1 rounded-xl mb-4 font-bold text-xs text-center">
-              <button class="py-1.5 rounded-lg bg-white shadow-sm text-slate-900">Market</button>
-              <button class="py-1.5 rounded-lg text-slate-500 hover:text-slate-900">Limit</button>
-            </div>
-
-            <div class="mb-4">
-              <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
-              <div class="relative">
-                <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
-                <input 
-                  id="trade-amount" 
-                  type="number" 
-                  value="1000" 
-                  class="w-full bg-white border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"
-                />
-              </div>
-              <div class="grid grid-cols-4 gap-1 mt-2 text-[10px] font-mono">
-                <button onclick="setPercent(0.1)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">10%</button>
-                <button onclick="setPercent(0.25)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">25%</button>
-                <button onclick="setPercent(0.5)" class="py-1 bg-white border border-brand-border rounded-lg hover:bg-slate-100">50%</button>
-                <button onclick="setPercent(1.0)" class="py-1 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg">MAX</button>
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
-                <span>Leverage:</span>
-                <span id="lev-val" class="text-indigo-600 font-mono">10x</span>
-              </div>
-              <div class="grid grid-cols-4 gap-1 text-[11px] font-mono">
-                <button onclick="setLev(1)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="1">1x</button>
-                <button onclick="setLev(5)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="5">5x</button>
-                <button onclick="setLev(10)" class="lev-btn py-1 rounded bg-slate-900 font-bold text-white" data-l="10">10x</button>
-                <button onclick="setLev(20)" class="lev-btn py-1 rounded bg-white border border-brand-border text-slate-600" data-l="20">20x</button>
-              </div>
-            </div>
-
-            <!-- Active Position View (Ctrl+F5 bosilganda ham yo'qolmaydi) -->
-            <div id="position-info" class="hidden bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 text-xs font-mono mb-2">
-              <div class="flex justify-between font-bold">
-                <span id="pos-dir" class="text-emerald-600">LONG</span>
-                <span id="pos-pnl" class="text-emerald-600">$0.00</span>
-              </div>
-              <div class="flex justify-between text-[11px] text-slate-500 mt-1">
-                <span>Hajm: <b id="pos-sz">$0</b></span>
-                <span>Kirish: <b id="pos-ent">0</b></span>
-              </div>
-              <button onclick="closeCurrentPosition()" class="mt-2 w-full py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg text-[11px] transition active:scale-95 shadow-sm">
-                Bitimni yopish ✕
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 pt-2">
-            <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">
-              Long 🟢
-            </button>
-            <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">
-              Short 🔴
-            </button>
-          </div>
-        </div>
-
-        <!-- Leaderboard -->
-        <div id="leaderboard" class="lg:col-span-3 bg-slate-50 border border-brand-border rounded-2xl p-5 flex flex-col h-[460px]">
-          <div class="flex justify-between items-center pb-3 border-b border-brand-border mb-3">
-            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders</h3>
-            <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
-          </div>
-          <div id="top-traders-list" class="flex-1 overflow-y-auto custom-scroll space-y-2 text-xs">
-            <p class="text-slate-400 text-center py-10 font-mono">Yuklanmoqda...</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURE STRIP -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-8 py-8 border-t border-brand-border">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
-      <div>
-        <b class="text-slate-900 block font-bold mb-1">📊 Real Market Data</b>
-        <p class="text-slate-500 text-[11px]">Binance API orqali jonli narxlar va aniq kotirovkalar oqimi.</p>
-      </div>
-      <div>
-        <b class="text-slate-900 block font-bold mb-1">🛡️ Zero-Risk Trading</b>
-        <p class="text-slate-500 text-[11px]">Haqiqiy pullarni xavf ostiga qo‘ymay, virtual depozitda mahorat oshiring.</p>
-      </div>
-      <div>
-        <b class="text-slate-900 block font-bold mb-1">⚡ Advanced Tools</b>
-        <p class="text-slate-500 text-[11px]">Kredit yelkasi (leverage) va birja darajasidagi tahliliy vositalar.</p>
-      </div>
-      <div>
-        <b class="text-slate-900 block font-bold mb-1">👥 Global Community</b>
-        <p class="text-slate-500 text-[11px]">Google Sheets bilan avtomatik sinxronlanadigan umumiy reyting[cite: 1].</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="border-t border-brand-border bg-white py-6 text-center text-xs text-slate-400 font-mono">
-    © 2026 Obsidian Lab. All rights reserved. Powered by Swiss Minimalist UI.
-  </footer>
-
-  <!-- SCRIPT LOGIC (Xotira va yangilanishlar to'liq himoyalangan) -->
-  <script>
-    const API_BASE = "{{ api_base | default('https://tradebot-xelo.onrender.com') }}";
-
-    function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
-    function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
-
-    // 1. DOIMIY USER ID (Cookie va LocalStorage orqali yangilanib ketishdan himoyalandi)
-    function getUID() {
-      let id = safeGet('obs_web_uid');
-      if (!id) {
-        // Cookie'dan ham qidirib ko'ramiz
-        const match = document.cookie.match(new RegExp('(^| )obs_web_uid=([^;]+)'));
-        if (match) {
-          id = match[2];
-        } else {
-          id = 'web_' + Math.floor(Math.random() * 899999 + 100000);
-          document.cookie = `obs_web_uid=${id}; path=/; max-age=31536000`;
-        }
-        safeSet('obs_web_uid', id);
-      }
-      return id;
-    }
-
-    let userId = getUID();
-    let myUsername = safeGet('obs_confirmed_username') || "{{ username | default('@trader') }}";
-    let balance = 10000.0;
-    let currentAsset = "BTCUSDT";
-    let currentLeverage = 10;
-    const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
-    let position = null;
-
-    function init() {
-      // Balansni xotiradan yuklash
-      const savedBal = safeGet(`obs_bal_${userId}`);
-      if (savedBal !== null && !isNaN(parseFloat(savedBal))) {
-        balance = parseFloat(savedBal);
-      }
-
-      // 2. OCHIQ BITIMNI XOTIRADAN QAYTA TIKLASH (Ctrl+F5 bosilganda ham yo'qolmaydi)
-      const savedPos = safeGet(`obs_pos_${userId}`);
-      if (savedPos) {
-        try {
-          position = JSON.parse(savedPos);
-        } catch(e) {
-          position = null;
-        }
-      }
-
-      document.getElementById('nav-username').innerText = myUsername;
-      updateUI();
-      fetchLeaderboard();
-      setPercent(0.1);
-    }
-
-    function updateUI() {
-      const bStr = "$" + balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('balance-val').innerText = bStr;
-      
-      // Ochiq bitim bo'lmasa va balans < 10k bo'lsa Faucet chiqadi
-      const topUpBtn = document.getElementById('btn-topup');
-      if (topUpBtn) {
-        if (!position && balance < 10000) {
-          topUpBtn.classList.remove('hidden');
-        } else {
-          topUpBtn.classList.add('hidden');
-        }
-      }
-
-      const posCard = document.getElementById('position-info');
-      if (position) {
-        posCard.classList.remove('hidden');
-        document.getElementById('pos-dir').innerText = `${position.type} (${position.leverage}x)`;
-        document.getElementById('pos-sz').innerText = `$${position.size.toFixed(2)}`;
-        document.getElementById('pos-ent').innerText = `$${position.entryPrice.toFixed(2)}`;
-      } else {
-        posCard.classList.add('hidden');
-      }
-    }
-
-    // 10K BALANS TO'LDIRISH (FAUCET)
-    async function claimFaucet() {
-      if (position) {
-        alert("Ochiq bitimingiz bor! Oldin bitimni yoping.");
-        return;
-      }
-      if (balance >= 10000) {
-        alert("Balansingiz yetarli!");
-        return;
-      }
-
-      balance = 10000.00;
-      safeSet(`obs_bal_${userId}`, balance);
-      updateUI();
-
-      await syncWithSheets();
-      alert("Hisobingiz $10,000 ga to'ldirildi! 🚀");
-    }
-
-    function editMyUsername() {
-      const val = prompt("Telegram @username yoki ismingizni kiriting:", myUsername);
-      if (val && val.trim().length > 1) {
-        let clean = val.trim();
-        if (!clean.startsWith('@')) clean = '@' + clean;
-        myUsername = clean;
-        safeSet('obs_confirmed_username', myUsername);
-        document.getElementById('nav-username').innerText = myUsername;
-        syncWithSheets();
-      }
-    }
-
-    function setLev(l) {
-      currentLeverage = l;
-      document.getElementById('lev-val').innerText = `${l}x`;
-      document.querySelectorAll('.lev-btn').forEach(b => {
-        if (parseInt(b.getAttribute('data-l')) === l) {
-          b.className = "lev-btn py-1 rounded bg-slate-900 font-bold text-white";
-        } else {
-          b.className = "lev-btn py-1 rounded bg-white border border-brand-border text-slate-600";
-        }
-      });
-    }
-
-    function setPercent(p) {
-      const val = Math.max(10, Math.floor(balance * p));
-      document.getElementById('trade-amount').value = val;
-    }
-
-    function switchAsset(sym) {
-      currentAsset = sym;
-      const btcBtn = document.getElementById('btn-tab-btc');
-      const ethBtn = document.getElementById('btn-tab-eth');
-      const frame = document.getElementById('tradingview-frame');
-
-      if (sym === 'BTCUSDT') {
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-      } else {
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-      }
-    }
-
-    function executeOrder(type) {
-      const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
-      if (amount < 10) return alert("Minimal savdo miqdori $10!");
-      if (amount > balance) return alert("Balansda mablag' yetarli emas!");
-
-      if (position) closeCurrentPosition();
-
-      balance -= amount;
-      position = {
-        type: type,
-        size: amount,
-        leverage: currentLeverage,
-        entryPrice: prices[currentAsset],
-        asset: currentAsset
-      };
-
-      // Xotiraga saqlash
-      safeSet(`obs_bal_${userId}`, balance);
-      safeSet(`obs_pos_${userId}`, JSON.stringify(position));
-
-      updateUI();
-      syncWithSheets();
-    }
-
-    function closeCurrentPosition() {
-      if (!position) return;
-      const live = prices[position.asset || currentAsset];
-      let diff = (live - position.entryPrice) / position.entryPrice;
-      if (position.type === 'SHORT') diff = -diff;
-
-      const pnlUSD = position.size * diff * position.leverage;
-      balance += Math.max(0, position.size + pnlUSD);
-
-      position = null;
-      // Ochiq bitim o'chirildi
-      safeSet(`obs_bal_${userId}`, balance);
-      try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
-
-      updateUI();
-      syncWithSheets();
-    }
-
-    async function syncWithSheets() {
-      try {
-        await fetch(`${API_BASE}/api/update_balance`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            username: myUsername,
-            balance: Number(balance.toFixed(2))
-          })
-        });
-        fetchLeaderboard();
-      } catch (e) {}
-    }
-
-    async function fetchLeaderboard() {
-      const list = document.getElementById('top-traders-list');
-      try {
-        const res = await fetch(`${API_BASE}/api/leaderboard?t=${Date.now()}`);
-        const data = await res.json();
-        if (data.status === 'success' && data.leaders.length > 0) {
-          list.innerHTML = data.leaders.map((u, i) => `
-            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-brand-border">
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
-                <span class="font-semibold text-slate-800">${u.Username}</span>
-              </div>
-              <span class="font-mono font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-            </div>
-          `).join('');
-        } else {
-          list.innerHTML = `<p class="text-slate-400 text-center py-10 font-mono">Reyting bo'sh</p>`;
-        }
-      } catch (e) {
-        list.innerHTML = `<p class="text-rose-500 text-center py-10 font-mono">Yuklab bo'lmadi</p>`;
-      }
-    }
-
-    async function updateTicker() {
-      try {
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentAsset}`);
-        const d = await res.json();
-        if (d.price) prices[currentAsset] = parseFloat(d.price);
-      } catch (e) {
-        prices[currentAsset] += (Math.random() - 0.49) * 10;
-      }
-
-      document.getElementById('live-price').innerText = `$${prices[currentAsset].toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-
-      if (position) {
-        const liveP = prices[position.asset || currentAsset];
-        let diff = (liveP - position.entryPrice) / position.entryPrice;
-        if (position.type === 'SHORT') diff = -diff;
-        const pnl = position.size * diff * position.leverage;
-        const pnlEl = document.getElementById('pos-pnl');
-        pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
-        pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
-      }
-    }
-
-    init();
-    setInterval(updateTicker, 1000);
-  </script>
+<section class="page" id="office"><div class="sectionHead"><div><div class="eyebrow mono">04 / WEB OFFICE</div><h2>Obsidian HQ</h2></div><p>Virtual workspace</p></div>
+<div class="panel office"><aside class="side"><button class="active">HQ Overview</button><button onclick="show('Tasks panel opened')">Tasks</button><button onclick="show('Team panel opened')">Team</button><button onclick="show('Activity panel opened')">Activity</button></aside><div class="officeview"><div class="room"><span class="tag" style="left:18px;top:18px">HQ / FLOOR 01</span><div class="desk"><div class="screen"></div></div><div class="person a"></div><div class="person b"></div><div class="person"></div><span class="tag" style="left:20%;top:25%">JASUR / ICT</span><span class="tag" style="left:67%;top:22%">ALEX / DEV</span><span class="tag" style="left:42%;top:70%">MISTER WHALE</span></div></div></div></section>
+</main>
+<footer><span>© 2026 OBSIDIAN LAB</span><span>PAPER TRADING · ZERO REAL-MONEY RISK</span></footer>
+<div class="toast" id="toast"></div>
+<script>
+const pages=["home","markets","trade","leaderboard","office"];
+const data=[["BTCUSDT","$78,100.00","+2.41%"],["ETHUSDT","$2,500.00","+1.18%"],["SOLUSDT","$186.20","-0.74%"],["BNBUSDT","$684.30","+0.42%"]];
+function go(p){pages.forEach(x=>document.getElementById(x).classList.toggle("active",x===p));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));history.replaceState(null,"","#"+p);window.scrollTo(0,0)}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
+document.getElementById("menu").onclick=()=>{let n=document.getElementById("nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.right="22px";n.style.top="65px";n.style.background="#fff";n.style.padding="8px";n.style.border="1px solid #e7e7e2";n.style.borderRadius="8px";n.style.flexDirection="column"};
+function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="go('trade');document.getElementById('asset').value='${x[0]}'">Trade</button></td></tr>`).join("")}
+function filterMarkets(){renderMarkets(document.getElementById("search").value)}
+function executeTrade(){let s=+document.getElementById("size").value;if(!s||s<=0)return show("Enter a valid order size");localStorage.setItem("obs_last_trade",JSON.stringify({asset:document.getElementById("asset").value,side:document.getElementById("side").value,size:s,at:new Date().toISOString()}));show("Paper trade executed")}
+function show(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
+document.getElementById("users").textContent=localStorage.getItem("obs_users")||"ACTIVE";
+let hash=location.hash.slice(1);go(pages.includes(hash)?hash:"home");renderMarkets();
+</script>
 </body>
 </html>
