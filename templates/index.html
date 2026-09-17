@@ -58,29 +58,369 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 <div class="panel"><div class="toolbar"><input class="input" id="search" placeholder="Search asset..." oninput="filterMarkets()"><select class="select"><option>All assets</option><option>Crypto</option></select></div>
 <table class="table"><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>STATUS</th><th></th></tr></thead><tbody id="marketRows"></tbody></table></div></section>
 
-<section class="page" id="trade"><div class="sectionHead"><div><div class="eyebrow mono">02 / TRADE</div><h2>Trading terminal</h2></div><p>Paper execution · no real funds</p></div>
-<div class="tradegrid"><div class="panel chart"><div class="fakechart"></div></div><div class="panel order"><h3>Order</h3><div class="field"><label>ASSET</label><select id="asset"><option>BTCUSDT</option><option>ETHUSDT</option></select></div><div class="field"><label>SIDE</label><select id="side"><option>LONG / BUY</option><option>SHORT / SELL</option></select></div><div class="field"><label>SIZE (USDT)</label><input id="size" type="number" value="100"></div><div class="field"><label>LEVERAGE</label><select id="lev"><option>1x</option><option selected>10x</option><option>20x</option></select></div><button class="btn full" onclick="executeTrade()">Execute paper trade</button><button class="btn secondary full" onclick="show('Positions are stored locally in this browser.')">View positions</button></div></div></section>
+<section class="page" id="trade">
+<div class="sectionHead">
+  <div><div class="eyebrow mono">02 / TRADE</div><h2>Trading terminal</h2></div>
+  <p>Paper execution · live market price</p>
+</div>
 
-<section class="page" id="leaderboard"><div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p>Paper performance</p></div>
-<div class="panel"><table class="table"><thead><tr><th>#</th><th>TRADER</th><th>BALANCE</th><th>P&L</th></tr></thead><tbody id="leaders"><tr><td>01</td><td>@trader</td><td>$10,000.00</td><td class="up">+0.00%</td></tr><tr><td>02</td><td>@obsidian</td><td>$9,840.20</td><td class="down">−1.60%</td></tr><tr><td>03</td><td>@alpha</td><td>$9,620.50</td><td class="down">−3.80%</td></tr></tbody></table></div></section>
+<div class="tradegrid">
+  <div>
+    <div class="panel chart" style="height:520px;display:block;padding:0;overflow:hidden">
+      <div style="height:100%;position:relative">
+        <div id="chartLoading" style="position:absolute;z-index:2;left:18px;top:14px;font:11px monospace;color:#888;background:#fff;padding:4px 7px;border-radius:5px">CONNECTING TO TRADINGVIEW…</div>
+        <iframe id="tvFrame"
+          title="TradingView chart"
+          src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
+          style="width:100%;height:100%;border:0"
+          allowtransparency="true"
+          frameborder="0"></iframe>
+      </div>
+    </div>
 
-<section class="page" id="office"><div class="sectionHead"><div><div class="eyebrow mono">04 / WEB OFFICE</div><h2>Obsidian HQ</h2></div><p>Virtual workspace</p></div>
-<div class="panel office"><aside class="side"><button class="active">HQ Overview</button><button onclick="show('Tasks panel opened')">Tasks</button><button onclick="show('Team panel opened')">Team</button><button onclick="show('Activity panel opened')">Activity</button></aside><div class="officeview"><div class="room"><span class="tag" style="left:18px;top:18px">HQ / FLOOR 01</span><div class="desk"><div class="screen"></div></div><div class="person a"></div><div class="person b"></div><div class="person"></div><span class="tag" style="left:20%;top:25%">JASUR / ICT</span><span class="tag" style="left:67%;top:22%">ALEX / DEV</span><span class="tag" style="left:42%;top:70%">MISTER WHALE</span></div></div></div></section>
+    <div class="panel" style="margin-top:12px;padding:16px">
+      <div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
+        <div>
+          <div class="mono" style="font-size:11px;color:#888">LIVE PRICE</div>
+          <strong id="live-price" style="font-size:25px;letter-spacing:-.04em">$—</strong>
+          <span id="price-status" style="font-size:11px;color:#777;margin-left:8px">connecting</span>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button id="btcBtn" class="btn" style="padding:8px 12px" onclick="switchAsset('BTCUSDT')">BTC</button>
+          <button id="ethBtn" class="btn secondary" style="padding:8px 12px" onclick="switchAsset('ETHUSDT')">ETH</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:12px;padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:13px">Open position</b>
+        <span id="pos-status" class="mono" style="font-size:10px;color:#999">NO POSITION</span>
+      </div>
+      <div id="positionBox" style="margin-top:12px;color:#888;font-size:12px">
+        No open paper position.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel order">
+    <h3>Order</h3>
+    <div style="padding:11px 12px;background:#f6f6f2;border:1px solid var(--line);border-radius:7px;margin-bottom:16px">
+      <div class="mono" style="font-size:10px;color:#888">PAPER BALANCE</div>
+      <strong id="balance" style="font-size:20px">$10,000.00</strong>
+    </div>
+
+    <div class="field"><label>ASSET</label>
+      <select id="asset" onchange="switchAsset(this.value)">
+        <option value="BTCUSDT">BTCUSDT</option>
+        <option value="ETHUSDT">ETHUSDT</option>
+      </select>
+    </div>
+    <div class="field"><label>SIZE (USDT)</label>
+      <input id="trade-amount" type="number" min="10" step="1" value="100">
+    </div>
+    <div class="field"><label>LEVERAGE</label>
+      <select id="lev" onchange="currentLeverage=Number(this.value)">
+        <option value="1">1x</option><option value="5">5x</option><option value="10" selected>10x</option><option value="20">20x</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+      <button class="btn" style="background:#177245;border-color:#177245" onclick="executeOrder('LONG')">BUY / LONG</button>
+      <button class="btn" style="background:#b33a3a;border-color:#b33a3a" onclick="executeOrder('SHORT')">SELL / SHORT</button>
+    </div>
+    <button class="btn secondary full" onclick="closeCurrentPosition()">Close position</button><button id="resetBalanceBtn" class="btn secondary full" onclick="resetPaperAccount()" style="display:none">Reset account → $10,000</button>
+    <div style="margin-top:14px;font-size:10px;line-height:1.5;color:#999">Minimum order: $10. Orders use live Binance price and are simulated locally.</div>
+  </div>
+</div>
+</section>
+
+<section class="page" id="leaderboard">
+<div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p id="leader-status">Loading paper performance…</p></div>
+<div class="panel">
+  <div class="toolbar">
+    <button class="btn secondary lb-filter active" data-period="all">All Time</button>
+    <button class="btn secondary lb-filter" data-period="month">Monthly</button>
+    <button class="btn secondary lb-filter" data-period="week">Weekly</button>
+    <button class="btn secondary lb-filter" data-period="today">Today</button>
+    <button class="btn secondary" style="margin-left:auto" onclick="loadLeaderboard()">↻ Refresh</button>
+  </div>
+  <div style="overflow:auto">
+  <table class="table" style="min-width:720px"><thead><tr><th>RANK</th><th>USER</th><th>BALANCE</th><th>PROFIT</th><th>TRADES</th><th>WIN RATE</th><th>POINTS</th></tr></thead>
+  <tbody id="leaders"><tr><td colspan="7" style="text-align:center;color:#999;padding:35px">Loading…</td></tr></tbody></table>
+  </div>
+</div>
+</section>
+
+<section class="page" id="office">
+<div class="sectionHead"><div><div class="eyebrow mono">04 / WEB OFFICE</div><h2>Obsidian HQ</h2></div><p id="office-time">Connecting to office…</p></div>
+<div class="panel office">
+<aside class="side">
+  <button class="active office-tab" data-tab="overview">Overview</button>
+  <button class="office-tab" data-tab="tasks">Tasks</button>
+  <button class="office-tab" data-tab="team">Team</button>
+  <button class="office-tab" data-tab="activity">Activity</button>
+  <button class="office-tab" data-tab="analytics">Analytics</button>
+</aside>
+<div class="officeview">
+  <div id="office-overview" class="office-pane">
+    <div class="room" id="hq-room">
+      <span class="tag" style="left:18px;top:18px">HQ / FLOOR 01</span>
+      <span class="tag" style="right:18px;top:18px" id="hq-market">MARKET / —</span>
+      <div class="desk" style="left:31%;top:45%"><div class="screen"></div></div>
+      <div class="person a"></div><div class="person b"></div><div class="person"></div>
+      <span class="tag" style="left:19%;top:25%">JASUR / ICT</span>
+      <span class="tag" style="left:67%;top:22%">ALEX / DEV</span>
+      <span class="tag" style="left:42%;top:70%">MISTER WHALE</span>
+      <div id="office-log-mini" style="position:absolute;left:18px;bottom:18px;width:min(390px,calc(100% - 36px));background:rgba(255,255,255,.9);border:1px solid #ddd;border-radius:8px;padding:11px;font:10px monospace;color:#666">Waiting for HQ feed…</div>
+    </div>
+  </div>
+  <div id="office-tasks" class="office-pane" style="display:none">
+    <div class="panel" style="padding:18px">
+      <div style="display:flex;justify-content:space-between"><b>Live tasks</b><span class="mono" style="font-size:10px;color:#999">HQ / TASKS</span></div>
+      <div id="office-tasks-list" style="margin-top:15px">Loading tasks…</div>
+    </div>
+  </div>
+  <div id="office-team" class="office-pane" style="display:none">
+    <div class="cards" id="office-team-list"></div>
+  </div>
+  <div id="office-activity" class="office-pane" style="display:none">
+    <div class="panel" style="padding:18px"><b>Activity feed</b><div id="office-activity-list" class="mono" style="margin-top:14px;line-height:2;color:#777">Loading…</div></div>
+  </div>
+  <div id="office-analytics" class="office-pane" style="display:none">
+    <div class="cards">
+      <div class="card"><small>MARKET</small><h3 id="an-market">—</h3><p>Current tracked asset</p></div>
+      <div class="card"><small>AGENTS</small><h3>03 online</h3><p>Jasur · Alex · Mister Whale</p></div>
+      <div class="card"><small>MODE</small><h3>LIVE</h3><p>HQ backend feed</p></div>
+      <div class="card"><small>UPDATE</small><h3 id="an-time">—</h3><p>Last server response</p></div>
+    </div>
+  </div>
+</div>
+</div>
+</section>
 </main>
 <footer><span>© 2026 OBSIDIAN LAB</span><span>PAPER TRADING · ZERO REAL-MONEY RISK</span></footer>
 <div class="toast" id="toast"></div>
 <script>
 const pages=["home","markets","trade","leaderboard","office"];
 const data=[["BTCUSDT","$78,100.00","+2.41%"],["ETHUSDT","$2,500.00","+1.18%"],["SOLUSDT","$186.20","-0.74%"],["BNBUSDT","$684.30","+0.42%"]];
-function go(p){pages.forEach(x=>document.getElementById(x).classList.toggle("active",x===p));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));history.replaceState(null,"","#"+p);window.scrollTo(0,0)}
+function go(p){pages.forEach(x=>document.getElementById(x).classList.toggle("active",x===p));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));history.replaceState(null,"","#"+p);window.scrollTo(0,0);if(p==="leaderboard")loadLeaderboard();if(p==="office")loadOffice()}
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.getElementById("menu").onclick=()=>{let n=document.getElementById("nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.right="22px";n.style.top="65px";n.style.background="#fff";n.style.padding="8px";n.style.border="1px solid #e7e7e2";n.style.borderRadius="8px";n.style.flexDirection="column"};
 function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="go('trade');document.getElementById('asset').value='${x[0]}'">Trade</button></td></tr>`).join("")}
 function filterMarkets(){renderMarkets(document.getElementById("search").value)}
-function executeTrade(){let s=+document.getElementById("size").value;if(!s||s<=0)return show("Enter a valid order size");localStorage.setItem("obs_last_trade",JSON.stringify({asset:document.getElementById("asset").value,side:document.getElementById("side").value,size:s,at:new Date().toISOString()}));show("Paper trade executed")}
+const API_BASE=location.origin;
+const userId=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe?.user?.id)?String(Telegram.WebApp.initDataUnsafe.user.id):("web-"+(localStorage.getItem("obs_user_id")||crypto.randomUUID()));
+localStorage.setItem("obs_user_id",userId);
+const myUsername=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe?.user?.username)?("@"+Telegram.WebApp.initDataUnsafe.user.username):(localStorage.getItem("obs_username")||"@trader");
+let currentAsset=localStorage.getItem("obs_asset")||"BTCUSDT";
+let currentLeverage=Number(localStorage.getItem("obs_lev")||10);
+let prices={BTCUSDT:0,ETHUSDT:0};
+let balance=Number(localStorage.getItem("obs_bal_"+userId)||10000);
+let position=null;
+try{position=JSON.parse(localStorage.getItem("obs_pos_"+userId)||"null")}catch(e){position=null}
+
+function money(n){return "$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function setAssetUI(){
+  const a=document.getElementById("asset"); if(a)a.value=currentAsset;
+  document.getElementById("btcBtn")?.classList.toggle("secondary",currentAsset!=="BTCUSDT");
+  document.getElementById("ethBtn")?.classList.toggle("secondary",currentAsset!=="ETHUSDT");
+  const f=document.getElementById("tvFrame");
+  if(f)f.src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3A"+currentAsset+"&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
+  localStorage.setItem("obs_asset",currentAsset);
+}
+function switchAsset(asset){
+  currentAsset=asset;
+  setAssetUI();
+  updateTicker();
+}
+function updateUI(){
+  const b=document.getElementById("balance"); if(b)b.textContent=money(balance);
+  const box=document.getElementById("positionBox"), status=document.getElementById("pos-status");
+  if(!box)return;
+  if(!position){box.textContent="No open paper position.";status.textContent="NO POSITION";return}
+  const live=prices[position.asset]||position.entryPrice;
+  let diff=(live-position.entryPrice)/position.entryPrice;
+  if(position.type==="SHORT")diff=-diff;
+  const pnl=position.size*diff*position.leverage;
+  status.textContent=position.type+" / "+position.asset;
+  status.style.color=pnl>=0?"#177245":"#b33a3a";
+  box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div><span style="color:#999">Entry</span><br><b>${money(position.entryPrice)}</b></div>
+    <div><span style="color:#999">Live</span><br><b>${money(live)}</b></div>
+    <div><span style="color:#999">Size</span><br><b>${money(position.size)}</b></div>
+    <div><span style="color:#999">P&L</span><br><b style="color:${pnl>=0?"#177245":"#b33a3a"}">${pnl>=0?"+":""}${money(pnl)} (${(pnl/position.size*100).toFixed(2)}%)</b></div>
+  </div>`;
+}
+async function updateTicker(){
+  try{
+    const res=await fetch("https://api.binance.com/api/v3/ticker/price?symbol="+currentAsset+"&t="+Date.now());
+    const d=await res.json();
+    if(d.price)prices[currentAsset]=Number(d.price);
+    document.getElementById("price-status").textContent="BINANCE LIVE";
+    document.getElementById("price-status").style.color="#177245";
+  }catch(e){
+    if(!prices[currentAsset])prices[currentAsset]=currentAsset==="BTCUSDT"?78100:2500;
+    document.getElementById("price-status").textContent="OFFLINE / SIM";
+    document.getElementById("price-status").style.color="#b33a3a";
+  }
+  const p=document.getElementById("live-price"); if(p)p.textContent=money(prices[currentAsset]);
+  updateUI();
+  checkStops();
+}
+function executeOrder(type){
+  const amount=Number(document.getElementById("trade-amount").value)||0;
+  if(amount<10)return show("Minimum order is $10");
+  if(amount>balance)return show("Insufficient paper balance");
+  if(!prices[currentAsset])return show("Waiting for market price…");
+  if(position)closeCurrentPosition();
+  balance-=amount;
+  currentLeverage=Number(document.getElementById("lev").value)||10;
+  localStorage.setItem("obs_lev",currentLeverage);
+  position={type,size:amount,leverage:currentLeverage,entryPrice:prices[currentAsset],asset:currentAsset,openedAt:new Date().toISOString()};
+  localStorage.setItem("obs_bal_"+userId,balance);
+  localStorage.setItem("obs_pos_"+userId,JSON.stringify(position));
+  updateUI(); syncWithSheets();
+  show(type==="LONG"?"BUY / LONG opened":"SELL / SHORT opened");
+}
+function closeCurrentPosition(){
+  if(!position)return show("No open position");
+  const live=prices[position.asset]||position.entryPrice;
+  let diff=(live-position.entryPrice)/position.entryPrice;
+  if(position.type==="SHORT")diff=-diff;
+  const pnl=position.size*diff*position.leverage;
+  balance+=Math.max(0,position.size+pnl);
+  position=null;
+  localStorage.setItem("obs_bal_"+userId,balance);
+  localStorage.removeItem("obs_pos_"+userId);
+  updateUI();syncWithSheets();show("Position closed");
+}
+function checkStops(){ /* reserved for TP/SL extensions */ }
+async function syncWithSheets(){
+  try{
+    await fetch(API_BASE+"/api/update_balance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:userId,username:myUsername,balance:Number(balance.toFixed(2))})});
+  }catch(e){}
+}
+document.getElementById("chartLoading")?.remove();
+document.getElementById("lev").value=String(currentLeverage);
+setAssetUI();updateUI();updateTicker();setInterval(updateTicker,4000);
 function show(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
 document.getElementById("users").textContent=localStorage.getItem("obs_users")||"ACTIVE";
 let hash=location.hash.slice(1);go(pages.includes(hash)?hash:"home");renderMarkets();
+
+// ===== Leaderboard =====
+let leaderboardPeriod="all";
+async function loadLeaderboard(){
+  const body=document.getElementById("leaders"), status=document.getElementById("leader-status");
+  if(!body)return;
+  body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#999;padding:35px">Loading…</td></tr>';
+  try{
+    const r=await fetch("/api/leaderboard?period="+leaderboardPeriod+"&t="+Date.now(),{cache:"no-store"});
+    const d=await r.json();
+    if(!d || d.status!=="success") throw new Error(d?.message||"Leaderboard error");
+    const leaders=Array.isArray(d.leaders)?d.leaders:[];
+    if(!leaders.length){
+      body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#999;padding:40px">No leaderboard data yet.</td></tr>';
+      status.textContent="No data";
+      return;
+    }
+    body.innerHTML=leaders.map((x,i)=>{
+      const bal=Number(x.Balance||0);
+      const initial=10000;
+      const profit=bal-initial;
+      const pct=initial?(profit/initial*100):0;
+      const uid=encodeURIComponent(x["User ID"]||"");
+      const username=String(x.Username||"Trader").replace(/</g,"&lt;");
+      return `<tr onclick="openProfile('${uid}')" style="cursor:pointer">
+        <td><b>${String(i+1).padStart(2,"0")}</b></td>
+        <td><b>${username.startsWith("@")?username:"@"+username}</b></td>
+        <td class="mono">${money(bal)}</td>
+        <td class="${profit>=0?"up":"down"}">${profit>=0?"+":""}${money(profit)} <span style="font-size:10px">(${pct.toFixed(2)}%)</span></td>
+        <td>—</td><td>—</td><td>${Math.max(0,Math.round(profit))}</td>
+      </tr>`;
+    }).join("");
+    status.textContent=`${leaders.length} traders · synced from server`;
+  }catch(e){
+    body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#b33a3a;padding:35px">Could not load leaderboard. <button class="btn secondary" onclick="loadLeaderboard()" style="margin-left:8px;padding:7px 10px">Retry</button></td></tr>';
+    status.textContent="Connection error";
+  }
+}
+function openProfile(uid){
+  if(!uid)return show("Profile ID unavailable");
+  location.href="/profile/"+uid;
+}
+document.querySelectorAll(".lb-filter").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".lb-filter").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); leaderboardPeriod=b.dataset.period; loadLeaderboard();
+}));
+
+// ===== $10K reset =====
+function resetPaperAccount(){
+  if(position) position=null;
+  balance=10000;
+  localStorage.setItem("obs_bal_"+userId,"10000");
+  localStorage.removeItem("obs_pos_"+userId);
+  updateUI(); syncWithSheets(); show("Paper account reset to $10,000");
+}
+function checkResetButton(){
+  const b=document.getElementById("resetBalanceBtn");
+  if(b)b.style.display=balance<=0?"block":"none";
+}
+const oldUpdateUI=updateUI;
+updateUI=function(){oldUpdateUI();checkResetButton()};
+
+// ===== Web Office live backend =====
+let officeData=null;
+function renderOffice(d){
+  officeData=d;
+  const agents=d?.agents||{};
+  const keys=Object.keys(agents);
+  const taskList=document.getElementById("office-tasks-list");
+  const team=document.getElementById("office-team-list");
+  const act=document.getElementById("office-activity-list");
+  const mini=document.getElementById("office-log-mini");
+  const time=document.getElementById("office-time");
+  const market=document.getElementById("hq-market");
+  if(time)time.textContent="Live · "+(d.timestamp||"—");
+  if(market)market.textContent="MARKET / "+(prices.BTCUSDT?money(prices.BTCUSDT):"—");
+  if(document.getElementById("an-market"))document.getElementById("an-market").textContent=prices.BTCUSDT?money(prices.BTCUSDT):"—";
+  if(document.getElementById("an-time"))document.getElementById("an-time").textContent=d.timestamp||"—";
+  if(taskList)taskList.innerHTML=keys.map(k=>{
+    const a=agents[k];
+    return `<div style="padding:13px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px">
+      <div><b>${a.name}</b><div style="font-size:11px;color:#888;margin-top:4px">${a.role}</div></div>
+      <div style="text-align:right;font-size:11px"><b>${a.current_task||"Working"}</b><div style="color:#999;margin-top:4px">${a.location||"HQ"}</div></div>
+    </div>`;
+  }).join("");
+  if(team)team.innerHTML=keys.map(k=>{
+    const a=agents[k];
+    return `<div class="card"><small>${(a.role||"AGENT").toUpperCase()}</small><h3>${a.name}</h3><p>${a.current_task||"Working"}<br>${a.location||"HQ"}</p></div>`;
+  }).join("");
+  const logs=Array.isArray(d.logs)?d.logs:[];
+  if(act)act.innerHTML=logs.map(x=>`<div>${String(x).replace(/</g,"&lt;")}</div>`).join("")||"No recent activity.";
+  if(mini)mini.textContent=logs[0]||"HQ feed online.";
+}
+async function loadOffice(){
+  try{
+    const r=await fetch("/api/agent_tasks?t="+Date.now(),{cache:"no-store"});
+    const d=await r.json();
+    if(d.status==="success")renderOffice(d);
+    else throw new Error();
+  }catch(e){
+    const t=document.getElementById("office-time"); if(t)t.textContent="Offline / retrying";
+  }
+}
+document.querySelectorAll(".office-tab").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".office-tab").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".office-pane").forEach(x=>x.style.display="none");
+  document.getElementById("office-"+btn.dataset.tab).style.display="block";
+  loadOffice();
+}));
+loadLeaderboard();
+loadOffice();
+setInterval(loadLeaderboard,15000);
+setInterval(loadOffice,5000);
+
 </script>
 </body>
 </html>
