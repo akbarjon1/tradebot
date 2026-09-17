@@ -19,186 +19,201 @@
             mono: ['"JetBrains Mono"', 'monospace']
           },
           colors: {
-            brand: { bg: '#0f172a', border: '#1e293b', accent: '#6366f1' }
+            brand: { bg: '#f8fafc', border: '#e2e8f0', accent: '#4f46e5' }
           }
         }
       }
     }
   </script>
   <style>
-    body { background-color: #090d16; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .custom-scroll::-webkit-scrollbar { width: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
   <!-- TOP APP BAR -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-lg">
+  <header class="border-b border-brand-border bg-white/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
     <div class="flex items-center gap-2.5">
       <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M16 4L4 26H20L16 4Z" fill="#6366F1"/>
         <path d="M16 11L28 26H18L16 11Z" fill="#818CF8" fill-opacity="0.9"/>
       </svg>
       <div>
-        <span class="font-extrabold text-white text-sm tracking-tight block leading-tight">Obsidian Lab</span>
-        <span class="text-[10px] text-indigo-400 font-mono">Paper-Trading</span>
+        <span class="font-extrabold text-slate-900 text-sm tracking-tight block leading-tight">Obsidian Lab</span>
+        <span class="text-[10px] text-slate-400 font-mono">Paper-Trading</span>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-md">
+      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
         <span>🎮</span> HQ Office
       </button>
 
-      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-xl transition">
+      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span id="nav-username">@trader</span> ✏️
       </button>
     </div>
   </header>
 
-  <!-- MAIN TERMINAL (LONG / SHORT & TRADING) -->
+  <!-- MAIN TERMINAL -->
   <main class="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
-    <!-- BALANCE -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm flex items-center justify-between">
       <div>
         <span class="text-[11px] font-bold text-slate-400 block mb-0.5">Virtual Depozit</span>
-        <span id="balance-val" class="font-mono text-xl font-extrabold text-emerald-400">$10,000.00</span>
+        <span id="balance-val" class="font-mono text-xl font-extrabold text-slate-900">$10,000.00</span>
       </div>
-      <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-950 text-emerald-400 hover:bg-emerald-900 border border-emerald-800 text-xs font-bold font-mono px-3 py-2 rounded-xl transition active:scale-95 shadow-sm">
+      <button id="btn-topup" onclick="claimFaucet()" class="hidden bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold font-mono px-3 py-2 rounded-xl transition active:scale-95 shadow-sm">
         + 10k olish ⚡️
       </button>
     </div>
 
-    <!-- PAIRS & TICKER -->
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
-        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold font-mono transition">ETH / USDT</button>
+        <button onclick="switchAsset('BTCUSDT')" id="btn-tab-btc" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition">BTC / USDT</button>
+        <button onclick="switchAsset('ETHUSDT')" id="btn-tab-eth" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition">ETH / USDT</button>
       </div>
-      <span class="text-xs font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+      <span class="text-xs font-mono text-emerald-600 font-bold flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="live-price">$78,100.00</span>
       </span>
     </div>
 
-    <!-- CHART -->
-    <div class="h-64 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-lg">
-      <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent"></iframe>
+    <div class="h-64 rounded-2xl overflow-hidden border border-brand-border bg-slate-50 shadow-sm">
+      <iframe id="tradingview-frame" class="w-full h-full border-0" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
     </div>
 
-    <!-- POSITION -->
-    <div id="position-info" class="hidden bg-indigo-950/60 border border-indigo-900 rounded-2xl p-4 text-xs font-mono shadow-lg space-y-2">
+    <div id="position-info" class="hidden bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 text-xs font-mono shadow-sm space-y-2">
       <div class="flex justify-between font-bold text-sm">
-        <span id="pos-dir" class="text-emerald-400">LONG (10x)</span>
-        <span id="pos-pnl" class="text-emerald-400">$0.00 (+0.00%)</span>
+        <span id="pos-dir" class="text-emerald-600">LONG (10x)</span>
+        <span id="pos-pnl" class="text-emerald-600">$0.00 (+0.00%)</span>
       </div>
-      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400 border-t border-indigo-900/60 pt-2">
-        <div>Garov: <b id="pos-sz" class="text-white">$0.00</b></div>
-        <div>Kirish: <b id="pos-ent" class="text-white">$0.00</b></div>
-        <div>TP: <b id="pos-tp-txt" class="text-emerald-400">—</b></div>
-        <div>SL: <b id="pos-sl-txt" class="text-rose-400">—</b></div>
+      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 border-t border-indigo-100/60 pt-2">
+        <div>Garov: <b id="pos-sz" class="text-slate-800">$0.00</b></div>
+        <div>Kirish: <b id="pos-ent" class="text-slate-800">$0.00</b></div>
+        <div>TP: <b id="pos-tp-txt" class="text-emerald-600">—</b></div>
+        <div>SL: <b id="pos-sl-txt" class="text-rose-600">—</b></div>
       </div>
-      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">Bitimni yopish ✕</button>
+      <button onclick="closeCurrentPosition()" class="w-full mt-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm">Bitimni yopish ✕</button>
     </div>
 
-    <!-- CONTROLS (LONG / SHORT) -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-4">
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-4">
       <div>
-        <label class="text-[11px] font-bold text-slate-400 block mb-1">Savdo hajmi ($):</label>
+        <label class="text-[11px] font-bold text-slate-500 block mb-1">Savdo hajmi ($):</label>
         <div class="relative">
           <span class="absolute left-3 top-2.5 text-slate-400 font-bold font-mono text-xs">$</span>
-          <input id="trade-amount" type="number" value="1000" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-white outline-none focus:border-indigo-500"/>
+          <input id="trade-amount" type="number" value="1000" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 pl-7 pr-3 font-mono font-bold text-xs text-slate-900 outline-none focus:border-indigo-600"/>
         </div>
         <div class="grid grid-cols-4 gap-1.5 mt-2 text-[10px] font-mono">
-          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">10%</button>
-          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">25%</button>
-          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-300">50%</button>
-          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-600 border border-indigo-500 text-white font-bold rounded-lg">MAX</button>
+          <button onclick="setPercent(0.1)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">10%</button>
+          <button onclick="setPercent(0.25)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">25%</button>
+          <button onclick="setPercent(0.5)" class="py-1.5 bg-slate-50 border border-brand-border rounded-lg">50%</button>
+          <button onclick="setPercent(1.0)" class="py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold rounded-lg">MAX</button>
         </div>
       </div>
 
       <div>
-        <div class="flex justify-between text-[11px] font-bold text-slate-400 mb-1">
+        <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
           <span>Leverage:</span>
-          <span id="lev-val" class="text-indigo-400 font-mono font-bold">10x</span>
+          <span id="lev-val" class="text-indigo-600 font-mono font-bold">10x</span>
         </div>
         <div class="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
-          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="1">1x</button>
-          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="5">5x</button>
-          <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-indigo-600 font-bold text-white shadow-sm" data-l="10">10x</button>
-          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300" data-l="20">20x</button>
+          <button onclick="setLev(1)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="1">1x</button>
+          <button onclick="setLev(5)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="5">5x</button>
+          <button onclick="setLev(10)" class="lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" data-l="10">10x</button>
+          <button onclick="setLev(20)" class="lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border" data-l="20">20x</button>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-2 pt-1">
         <div>
-          <label class="text-[11px] font-bold text-slate-400 block mb-1">Take Profit ($):</label>
-          <input id="trade-tp" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 font-mono text-xs text-white outline-none focus:border-emerald-500"/>
+          <label class="text-[11px] font-bold text-slate-500 block mb-1">Take Profit ($):</label>
+          <input id="trade-tp" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-emerald-500"/>
         </div>
         <div>
-          <label class="text-[11px] font-bold text-slate-400 block mb-1">Stop Loss ($):</label>
-          <input id="trade-sl" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 font-mono text-xs text-white outline-none focus:border-rose-500"/>
+          <label class="text-[11px] font-bold text-slate-500 block mb-1">Stop Loss ($):</label>
+          <input id="trade-sl" type="number" placeholder="Ixtiyoriy" class="w-full bg-slate-50 border border-brand-border rounded-xl py-2 px-3 font-mono text-xs text-slate-900 outline-none focus:border-rose-500"/>
         </div>
       </div>
 
-      <!-- LONG / SHORT TUGMALARI -->
       <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="executeOrder('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-md">Long 🟢</button>
-        <button onclick="executeOrder('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-md">Short 🔴</button>
+        <button onclick="executeOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Long 🟢</button>
+        <button onclick="executeOrder('SHORT')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition shadow-sm">Short 🔴</button>
       </div>
     </div>
 
-    <!-- LEADERBOARD -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Top Traders</h3>
-        <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-400 hover:underline">Yangilash 🔄</button>
+    <div class="bg-white border border-brand-border rounded-2xl p-4 shadow-sm space-y-3">
+      <div class="flex justify-between items-center pb-2 border-b border-brand-border">
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Top Traders</h3>
+        <button onclick="fetchLeaderboard()" class="text-[11px] text-indigo-600 hover:underline">Yangilash 🔄</button>
       </div>
       <div id="top-traders-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll text-xs font-mono">
-        <p class="text-slate-500 text-center py-4">Yuklanmoqda...</p>
+        <p class="text-slate-400 text-center py-4">Yuklanmoqda...</p>
       </div>
     </div>
   </main>
 
   <!-- ========================================== -->
-  <!-- 🕹️ OPEN WORLD HQ MAP MODAL (MULTIPLAYER & ROOMS) -->
+  <!-- 🕹️ OBSIDIAN HQ: ISOMETRIC AI AGENTS OFFICE -->
   <!-- ========================================== -->
   <div id="lounge-modal" class="hidden fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-2 selection:bg-indigo-600">
-    <div class="flex justify-between items-center px-3 py-2 border-b border-slate-800 bg-slate-900 rounded-xl shadow-md">
+    <!-- TOP STATUS BAR -->
+    <div class="flex justify-between items-center px-2 py-1.5 border-b border-slate-800 bg-slate-900/90 rounded-xl">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="room-indicator" class="text-xs font-mono font-bold text-emerald-400">📍 Xona: Office (HQ)</span>
+        <h2 class="text-xs font-mono font-bold text-white tracking-wider">OBSIDIAN GROUP HQ // 3 AI AGENTS</h2>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="mic-btn" onclick="toggleVoiceIndicator()" class="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg hover:bg-slate-700 transition shadow-sm">
-          🎙️ Push to Talk
-        </button>
-        <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-white bg-rose-600 hover:bg-rose-500 px-3 py-1 rounded-lg transition shadow-sm">
-          ✕ Chiqish
-        </button>
+      <button onclick="closeLoungeModal()" class="text-xs font-mono font-bold text-rose-400 bg-rose-950/60 border border-rose-800/80 px-2.5 py-1 rounded-lg hover:bg-rose-900 transition">
+        ✕ Chiqish
+      </button>
+    </div>
+
+    <!-- CANVAS CONTAINER -->
+    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#2b1f1a] shadow-2xl">
+      <canvas id="lounge-canvas" width="640" height="420" class="w-full h-full max-w-xl object-contain"></canvas>
+
+      <!-- LIVE TASK TICKER + AGENT STATUS STRIP (VIDEODAGI MONITORING PANELI) -->
+      <div class="absolute top-2 left-2 right-2 z-10 flex flex-col gap-1.5">
+        <div class="bg-slate-900/90 border border-slate-800 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center justify-between text-[10px] font-mono text-slate-300">
+          <div class="flex items-center gap-2 truncate">
+            <span id="hq-live-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span id="live-hq-ticker" class="truncate text-emerald-400 font-semibold">⚡️ Jasur: Scanning BTC 15m FVG Liquidity...</span>
+          </div>
+          <span class="text-slate-500 text-[9px]">LIVE AGENTS</span>
+        </div>
+        <div id="hq-status-strip" class="bg-slate-900/80 border border-slate-800/70 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-3 text-[9px] font-mono text-slate-400 overflow-x-auto custom-scroll whitespace-nowrap">
+          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Serverga ulanmoqda...</span>
+        </div>
+      </div>
+
+      <!-- MOBIL JOYSTICK -->
+      <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-85 select-none">
+        <div></div>
+        <button onclick="movePlayer(0, -18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▲</button>
+        <div></div>
+        <button onclick="movePlayer(-18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">◀</button>
+        <button onclick="interactWithNearby()" class="w-10 h-10 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">TALK</button>
+        <button onclick="movePlayer(18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▶</button>
+        <div></div>
+        <button onclick="movePlayer(0, 18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▼</button>
+        <div></div>
       </div>
     </div>
 
-    <!-- CANVAS & CHAT CONTAINER -->
-    <div class="flex-1 my-2 relative flex flex-col items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#121216] shadow-2xl">
-      <div id="canvas-wrapper" class="relative w-full flex-1 flex items-center justify-center touch-none select-none">
-        <canvas id="lounge-canvas" width="600" height="380" class="w-full h-full max-w-xl object-contain image-rendering-pixelated pointer-events-none"></canvas>
-        <div id="touch-stick-base" class="hidden absolute w-20 h-20 rounded-full border-2 border-indigo-500/40 bg-indigo-900/20 pointer-events-none -translate-x-1/2 -translate-y-1/2">
-          <div id="touch-stick-knob" class="absolute w-8 h-8 rounded-full bg-indigo-500 shadow-lg top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
+    <!-- DIALOG BOX -->
+    <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-xl mx-auto w-full">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-1">
+        <span id="dialog-npc-name" class="font-bold text-indigo-400">Jasur (Charchagan Treyder)</span>
+        <button onclick="closeDialog()" class="text-slate-400 hover:text-white">✕</button>
       </div>
-
-      <!-- CHAT BOX -->
-      <div class="w-full bg-slate-900/95 border-t border-slate-800 p-2.5 flex flex-col gap-1.5 max-h-32">
-        <div id="chat-messages" class="flex-1 overflow-y-auto custom-scroll text-[11px] font-mono space-y-1 max-h-16 px-1 text-slate-300">
-          <div class="text-indigo-400 italic">🌐 Multiplayer: Jonli chat faol. Boshqa o'yinchilar bilan yozishingiz mumkin.</div>
-        </div>
-        <div class="flex gap-2">
-          <input id="multiplayer-chat-input" type="text" placeholder="Xona bo'yicha habar yozish..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-xs outline-none border border-slate-700 focus:border-indigo-500 font-mono shadow-inner" />
-          <button onclick="sendMultiplayerChat()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold font-mono shadow-md active:scale-95 transition">Yuborish</button>
-        </div>
+      <div id="dialog-reply" class="text-slate-200 leading-relaxed text-[11px] min-h-[30px]">
+        "E, kel jigar! Yana qaysidir shitcoinda minus qildingmi?"
+      </div>
+      <div class="flex gap-1.5 pt-1">
+        <input id="dialog-input" type="text" placeholder="Savol yoki vazifa bering..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-xl text-[11px] outline-none border border-slate-700 focus:border-indigo-500" />
+        <button onclick="sendNpcMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-[11px] font-bold">Yuborish</button>
       </div>
     </div>
   </div>
@@ -217,6 +232,7 @@
       safeSet('obs_tma_uid', id);
       return id;
     }
+
     function getTelegramUsername() {
       if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
       if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
@@ -292,8 +308,8 @@
       document.getElementById('lev-val').innerText = `${l}x`;
       document.querySelectorAll('.lev-btn').forEach(b => {
         b.className = parseInt(b.getAttribute('data-l')) === l 
-          ? "lev-btn py-1.5 rounded-xl bg-indigo-600 font-bold text-white shadow-sm" 
-          : "lev-btn py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300";
+          ? "lev-btn py-1.5 rounded-xl bg-slate-900 font-bold text-white shadow-sm" 
+          : "lev-btn py-1.5 rounded-xl bg-slate-50 border border-brand-border text-slate-600";
       });
     }
 
@@ -307,13 +323,13 @@
       const ethBtn = document.getElementById('btn-tab-eth');
       const frame = document.getElementById('tradingview-frame');
       if (sym === 'BTCUSDT') {
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition";
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent";
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
       } else {
-        ethBtn.className = "px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold font-mono transition";
-        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 text-xs font-bold font-mono transition";
-        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent";
+        ethBtn.className = "px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold font-mono transition";
+        btcBtn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold font-mono transition";
+        frame.src = "https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3AETHUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
       }
     }
 
@@ -376,12 +392,12 @@
         const data = await res.json();
         if (data.status === 'success' && data.leaders.length > 0) {
           list.innerHTML = data.leaders.map((u, i) => `
-            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-800/80 border border-slate-700">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-brand-border">
               <div class="flex items-center gap-2 truncate">
                 <span class="font-bold text-slate-400 w-4">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
-                <span class="font-semibold text-white truncate max-w-[120px]">${u.Username}</span>
+                <span class="font-semibold text-slate-800 truncate max-w-[120px]">${u.Username}</span>
               </div>
-              <span class="font-bold text-emerald-400">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+              <span class="font-bold text-emerald-600">$${parseFloat(u.Balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
             </div>
           `).join('');
         }
@@ -405,7 +421,7 @@
         const pnl = position.size * diff * position.leverage;
         const pnlEl = document.getElementById('pos-pnl');
         pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${((pnl/position.size)*100).toFixed(2)}%)`;
-        pnlEl.className = pnl >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+        pnlEl.className = pnl >= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
 
         if (position.type === 'LONG') {
           if (position.tp && liveP >= position.tp) closeCurrentPosition(`🎯 Take-Profit! Narx: $${liveP}`);
@@ -418,327 +434,467 @@
     }
 
     // ==========================================
-    // 🕹️ OPEN WORLD HQ & MULTIPLAYER ENGINE
+    // 🕹️ OBSIDIAN HQ: ISOMETRIC 2.5D AGENTS ENGINE
     // ==========================================
     const canvas = document.getElementById('lounge-canvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
-    const canvasWrapper = document.getElementById('canvas-wrapper');
 
     let loungeActive = false;
+    let currentTargetNpc = null;
     let tick = 0;
-    let currentRoom = 'office';
+    let smokeParticles = [];
 
+    // O'yinchi
     let player = {
-      x: 300, y: 300, vx: 0, vy: 0, speed: 3.5, isMoving: false, name: myUsername, speaking: false
+      x: 320, y: 350, targetX: 320, targetY: 350,
+      speed: 2.8, isMoving: false,
+      color: '#4f46e5', name: myUsername || '@trader'
     };
 
-    let onlinePlayers = [];
-    let chatMessages = [];
+    // AI Agentlar (Videodagi kabi vazifalari va holatlari bilan)
+    const npcs = [
+      {
+        id: 'jasur', name: 'Jasur', role: 'ICT Analyst',
+        status: 'Scanning 15m FVG',
+        x: 180, y: 220, targetX: 180, targetY: 220, baseX: 180, baseY: 220,
+        bodyColor: '#d97706', hairColor: '#451a03',
+        state: 'desk', timer: 120, coffee: true
+      },
+      {
+        id: 'alex', name: 'Alex', role: 'Algo & Dev',
+        status: 'Testing CISD Script',
+        x: 460, y: 220, targetX: 460, targetY: 220, baseX: 460, baseY: 220,
+        bodyColor: '#10b981', hairColor: '#0f172a',
+        state: 'desk', timer: 160, coffee: false
+      },
+      {
+        id: 'whale', name: 'Mister Whale', role: 'Fund Manager',
+        status: 'Reviewing Leaderboard',
+        x: 320, y: 130, targetX: 320, targetY: 130, baseX: 320, baseY: 130,
+        bodyColor: '#0284c7', hairColor: '#ffffff',
+        state: 'meeting', timer: 200, coffee: true
+      }
+    ];
+
+    const hqLogs = [
+      "⚡️ Jasur: Scanning BTC 15m FVG Liquidity...",
+      "💻 Alex: Backtesting Smart Money Algo v2.4...",
+      "🐋 Mister Whale: Calculating Risk vs Reward (PnL: +14.2%)...",
+      "☕️ Jasur: Taking a break at coffee corner...",
+      "📊 Server 01: Binance WebSocket active 60 FPS..."
+    ];
+    let logIdx = 0;
+    let liveAgentData = null;   // /api/agent_tasks dan kelgan so'nggi ma'lumot
+    let hqPollInterval = null;
+
+    // Backenddagi HAQIQIY agent vazifalarini olib, ticker va status-strip'ni yangilaydi
+    async function fetchAgentTasks() {
+      try {
+        const res = await fetch(`${API_BASE}/api/agent_tasks`);
+        const d = await res.json();
+        if (d.status !== 'success') throw new Error('bad status');
+        liveAgentData = d;
+
+        const idMap = { jasur: 'jasur', alex: 'alex', whale: 'whale' };
+        npcs.forEach(npc => {
+          const info = d.agents && d.agents[idMap[npc.id]];
+          if (info && info.current_task) npc.liveTask = info.current_task;
+        });
+
+        renderStatusStrip(d);
+        document.getElementById('hq-live-dot').className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
+      } catch (e) {
+        liveAgentData = null; // Server javob bermasa — mahalliy hqLogs bilan davom etadi
+        const dot = document.getElementById('hq-live-dot');
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-500';
+      }
+    }
+
+    function renderStatusStrip(d) {
+      const el = document.getElementById('hq-status-strip');
+      if (!el || !d || !d.agents) return;
+      const order = ['jasur', 'alex', 'whale'];
+      el.innerHTML = order.map(id => {
+        const a = d.agents[id];
+        if (!a) return '';
+        return `<span class="flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <b class="text-slate-200">${a.name}:</b> ${a.current_task}
+        </span>`;
+      }).join('<span class="text-slate-700">•</span>');
+    }
 
     function openLoungeModal() {
       player.name = myUsername;
       document.getElementById('lounge-modal').classList.remove('hidden');
       loungeActive = true;
+      fetchAgentTasks();
+      if (hqPollInterval) clearInterval(hqPollInterval);
+      hqPollInterval = setInterval(fetchAgentTasks, 20000);
       requestAnimationFrame(renderLoop);
-      setInterval(syncMultiplayerData, 700);
     }
 
     function closeLoungeModal() {
       document.getElementById('lounge-modal').classList.add('hidden');
+      closeDialog();
       loungeActive = false;
+      if (hqPollInterval) { clearInterval(hqPollInterval); hqPollInterval = null; }
     }
 
-    async function syncMultiplayerData() {
-      if (!loungeActive) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/multiplayer/sync`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, username: myUsername, x: player.x, y: player.y, room: currentRoom, speaking: player.speaking })
-        });
-        const d = await res.json();
-        if (d.status === 'success') { onlinePlayers = d.players; }
-
-        const chatRes = await fetch(`${API_BASE}/api/multiplayer/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room: currentRoom })
-        });
-        const chatD = await chatRes.json();
-        if (chatD.status === 'success') {
-          chatMessages = chatD.messages;
-          renderChatBox();
-        }
-      } catch (e) {}
-    }
-
-    async function sendMultiplayerChat() {
-      const input = document.getElementById('multiplayer-chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      try {
-        await fetch(`${API_BASE}/api/multiplayer/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sender: myUsername, text: text, room: currentRoom })
-        });
-        syncMultiplayerData();
-      } catch (e) {}
-    }
-
-    function renderChatBox() {
-      const box = document.getElementById('chat-messages');
-      box.innerHTML = chatMessages.map(m => `<div><b class="text-indigo-400">${m.sender}</b> <span class="text-slate-500">[${m.time}]</span>: <span class="text-slate-200">${m.text}</span></div>`).join('');
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function toggleVoiceIndicator() {
-      player.speaking = !player.speaking;
-      const btn = document.getElementById('mic-btn');
-      if (player.speaking) {
-        btn.innerText = "🎙️ Speaking...";
-        btn.className = "text-xs font-mono font-bold text-white bg-emerald-600 border border-emerald-500 px-3 py-1 rounded-lg shadow-md";
-      } else {
-        btn.innerText = "🎙️ Push to Talk";
-        btn.className = "text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg";
-      }
-    }
-
-    // 🕷️ SPIDER-MAN CHIZISH
-    function drawSpiderMan(x, y, label, isMoving, speaking = false) {
-      const legCycle = isMoving ? Math.sin(tick * 0.45) * 4.5 : 0;
+    // 1. VIDEODAGI KABI IZOMETRIK BOSH/TANALI AGENT CHIZISH
+    function drawAgent(x, y, bodyColor, hairColor, name, role, status, isMoving, hasCoffee = false) {
+      const legCycle = isMoving ? Math.sin(tick * 0.45) * 4 : 0;
       const breathe = Math.sin(tick * 0.08) * 1.5;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.beginPath(); ctx.ellipse(x, y + 17, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
+      // 3D Soya
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 16, 14, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y + 12 + legCycle, 8, 5); ctx.fillRect(x + 2, y + 12 - legCycle, 8, 5);
-      ctx.fillStyle = '#1d4ed8'; ctx.fillRect(x - 8, y + 2 + legCycle, 6, 11); ctx.fillRect(x + 2, y + 2 - legCycle, 6, 11);
+      // Oyoqlar
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - 7, y + 3 + legCycle, 5, 13);
+      ctx.fillRect(x + 2, y + 3 - legCycle, 5, 13);
 
-      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 11, y - 16 + breathe, 22, 19);
-      ctx.fillStyle = '#000000'; ctx.fillRect(x - 2, y - 10 + breathe, 4, 6);
+      // Tana va kiyim (Ko'ylak / Sviter)
+      ctx.fillStyle = bodyColor;
+      ctx.fillRect(x - 10, y - 16 + breathe, 20, 19);
 
-      ctx.fillStyle = '#dc2626'; ctx.fillRect(x - 9, y - 31 + breathe, 18, 16);
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 6, y - 25 + breathe, 4, 3); ctx.fillRect(x + 2, y - 25 + breathe, 4, 3);
-
-      if (speaking) {
-        ctx.fillStyle = '#10b981'; ctx.font = 'bold 9px monospace'; ctx.fillText('🗣️ 🔊', x + 10, y - 30 + breathe);
-      }
-
-      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px "JetBrains Mono", monospace';
-      ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4;
-      ctx.fillText(`🕷 ${label}`, x - (ctx.measureText(`🕷 ${label}`).width / 2), y - 42);
-      ctx.shadowBlur = 0;
-    }
-
-    function drawPixelGelik(x, y, scale = 0.8) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale(scale, scale);
-
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      ctx.beginPath(); ctx.ellipse(105, 116, 100, 12, 0, 0, Math.PI * 2); ctx.fill();
-
-      function wheel(wx, wy) {
-        ctx.fillStyle = "#080a0e"; ctx.beginPath(); ctx.arc(wx, wy, 25, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#374151"; ctx.lineWidth = 5; ctx.stroke();
-        ctx.fillStyle = "#1f2937"; ctx.beginPath(); ctx.arc(wx, wy, 18, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#e5e7eb"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.strokeStyle = "#9ca3af"; ctx.lineWidth = 3;
-        for (let i = 0; i < 6; i++) {
-          const a = i * Math.PI / 3;
-          ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * 16, wy + Math.sin(a) * 16); ctx.stroke();
+      // Qo'llar
+      ctx.fillStyle = '#fed7aa';
+      if (hasCoffee) {
+        ctx.fillRect(x + 10, y - 10 + breathe, 5, 5);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 12, y - 15 + breathe, 7, 7);
+        if (Math.random() < 0.25) {
+          smokeParticles.push({ x: x + 15, y: y - 16 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
         }
-        ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.arc(wx, wy, 7, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillRect(x - 13, y - 12 + breathe, 4, 11);
+        ctx.fillRect(x + 9, y - 12 + breathe, 4, 11);
       }
 
-      ctx.fillStyle = "#111318"; ctx.fillRect(5, 58, 210, 45);
-      ctx.fillRect(15, 35, 190, 65); ctx.fillRect(25, 25, 170, 15);
-      ctx.fillStyle = "#1e1e24"; ctx.fillRect(45, 5, 145, 30);
-      ctx.fillStyle = "#2d3238"; ctx.fillRect(42, 2, 150, 7);
+      // Bosh va yuz
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(x - 8, y - 29 + breathe, 16, 13);
 
-      ctx.fillStyle = "#4b5563"; ctx.fillRect(91, 11, 43, 20); ctx.fillRect(137, 11, 43, 20);
-      ctx.fillStyle = "#111827"; ctx.fillRect(53, 14, 30, 13); ctx.fillRect(94, 14, 37, 13); ctx.fillRect(140, 14, 37, 13);
+      // Ko'zlar
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(x - 4, y - 24 + breathe, 2, 2);
+      ctx.fillRect(x + 2, y - 24 + breathe, 2, 2);
 
-      ctx.strokeStyle = "#050609"; ctx.lineWidth = 3;
-      ctx.strokeRect(45, 10, 43, 23); ctx.strokeRect(89, 10, 46, 23); ctx.strokeRect(135, 10, 47, 23);
+      // Soch
+      ctx.fillStyle = hairColor;
+      ctx.fillRect(x - 9, y - 34 + breathe, 18, 7);
+      ctx.fillRect(x - 9, y - 30 + breathe, 3, 5);
 
-      ctx.fillStyle = "#2d3238"; ctx.fillRect(7, 35, 55, 12);
-      ctx.fillStyle = "#15171c"; ctx.fillRect(0, 40, 20, 62);
-      ctx.fillStyle = "#080a0e"; ctx.fillRect(0, 87, 25, 20);
+      // VIDEODAGI AGENT STATUS BADGE (QORA PLASHKA)
+      const badgeW = Math.max(ctx.measureText(status).width + 16, 75);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(x - (badgeW / 2), y - 62, badgeW, 24, 5);
+      ctx.fill();
+      ctx.stroke();
 
-      ctx.fillStyle = "#fef9c3"; ctx.beginPath(); ctx.arc(8, 57, 7, 0, Math.PI * 2); ctx.fill();
+      // Ism va Role
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.fillText(name, x - (badgeW / 2) + 6, y - 50);
 
-      ctx.fillStyle = "#f3f4f6"; ctx.font = "bold 9px monospace"; ctx.fillText("V8", 39, 54);
-
-      ctx.strokeStyle = "#080a0d"; ctx.lineWidth = 2;
-      ctx.strokeRect(57, 38, 63, 61); ctx.strokeRect(121, 38, 70, 61);
-
-      ctx.fillStyle = "#9ca3af"; ctx.fillRect(27, 61, 163, 3);
-      ctx.fillStyle = "#d1d5db"; ctx.fillRect(75, 53, 20, 4); ctx.fillRect(145, 53, 20, 4);
-
-      ctx.fillStyle = "#7f1d1d"; ctx.fillRect(207, 52, 8, 23);
-      ctx.fillStyle = "#ef4444"; ctx.fillRect(209, 55, 5, 16);
-
-      wheel(48, 96); wheel(166, 96);
-      ctx.restore();
+      // Status
+      ctx.fillStyle = '#10b981';
+      ctx.font = '7.5px monospace';
+      ctx.fillText(status, x - (badgeW / 2) + 6, y - 41);
     }
 
-    // --- MAP & ROOM RENDERING ---
-    function drawEnvironment() {
-      ctx.fillStyle = '#121216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 2. VIDEODAGI KABI OCH RANGLI IZOMETRIK OFIS INTERYERI
+    function drawIsometricOffice() {
+      // Asosiy pol (Videodagi och krem/bej laminat)
+      ctx.fillStyle = '#f1ece4';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (currentRoom === 'office') {
-        document.getElementById('room-indicator').innerText = "📍 Xona: Office (HQ)";
-        ctx.fillStyle = '#1e2028'; ctx.fillRect(20, 20, canvas.width - 40, canvas.height - 40);
-        ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      // Parket teksturasi
+      ctx.strokeStyle = '#e2dad0';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < canvas.height; y += 24) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
 
-        drawPixelHuman(130, 170, '#d97706', '#451a03', 'Jasur', false);
-        drawPixelHuman(470, 160, '#10b981', '#0f172a', 'Alex', false);
+      // SHISHA DEVORLI MEETING ROOM (YUQORIDA)
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.35)';
+      ctx.fillRect(190, 30, 260, 95);
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(190, 30, 260, 95);
 
-        ctx.fillStyle = '#4f46e5'; ctx.fillRect(270, 345, 100, 25);
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 HALLGA CHIQISH', 275, 361);
+      // Meeting stoli va stullar
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.ellipse(320, 78, 65, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.stroke();
 
-      } else if (currentRoom === 'hall') {
-        document.getElementById('room-indicator').innerText = "📍 Xona: Hall (Koridor)";
-        ctx.fillStyle = '#181820'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Meeting Room Divani (Whale turadigan joy)
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(295, 105, 50, 16);
 
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(70, 35, 110, 28); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 JASUR Xonasi', 78, 52);
-        ctx.fillRect(265, 35, 110, 28); ctx.fillText('🚪 ALEX Xonasi', 274, 52);
-        ctx.fillRect(460, 35, 110, 28); ctx.fillText('🚪 WHALE Xonasi', 466, 52);
+      // ISH STOLLARI (VIDEODAGI KABI YOG'OCH STOLLAR VA NOUTBUKLAR)
+      function drawDesk(x, y, hasLaptop = true) {
+        // Stol soyasi
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.fillRect(x - 4, y + 26, 68, 6);
+        // Yog'och stol usti
+        ctx.fillStyle = '#fde68a';
+        ctx.fillRect(x, y, 60, 28);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(x, y + 25, 60, 3); // Qirrasi
+        // Stol oyoqlari
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(x + 2, y + 28, 4, 15);
+        ctx.fillRect(x + 54, y + 28, 4, 15);
 
-        ctx.fillStyle = '#059669'; ctx.fillRect(250, 345, 140, 28);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🌳 KO\'CHAGA CHIQISH', 262, 362);
+        // Noutbuk / Monitor
+        if (hasLaptop) {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(x + 18, y + 4, 24, 16);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(x + 20, y + 6, 20, 12);
+        }
+      }
 
-      } else if (currentRoom.includes('_room')) {
-        let name = currentRoom.replace('_room', '').toUpperCase();
-        document.getElementById('room-indicator').innerText = `📍 Xona: ${name} Xonasi`;
-        ctx.fillStyle = '#1a102f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Markazdagi ish stollari (Jasur va Alex)
+      drawDesk(150, 200, true);
+      drawDesk(430, 200, true);
+      drawDesk(150, 270, false);
+      drawDesk(430, 270, false);
 
-        if (currentRoom === 'jasur_room') drawPixelHuman(320, 200, '#d97706', '#451a03', 'Jasur', false);
-        if (currentRoom === 'alex_room') drawPixelHuman(320, 200, '#10b981', '#0f172a', 'Alex', false);
-        if (currentRoom === 'whale_room') drawPixelHuman(320, 200, '#0284c7', '#ffffff', 'Mister Whale', false);
-
-        ctx.fillStyle = '#ef4444'; ctx.fillRect(270, 345, 100, 25);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🚪 HALLGA QAYTISH', 276, 361);
-
-      } else if (currentRoom === 'street') {
-        document.getElementById('room-indicator').innerText = "📍 Joy: Ko'cha & Daryo qirg'og'i";
-        
-        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, canvas.width, 140);
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        let cloudOffset = (tick * 0.15) % canvas.width;
-        ctx.fillRect(80 - cloudOffset, 30, 70, 18); ctx.fillRect(420 - cloudOffset, 55, 90, 22);
-
-        ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 140, canvas.width, 80);
+      // SERVER XONASI SHKAF VA CALL-CENTER (O'NG CHEKKADA)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(575, 40, 48, 120);
+      // Server chiroqchalari
+      for (let sy = 50; sy < 150; sy += 12) {
+        ctx.fillStyle = (tick % 30 < 15) ? '#10b981' : '#ef4444';
+        ctx.fillRect(585, sy, 5, 4);
         ctx.fillStyle = '#38bdf8';
-        for (let x = (tick * 1.5) % 35; x < canvas.width; x += 35) {
-          ctx.fillRect(x, 170, 16, 3); ctx.fillRect(x + 10, 195, 20, 3);
+        ctx.fillRect(595, sy, 18, 2);
+      }
+
+      // DAM OLISH HUDUDI (PING-PONG STOLI - PASTKI O'NGDA)
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(490, 340, 95, 45);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(490, 340, 95, 45);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(536, 340, 3, 45); // To'r
+
+      // KOFE VA CHOY BURCHAGI (CHAP BURCHAK)
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(30, 140, 70, 32);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(40, 120, 24, 20); // Kofe mashinasi
+      if (Math.random() < 0.35) {
+        smokeParticles.push({ x: 52, y: 118, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
+      }
+
+      // O'SIMLIKLAR (GULTOVURLAR)
+      function drawPlant(px, py) {
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(px, py, 14, 14);
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.ellipse(px + 7, py - 4, 12, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      drawPlant(115, 60);
+      drawPlant(470, 60);
+      drawPlant(30, 340);
+    }
+
+    function handleSmoke() {
+      for (let i = smokeParticles.length - 1; i >= 0; i--) {
+        let p = smokeParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        p.alpha = p.life / 30;
+        ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+        ctx.fillRect(p.x, p.y, 2.5, 2.5);
+        if (p.life <= 0) smokeParticles.splice(i, 1);
+      }
+    }
+
+    // AGENTLARNING AVTONOM HAYOT VA VAZIFALAR SIKLI
+    function updateNPCs() {
+      if (tick % 180 === 0) {
+        const pool = (liveAgentData && liveAgentData.logs && liveAgentData.logs.length) ? liveAgentData.logs : hqLogs;
+        logIdx = (logIdx + 1) % pool.length;
+        document.getElementById('live-hq-ticker').innerText = pool[logIdx];
+      }
+
+      npcs.forEach(npc => {
+        npc.timer--;
+
+        if (npc.timer <= 0) {
+          // Jasur
+          if (npc.id === 'jasur') {
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Scanning 15m FVG', time: 240, coffee: false },
+              { x: 65, y: 155, status: 'Brewing Coffee', time: 180, coffee: true },
+              { x: 320, y: 90, status: 'Reporting to Whale', time: 200, coffee: true },
+              { x: 510, y: 350, status: 'Ping-Pong break', time: 150, coffee: false }
+            ];
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
+          }
+
+          // Alex
+          if (npc.id === 'alex') {
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Testing CISD Script', time: 300, coffee: false },
+              { x: 570, y: 140, status: 'Checking Servers', time: 180, coffee: false },
+              { x: 65, y: 155, status: 'Coffee refill', time: 160, coffee: true }
+            ];
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
+          }
+
+          // Whale
+          if (npc.id === 'whale') {
+            const acts = [
+              { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Reviewing Leaderboard', time: 360, coffee: true },
+              { x: 320, y: 240, status: 'Inspecting Desks', time: 200, coffee: true }
+            ];
+            const a = acts[Math.floor(Math.random() * acts.length)];
+            npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
+            npc.coffee = a.coffee; npc.timer = a.time;
+          }
         }
 
-        ctx.fillStyle = '#78350f'; ctx.fillRect(90, 210, 18, 22);
-        ctx.fillStyle = '#fed7aa'; ctx.fillRect(92, 200, 14, 12);
-        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(100, 212); ctx.lineTo(135, 175); ctx.stroke();
-
-        ctx.fillStyle = '#090d16'; ctx.fillRect(0, 220, canvas.width, 160);
-
-        // MASHINALARNI CHIZISH (Sen bergan pikselli Gelik funksiyasi bilan)
-        drawPixelGelik(250, 235, 0.65);
-
-        ctx.fillStyle = '#4f46e5'; ctx.fillRect(20, 275, 75, 45);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🏢 HQ KIRISH', 27, 301);
-      }
+        const dx = npc.targetX - npc.x;
+        const dy = npc.targetY - npc.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 3) {
+          npc.x += (dx / dist) * 0.9;
+          npc.y += (dy / dist) * 0.9;
+          npc.isMoving = true;
+        } else {
+          npc.isMoving = false;
+        }
+      });
     }
 
     function updatePlayer() {
-      if (Math.abs(player.vx) > 0.1 || Math.abs(player.vy) > 0.1) {
-        player.x += player.vx * player.speed;
-        player.y += player.vy * player.speed;
+      const dx = player.targetX - player.x;
+      const dy = player.targetY - player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 3) {
+        player.x += (dx / dist) * player.speed;
+        player.y += (dy / dist) * player.speed;
         player.isMoving = true;
-      } else { player.isMoving = false; }
-
-      if (currentRoom === 'office' && player.y > 335 && player.x > 260 && player.x < 380) {
-        currentRoom = 'hall'; player.y = 70;
-      } else if (currentRoom === 'hall') {
-        if (player.y < 45) {
-          if (player.x > 60 && player.x < 190) { currentRoom = 'jasur_room'; player.y = 310; }
-          else if (player.x > 255 && player.x < 385) { currentRoom = 'alex_room'; player.y = 310; }
-          else if (player.x > 450 && player.x < 580) { currentRoom = 'whale_room'; player.y = 310; }
-        } else if (player.y > 335 && player.x > 240 && player.x < 400) {
-          currentRoom = 'street'; player.x = 100; player.y = 290;
-        }
-      } else if (currentRoom.includes('_room') && player.y > 330) {
-        currentRoom = 'hall'; player.y = 75;
-      } else if (currentRoom === 'street' && player.x < 50 && player.y > 260 && player.y < 330) {
-        currentRoom = 'office'; player.x = 320; player.y = 310;
+      } else {
+        player.isMoving = false;
       }
-
-      player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
-      player.y = Math.max(30, Math.min(canvas.height - 30, player.y));
     }
 
+    // ASOSIY RENDER SIKLI
     function renderLoop() {
       if (!loungeActive || !ctx) return;
       tick++;
-      drawEnvironment();
+
+      drawIsometricOffice();
+      handleSmoke();
+      updateNPCs();
       updatePlayer();
 
-      drawSpiderMan(player.x, player.y, player.name, player.isMoving, player.speaking);
+      // Y-Sorting (Kim oldinda bo'lsa oxirida chiziladi)
+      let renderables = [
+        { ...player, isPlayer: true },
+        ...npcs.map(n => ({ ...n, isPlayer: false }))
+      ];
+      renderables.sort((a, b) => a.y - b.y);
 
-      onlinePlayers.forEach(p => {
-        drawSpiderMan(p.x, p.y, p.username, false, p.speaking);
+      renderables.forEach(obj => {
+        if (obj.isPlayer) {
+          drawAgent(obj.x, obj.y, obj.color, '#ffffff', obj.name, 'Trader', 'Online (You)', obj.isMoving);
+        } else {
+          drawAgent(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.role, obj.status, obj.isMoving, obj.coffee);
+        }
       });
+
+      let nearNpc = getNearbyNPC();
+      if (nearNpc) {
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(nearNpc.x - 26, nearNpc.y - 78, 52, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 67);
+      }
 
       requestAnimationFrame(renderLoop);
     }
 
-    // --- SENSOR & KEYBOARD ---
-    const stickBase = document.getElementById('touch-stick-base');
-    const stickKnob = document.getElementById('touch-stick-knob');
-    let touchOrigin = null;
+    function movePlayer(dx, dy) {
+      player.targetX = Math.max(40, Math.min(canvas.width - 40, player.targetX + dx));
+      player.targetY = Math.max(90, Math.min(canvas.height - 30, player.targetY + dy));
+    }
 
-    canvasWrapper.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      const rect = canvasWrapper.getBoundingClientRect();
-      touchOrigin = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-      stickBase.style.left = `${touchOrigin.x}px`; stickBase.style.top = `${touchOrigin.y}px`;
-      stickBase.classList.remove('hidden');
-    }, { passive: false });
+    function getNearbyNPC() {
+      return npcs.find(n => Math.hypot(n.x - player.x, n.y - player.y) < 55) || null;
+    }
 
-    canvasWrapper.addEventListener('touchmove', (e) => {
-      if (!touchOrigin) return;
-      const touch = e.touches[0];
-      const rect = canvasWrapper.getBoundingClientRect();
-      const dx = (touch.clientX - rect.left) - touchOrigin.x;
-      const dy = (touch.clientY - rect.top) - touchOrigin.y;
-      const dist = Math.hypot(dx, dy);
-      if (dist > 5) { player.vx = dx / dist; player.vy = dy / dist; }
-      e.preventDefault();
-    }, { passive: false });
+    function interactWithNearby() {
+      const npc = getNearbyNPC();
+      if (!npc) return;
+      currentTargetNpc = npc;
+      document.getElementById('dialog-npc-name').innerText = `${npc.name} (${npc.role})`;
+      document.getElementById('dialog-reply').innerText = `"${npc.name} senga qaradi. Hozirgi vazifasi: ${npc.status}. Savolingiz bormi?"`;
+      document.getElementById('dialog-box').classList.remove('hidden');
+    }
 
-    function resetTouch() { touchOrigin = null; player.vx = 0; player.vy = 0; stickBase.classList.add('hidden'); }
-    canvasWrapper.addEventListener('touchend', resetTouch);
-    canvasWrapper.addEventListener('touchcancel', resetTouch);
+    function closeDialog() {
+      document.getElementById('dialog-box').classList.add('hidden');
+      currentTargetNpc = null;
+    }
 
-    const keys = {};
-    window.addEventListener('keydown', (e) => { if (document.activeElement.tagName === 'INPUT') return; keys[e.code] = true; });
-    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+    async function sendNpcMessage() {
+      if (!currentTargetNpc) return;
+      const input = document.getElementById('dialog-input');
+      const txt = input.value.trim();
+      if (!txt) return;
 
-    setInterval(() => {
-      if (touchOrigin) return;
-      let mx = 0, my = 0;
-      if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
-      if (keys['KeyS'] || keys['ArrowDown']) my += 1;
-      if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
-      if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
-      if (mx !== 0 || my !== 0) {
-        const len = Math.hypot(mx, my);
-        player.vx = mx / len; player.vy = my / len;
-      } else { player.vx = 0; player.vy = 0; }
-    }, 1000 / 60);
+      const replyBox = document.getElementById('dialog-reply');
+      replyBox.innerText = "Agent hisoblamoqda...";
+      input.value = '';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/npc_chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ npc_id: currentTargetNpc.id, message: txt })
+        });
+        const d = await res.json();
+        replyBox.innerText = `"${d.reply}"`;
+      } catch (e) {
+        replyBox.innerText = '"Agent aloqada emas, birozdan keyin urining..."';
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
+      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -20);
+      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 20);
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-20, 0);
+      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(20, 0);
+      if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
+      if (['Escape'].includes(e.code)) closeLoungeModal();
+    });
 
     init();
     setInterval(updateTicker, 1000);
