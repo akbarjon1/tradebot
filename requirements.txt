@@ -6,3 +6,6 @@ google-auth
 feedparser
 flask
 flask-cors
+oauth2client
+requests
+feedparser
