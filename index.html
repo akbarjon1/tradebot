@@ -532,12 +532,57 @@
       ctx.shadowBlur = 0;
     }
 
-    function drawPixelHuman(x, y, bodyColor, hairColor, label, isMoving) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.beginPath(); ctx.ellipse(x, y + 16, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = bodyColor; ctx.fillRect(x - 10, y - 16, 20, 19);
-      ctx.fillStyle = '#fed7aa'; ctx.fillRect(x - 8, y - 29, 16, 13);
-      ctx.fillStyle = hairColor; ctx.fillRect(x - 9, y - 34, 18, 7);
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace'; ctx.fillText(label, x - (ctx.measureText(label).width / 2), y - 40);
+    function drawPixelGelik(x, y, scale = 0.8) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.beginPath(); ctx.ellipse(105, 116, 100, 12, 0, 0, Math.PI * 2); ctx.fill();
+
+      function wheel(wx, wy) {
+        ctx.fillStyle = "#080a0e"; ctx.beginPath(); ctx.arc(wx, wy, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#374151"; ctx.lineWidth = 5; ctx.stroke();
+        ctx.fillStyle = "#1f2937"; ctx.beginPath(); ctx.arc(wx, wy, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#e5e7eb"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.strokeStyle = "#9ca3af"; ctx.lineWidth = 3;
+        for (let i = 0; i < 6; i++) {
+          const a = i * Math.PI / 3;
+          ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * 16, wy + Math.sin(a) * 16); ctx.stroke();
+        }
+        ctx.fillStyle = "#111827"; ctx.beginPath(); ctx.arc(wx, wy, 7, 0, Math.PI * 2); ctx.fill();
+      }
+
+      ctx.fillStyle = "#111318"; ctx.fillRect(5, 58, 210, 45);
+      ctx.fillRect(15, 35, 190, 65); ctx.fillRect(25, 25, 170, 15);
+      ctx.fillStyle = "#1e1e24"; ctx.fillRect(45, 5, 145, 30);
+      ctx.fillStyle = "#2d3238"; ctx.fillRect(42, 2, 150, 7);
+
+      ctx.fillStyle = "#4b5563"; ctx.fillRect(91, 11, 43, 20); ctx.fillRect(137, 11, 43, 20);
+      ctx.fillStyle = "#111827"; ctx.fillRect(53, 14, 30, 13); ctx.fillRect(94, 14, 37, 13); ctx.fillRect(140, 14, 37, 13);
+
+      ctx.strokeStyle = "#050609"; ctx.lineWidth = 3;
+      ctx.strokeRect(45, 10, 43, 23); ctx.strokeRect(89, 10, 46, 23); ctx.strokeRect(135, 10, 47, 23);
+
+      ctx.fillStyle = "#2d3238"; ctx.fillRect(7, 35, 55, 12);
+      ctx.fillStyle = "#15171c"; ctx.fillRect(0, 40, 20, 62);
+      ctx.fillStyle = "#080a0e"; ctx.fillRect(0, 87, 25, 20);
+
+      ctx.fillStyle = "#fef9c3"; ctx.beginPath(); ctx.arc(8, 57, 7, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#f3f4f6"; ctx.font = "bold 9px monospace"; ctx.fillText("V8", 39, 54);
+
+      ctx.strokeStyle = "#080a0d"; ctx.lineWidth = 2;
+      ctx.strokeRect(57, 38, 63, 61); ctx.strokeRect(121, 38, 70, 61);
+
+      ctx.fillStyle = "#9ca3af"; ctx.fillRect(27, 61, 163, 3);
+      ctx.fillStyle = "#d1d5db"; ctx.fillRect(75, 53, 20, 4); ctx.fillRect(145, 53, 20, 4);
+
+      ctx.fillStyle = "#7f1d1d"; ctx.fillRect(207, 52, 8, 23);
+      ctx.fillStyle = "#ef4444"; ctx.fillRect(209, 55, 5, 16);
+
+      wheel(48, 96); wheel(166, 96);
+      ctx.restore();
     }
 
     // --- MAP & ROOM RENDERING ---
@@ -600,23 +645,8 @@
 
         ctx.fillStyle = '#090d16'; ctx.fillRect(0, 220, canvas.width, 160);
 
-        // 1. Lambo (Sariq)
-        ctx.fillStyle = '#eab308'; ctx.fillRect(130, 255, 75, 25);
-        ctx.fillStyle = '#000000'; ctx.fillRect(142, 246, 24, 11);
-        ctx.fillRect(138, 276, 11, 7); ctx.fillRect(185, 276, 11, 7);
-        ctx.fillStyle = '#fef08a'; ctx.fillRect(130, 263, 3, 4);
-
-        // 2. Gelik (Qora)
-        ctx.fillStyle = '#111827'; ctx.fillRect(240, 240, 65, 42);
-        ctx.fillStyle = '#000000'; ctx.fillRect(252, 230, 42, 13);
-        ctx.fillRect(248, 278, 13, 7); ctx.fillRect(284, 278, 13, 7);
-        ctx.fillStyle = '#fef08a'; ctx.fillRect(240, 252, 3, 4);
-
-        // 3. Malibu 2 (Oq)
-        ctx.fillStyle = '#f8fafc'; ctx.fillRect(380, 250, 80, 28);
-        ctx.fillStyle = '#334155'; ctx.fillRect(398, 240, 38, 12);
-        ctx.fillRect(392, 274, 12, 7); ctx.fillRect(440, 274, 12, 7);
-        ctx.fillStyle = '#fef08a'; ctx.fillRect(380, 258, 3, 4);
+        // MASHINALARNI CHIZISH (Sen bergan pikselli Gelik funksiyasi bilan)
+        drawPixelGelik(250, 235, 0.65);
 
         ctx.fillStyle = '#4f46e5'; ctx.fillRect(20, 275, 75, 45);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.fillText('🏢 HQ KIRISH', 27, 301);
