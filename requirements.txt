@@ -8,4 +8,4 @@ flask
 flask-cors
 oauth2client
 requests
-feedparser
+
