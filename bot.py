@@ -24,19 +24,20 @@ import datetime
 import threading
 import hashlib
 import sqlite3
+import secrets
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 import feedparser
 import telebot
 import gspread
 from google.oauth2.service_account import Credentials
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, g
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # --- 1. SOZLAMALAR VA KALITLAR ---
@@ -172,11 +173,151 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
     except Exception as e:
         print(f"⚠️ Google Sheets ulanishda xatolik: {e}")
 
+
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "obsidian-lab-change-this-secret")
-DB_PATH = os.getenv("OBSIDIAN_DB", "obsidian_lab.db")
 CORS(app)
+
+# ===== PERSISTENT WEB APP LAYER =====
+# The existing bot remains intact. This layer adds the useful production-style
+# foundations from the supplied architecture without splitting the project
+# into many files.
+app.secret_key = get_env("SECRET_KEY") or hashlib.sha256(
+    (TELEGRAM_BOT_TOKEN + ":obsidian-lab-session").encode()
+).hexdigest()
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=get_env("COOKIE_SECURE", "false").lower() == "true",
+    MAX_CONTENT_LENGTH=2 * 1024 * 1024,
+)
+
+def db_conn():
+    if "obs_db" not in g:
+        g.obs_db = sqlite3.connect(DATABASE, timeout=20)
+        g.obs_db.row_factory = sqlite3.Row
+        g.obs_db.execute("PRAGMA foreign_keys=ON")
+    return g.obs_db
+
+def db_now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+def init_web_db():
+    db_conn().executescript("""
+    CREATE TABLE IF NOT EXISTS web_users(
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'USER',
+        balance REAL NOT NULL DEFAULT 10000,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS web_trades(
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        asset TEXT NOT NULL,
+        side TEXT NOT NULL,
+        amount REAL NOT NULL,
+        entry_price REAL NOT NULL,
+        exit_price REAL,
+        pnl REAL NOT NULL DEFAULT 0,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS web_office(
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        data TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS web_notifications(
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        read INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_web_trades_user ON web_trades(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_web_office_user_kind ON web_office(user_id, kind);
+    CREATE INDEX IF NOT EXISTS idx_web_notifications_user ON web_notifications(user_id, created_at);
+    """)
+    db_conn().commit()
+
+def current_web_user():
+    uid = session.get("web_uid")
+    if not uid:
+        return None
+    row = db_conn().execute("SELECT * FROM web_users WHERE id=?", (uid,)).fetchone()
+    return dict(row) if row else None
+
+def public_web_user(user):
+    if not user:
+        return None
+    return {k:v for k,v in user.items() if k != "password"}
+
+def require_web_auth(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        if not current_web_user():
+            return jsonify({"status":"error","message":"Sign in required"}), 401
+        return fn(*args, **kwargs)
+    return wrapped
+
+def require_web_admin(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        user = current_web_user()
+        if not user:
+            return jsonify({"status":"error","message":"Sign in required"}), 401
+        if user["role"] != "ADMIN":
+            return jsonify({"status":"error","message":"Admin access required"}), 403
+        return fn(*args, **kwargs)
+    return wrapped
+
+def require_csrf():
+    # Read-only endpoints and legacy balance sync remain compatible.
+    if request.method in ("POST","PATCH","PUT","DELETE") and request.path.startswith("/api/") and request.path not in ("/api/update_balance",):
+        token = request.headers.get("X-CSRF-Token", "")
+        expected = session.get("csrf", "")
+        return bool(expected and token and secrets.compare_digest(token, expected))
+    return True
+
+@app.before_request
+def web_security():
+    if request.path.startswith("/api/") and request.method in ("POST","PATCH","PUT","DELETE"):
+        auth_bootstrap = request.path in ("/api/auth/login","/api/auth/register","/api/auth/reset-request","/api/auth/reset")
+        if not auth_bootstrap and not require_csrf():
+            return jsonify({"status":"error","message":"Security token expired. Refresh the page and try again."}), 403
+
+@app.after_request
+def security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "same-origin"
+    if request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+@app.teardown_appcontext
+def close_web_db(exception=None):
+    connection = g.pop("obs_db", None)
+    if connection:
+        connection.close()
+
+with app.app_context():
+    init_web_db()
+
+
 
 # Render uchun Telegram Webhook.
 # getUpdates/long-polling o'rniga webhook ishlatamiz — 409 Conflict yo'qoladi.
@@ -274,130 +415,41 @@ def telegram_webhook():
 def health():
     return jsonify({"status": "ok", "telegram": "webhook", "service": "obsidian-lab"}), 200
 
-@app.route('/', methods=['GET'])
+# ===== SINGLE TEMPLATE WEBSITE ROUTES =====
+def render_app():
+    return render_template(
+        "index.html",
+        title="Obsidian Lab — Build. Trade. Compete.",
+        username=(current_web_user() or {}).get("username", "@trader"),
+        api_base=request.url_root.rstrip("/")
+    )
+
+@app.route("/", methods=["GET"])
 def home():
-    return render_template('home.html', title='Obsidian Lab — Build. Trade. Compete.', username=session.get('username','@trader'))
+    return render_app()
 
+@app.route("/markets", methods=["GET"])
+@app.route("/markets/<symbol>", methods=["GET"])
+@app.route("/trade", methods=["GET"])
+@app.route("/leaderboard", methods=["GET"])
+@app.route("/office", methods=["GET"])
+@app.route("/profile", methods=["GET"])
+@app.route("/profile/<uid>", methods=["GET"])
+@app.route("/notifications", methods=["GET"])
+@app.route("/settings", methods=["GET"])
+@app.route("/login", methods=["GET"])
+@app.route("/register", methods=["GET"])
+@app.route("/forgot-password", methods=["GET"])
+@app.route("/admin", methods=["GET"])
+def website_page(symbol=None, uid=None):
+    return render_app()
 
-# ===== OBSIDIAN LAB MULTI-PAGE SITE =====
-def db():
-    conn=sqlite3.connect(DB_PATH)
-    conn.row_factory=sqlite3.Row
-    return conn
+@app.route("/<path:path>", methods=["GET"])
+def website_fallback(path):
+    if path.startswith(("api/", "telegram/", "health")):
+        return jsonify({"status":"error","message":"Not found"}), 404
+    return render_app()
 
-def init_db():
-    conn=db(); c=conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'USER', created_at TEXT NOT NULL)""")
-    conn.commit(); conn.close()
-init_db()
-
-def bootstrap_admin():
-    email=os.getenv('ADMIN_EMAIL','').strip().lower(); pw=os.getenv('ADMIN_PASSWORD','')
-    if not email or not pw: return
-    conn=db(); row=conn.execute('SELECT id FROM users WHERE email=?',(email,)).fetchone()
-    if not row:
-        username=os.getenv('ADMIN_USERNAME','admin')
-        try: conn.execute('INSERT INTO users(name,username,email,password_hash,role,created_at) VALUES(?,?,?,?,?,?)',('Obsidian Admin',username,email,generate_password_hash(pw),'ADMIN',datetime.datetime.utcnow().isoformat())); conn.commit()
-        except sqlite3.IntegrityError: pass
-    else: conn.execute("UPDATE users SET role='ADMIN' WHERE email=?",(email,)); conn.commit()
-    conn.close()
-bootstrap_admin()
-
-def login_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if not session.get('user_id'): return redirect(url_for('login', next=request.path))
-        return view(*args, **kwargs)
-    return wrapped
-
-def admin_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if session.get('role')!='ADMIN': return redirect(url_for('login'))
-        return view(*args, **kwargs)
-    return wrapped
-
-@app.route('/markets')
-def markets_page(): return render_template('markets.html', title='Markets — Obsidian Lab')
-@app.route('/markets/<symbol>')
-def market_detail(symbol): return render_template('market_detail.html', symbol=symbol.upper(), title=f'{symbol.upper()} — Obsidian Lab')
-@app.route('/trade')
-@login_required
-def trade_page(): return render_template('trade.html', title='Trade — Obsidian Lab', username=session.get('username','@trader'))
-@app.route('/leaderboard')
-def leaderboard_page(): return render_template('leaderboard.html', title='Leaderboard — Obsidian Lab')
-@app.route('/profile')
-@login_required
-def profile_page(): return render_template('profile.html', title='Profile — Obsidian Lab', username=session.get('username','@trader'))
-@app.route('/profile/<user_id>')
-def public_profile(user_id): return render_template('profile.html', title='Profile — Obsidian Lab', username=session.get('username','@trader'), profile_id=user_id)
-@app.route('/web-office')
-@login_required
-def office_page(): return render_template('office.html', title='Web Office — Obsidian Lab', section='overview')
-@app.route('/web-office/<section>')
-@login_required
-def office_section(section):
-    allowed={'tasks','projects','team','documents','calendar','analytics'}
-    if section not in allowed: return redirect(url_for('office_page'))
-    return render_template('office.html', title=f'{section.title()} — Web Office', section=section)
-@app.route('/notifications')
-@login_required
-def notifications_page(): return render_template('notifications.html', title='Notifications — Obsidian Lab')
-@app.route('/settings')
-@login_required
-def settings_page(): return render_template('settings.html', title='Settings — Obsidian Lab', section='profile')
-@app.route('/settings/<section>')
-@login_required
-def settings_section(section):
-    allowed={'profile','security','notifications','integrations','appearance'}
-    if section not in allowed: return redirect(url_for('settings_page'))
-    return render_template('settings.html', title=f'{section.title()} — Settings', section=section)
-@app.route('/login', methods=['GET','POST'])
-def login():
-    error=None
-    if request.method=='POST':
-        email=request.form.get('email','').strip().lower(); pw=request.form.get('password','')
-        conn=db(); user=conn.execute('SELECT * FROM users WHERE email=?',(email,)).fetchone(); conn.close()
-        if user and check_password_hash(user['password_hash'],pw):
-            session.update(user_id=user['id'],username=user['username'],role=user['role'])
-            return redirect(request.args.get('next') or url_for('home'))
-        error='Email yoki parol noto‘g‘ri.'
-    return render_template('login.html', title='Sign in — Obsidian Lab', error=error)
-@app.route('/register', methods=['GET','POST'])
-def register():
-    error=None
-    if request.method=='POST':
-        name=request.form.get('name','').strip(); username=request.form.get('username','').strip(); email=request.form.get('email','').strip().lower(); pw=request.form.get('password',''); cp=request.form.get('confirm_password','')
-        if not name or not username or not email or len(pw)<6: error='Barcha maydonlarni to‘ldiring. Parol kamida 6 belgidan iborat.'
-        elif pw!=cp: error='Parollar mos emas.'
-        else:
-            try:
-                conn=db(); cur=conn.execute('INSERT INTO users(name,username,email,password_hash,role,created_at) VALUES(?,?,?,?,?,?)',(name,username,email,generate_password_hash(pw),'USER',datetime.datetime.utcnow().isoformat())); conn.commit(); uid=cur.lastrowid; conn.close(); session.update(user_id=uid,username='@'+username.lstrip('@'),role='USER'); return redirect(url_for('home'))
-            except sqlite3.IntegrityError: error='Username yoki email allaqachon mavjud.'
-    return render_template('register.html', title='Create account — Obsidian Lab', error=error)
-@app.route('/forgot-password', methods=['GET','POST'])
-def forgot_password(): return render_template('forgot.html', title='Reset password — Obsidian Lab', sent=request.method=='POST')
-@app.route('/logout')
-def logout(): session.clear(); return redirect(url_for('home'))
-
-@app.route('/admin')
-@admin_required
-def admin_home(): return render_template('admin.html', title='Admin — Obsidian Lab', section='overview')
-@app.route('/admin/<section>')
-@admin_required
-def admin_section(section): return render_template('admin.html', title=f'Admin {section.title()} — Obsidian Lab', section=section)
-
-@app.route('/api/price')
-def api_price():
-    symbol=request.args.get('symbol','BTCUSDT').upper()
-    if not re.fullmatch(r'[A-Z0-9]{5,15}',symbol): return jsonify(status='error',message='Invalid symbol'),400
-    for host in ('https://api.binance.com','https://api1.binance.com','https://api2.binance.com','https://api3.binance.com','https://data-api.binance.vision'):
-        try:
-            r=requests.get(host+'/api/v3/ticker/price',params={'symbol':symbol},timeout=4,headers={'User-Agent':'ObsidianLab/1.0'})
-            d=r.json(); p=float(d.get('price',0))
-            if p>0:return jsonify(status='success',symbol=symbol,price=p,source='BINANCE')
-        except Exception: pass
-    return jsonify(status='error',message='Market data unavailable'),503
 
 @app.route('/add_comment', methods=['POST'])
 def add_comment():
@@ -426,75 +478,286 @@ def add_comment():
 
     return redirect(url_for('home'))
 
+
+# ===== AUTH / ACCOUNT / OFFICE / ADMIN API =====
+def json_body():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        raise ValueError("JSON object required")
+    return data
+
+@app.route("/api/session", methods=["GET"])
+def api_session():
+    if "csrf" not in session:
+        session["csrf"] = secrets.token_hex(32)
+    return jsonify({
+        "status":"success",
+        "user":public_web_user(current_web_user()),
+        "csrf":session["csrf"]
+    })
+
+@app.route("/api/auth/register", methods=["POST"])
+def api_register():
+    # Basic per-IP throttle for account creation.
+    key = request.remote_addr or "unknown"
+    now_ts = time.time()
+    recent = app.config.setdefault("_register_attempts", {})
+    recent[key] = [t for t in recent.get(key, []) if t > now_ts - 60]
+    if len(recent[key]) >= 6:
+        return jsonify({"status":"error","message":"Too many registration attempts. Try again later."}), 429
+    recent[key].append(now_ts)
+
+    d = json_body()
+    email = str(d.get("email","")).strip().lower()
+    username = str(d.get("username","")).strip().lstrip("@")
+    name = str(d.get("name") or username).strip()
+    password = str(d.get("password",""))
+    confirm = str(d.get("confirm") or d.get("password_confirm") or "")
+    if "@" not in email or len(email) > 254:
+        return jsonify({"status":"error","message":"Valid email required"}), 400
+    if not re.fullmatch(r"[A-Za-z0-9_]{3,32}", username):
+        return jsonify({"status":"error","message":"Username must be 3–32 letters, numbers or underscore"}), 400
+    if len(name) < 2 or len(name) > 100:
+        return jsonify({"status":"error","message":"Valid name required"}), 400
+    if len(password) < 10:
+        return jsonify({"status":"error","message":"Password must contain at least 10 characters"}), 400
+    if password != confirm:
+        return jsonify({"status":"error","message":"Passwords do not match"}), 400
+    user_id = uuid.uuid4().hex
+    stamp = db_now()
+    try:
+        db_conn().execute(
+            "INSERT INTO web_users VALUES(?,?,?,?,?,?,?,?,?)",
+            (user_id,email,username,name,generate_password_hash(password),"USER",10000.0,stamp,stamp)
+        )
+        db_conn().commit()
+    except sqlite3.IntegrityError:
+        return jsonify({"status":"error","message":"Email or username already exists"}), 409
+    return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    d = json_body()
+    email = str(d.get("email","")).strip().lower()
+    password = str(d.get("password",""))
+    user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+    if not user or not check_password_hash(user["password"], password):
+        return jsonify({"status":"error","message":"Invalid email or password"}), 401
+    session.clear()
+    session["web_uid"] = user["id"]
+    session["csrf"] = secrets.token_hex(32)
+    session.permanent = bool(d.get("remember"))
+    return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
+
+@app.route("/api/auth/logout", methods=["POST"])
+@require_web_auth
+def api_logout():
+    session.clear()
+    return jsonify({"status":"success"})
+
+@app.route("/api/account", methods=["GET"])
+@require_web_auth
+def api_account():
+    user = current_web_user()
+    trades = [dict(r) for r in db_conn().execute(
+        "SELECT * FROM web_trades WHERE user_id=? ORDER BY created_at DESC",(user["id"],)
+    )]
+    return jsonify({
+        "status":"success",
+        "balance":float(user["balance"]),
+        "trades":trades,
+        "user":public_web_user(user)
+    })
+
+@app.route("/api/settings/profile", methods=["POST"])
+@require_web_auth
+def api_settings_profile():
+    user=current_web_user(); d=json_body()
+    name=str(d.get("name","")).strip()
+    if not name or len(name)>100:
+        return jsonify({"status":"error","message":"Valid name required"}),400
+    db_conn().execute("UPDATE web_users SET name=?,updated_at=? WHERE id=?",(name,db_now(),user["id"]))
+    db_conn().commit()
+    return jsonify({"status":"success","user":public_web_user(current_web_user())})
+
+@app.route("/api/settings/security", methods=["POST"])
+@require_web_auth
+def api_settings_security():
+    user=current_web_user(); d=json_body()
+    if not check_password_hash(user["password"],str(d.get("current",""))):
+        return jsonify({"status":"error","message":"Current password is incorrect"}),400
+    new=str(d.get("password",""))
+    if len(new)<10:
+        return jsonify({"status":"error","message":"New password must contain at least 10 characters"}),400
+    db_conn().execute("UPDATE web_users SET password=?,updated_at=? WHERE id=?",(generate_password_hash(new),db_now(),user["id"]))
+    db_conn().commit()
+    return jsonify({"status":"success"})
+
+@app.route("/api/office/<kind>", methods=["GET","POST"])
+@require_web_auth
+def api_office(kind):
+    allowed={"tasks","projects","team","documents","calendar"}
+    if kind not in allowed:
+        return jsonify({"status":"error","message":"Unknown office section"}),404
+    user=current_web_user()
+    if request.method=="GET":
+        rows=db_conn().execute(
+            "SELECT * FROM web_office WHERE user_id=? AND kind=? ORDER BY updated_at DESC",(user["id"],kind)
+        ).fetchall()
+        return jsonify({"status":"success","items":[{**json.loads(r["data"]),"id":r["id"],"updatedAt":r["updated_at"]} for r in rows]})
+    d=json_body()
+    if len(json.dumps(d,ensure_ascii=False))>500000:
+        return jsonify({"status":"error","message":"Record is too large"}),400
+    title=str(d.get("title","")).strip()
+    if not title:
+        return jsonify({"status":"error","message":"Title is required"}),400
+    rid=uuid.uuid4().hex; stamp=db_now()
+    db_conn().execute("INSERT INTO web_office VALUES(?,?,?,?,?,?)",(rid,user["id"],kind,json.dumps(d,ensure_ascii=False),stamp,stamp))
+    db_conn().commit()
+    return jsonify({"status":"success","id":rid,"item":{**d,"id":rid,"updatedAt":stamp}}),201
+
+@app.route("/api/office/<kind>/<rid>", methods=["PATCH","DELETE"])
+@require_web_auth
+def api_office_item(kind,rid):
+    if kind not in {"tasks","projects","team","documents","calendar"}:
+        return jsonify({"status":"error","message":"Unknown office section"}),404
+    user=current_web_user()
+    row=db_conn().execute("SELECT * FROM web_office WHERE id=? AND user_id=? AND kind=?",(rid,user["id"],kind)).fetchone()
+    if not row: return jsonify({"status":"error","message":"Record not found"}),404
+    if request.method=="DELETE":
+        db_conn().execute("DELETE FROM web_office WHERE id=?",(rid,));db_conn().commit()
+        return jsonify({"status":"success"})
+    d=json_body(); current=json.loads(row["data"]); current.update(d); stamp=db_now()
+    db_conn().execute("UPDATE web_office SET data=?,updated_at=? WHERE id=?",(json.dumps(current,ensure_ascii=False),stamp,rid));db_conn().commit()
+    return jsonify({"status":"success","item":{**current,"id":rid,"updatedAt":stamp}})
+
+@app.route("/api/notifications", methods=["GET"])
+@require_web_auth
+def api_notifications():
+    user=current_web_user()
+    rows=db_conn().execute("SELECT * FROM web_notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50",(user["id"],)).fetchall()
+    return jsonify({"status":"success","items":[dict(r) for r in rows]})
+
+@app.route("/api/notifications/<nid>/read", methods=["POST"])
+@require_web_auth
+def api_notification_read(nid):
+    user=current_web_user()
+    db_conn().execute("UPDATE web_notifications SET read=1 WHERE id=? AND user_id=?",(nid,user["id"]));db_conn().commit()
+    return jsonify({"status":"success"})
+
+@app.route("/api/integrations", methods=["GET"])
+@require_web_auth
+def api_integrations():
+    return jsonify({"status":"success","items":[
+        {"name":"Telegram","status":"CONNECTED" if TELEGRAM_BOT_TOKEN else "NOT CONFIGURED"},
+        {"name":"Google Sheets","status":"CONNECTED" if spreadsheet else "NOT CONFIGURED"},
+        {"name":"Gemini","status":"CONNECTED" if gemini_client else "NOT CONFIGURED"},
+        {"name":"Groq","status":"CONNECTED" if groq_client else "NOT CONFIGURED"}
+    ]})
+
+@app.route("/api/admin/overview", methods=["GET"])
+@require_web_admin
+def api_admin_overview():
+    c=db_conn()
+    users=c.execute("SELECT count(*) FROM web_users").fetchone()[0]
+    trades=c.execute("SELECT count(*) FROM web_trades").fetchone()[0]
+    volume=c.execute("SELECT COALESCE(SUM(amount),0) FROM web_trades").fetchone()[0]
+    return jsonify({"status":"success","users":users,"trades":trades,"volume":float(volume),"markets":8})
+
+@app.route("/api/admin/users", methods=["GET"])
+@require_web_admin
+def api_admin_users():
+    rows=db_conn().execute("SELECT id,email,username,name,role,balance,created_at FROM web_users ORDER BY created_at DESC").fetchall()
+    return jsonify({"status":"success","items":[dict(r) for r in rows]})
+
 @app.route('/api/update_balance', methods=['POST'])
 def update_balance():
     global spreadsheet
     try:
         data = request.get_json(force=True) or {}
         user_id = str(data.get("user_id", "")).strip()
-        username = str(data.get("username", "Trader")).strip()
+        username = str(data.get("username", "Trader")).strip().lstrip("@")[:32]
         balance = float(data.get("balance", 10000.0))
+        if not user_id or not re.fullmatch(r"[A-Za-z0-9_:@.-]{2,100}", user_id):
+            return jsonify({"status": "error", "message": "Noto'g'ri user ID"}), 400
+        if not (0 <= balance <= 1e9):
+            return jsonify({"status":"error","message":"Invalid balance"}),400
 
-        if not spreadsheet or not user_id:
-            return jsonify({"status": "error", "message": "Noto'g'ri ma'lumot"}), 400
-
-        ws = spreadsheet.worksheet("Leaderboard")
-        all_vals = ws.get_all_values()
-
-        row_to_update = None
-        for i, row in enumerate(all_vals[1:], start=2):
-            if len(row) >= 1 and row[0].strip() == user_id:
-                row_to_update = i
-                break
-
-        formatted_bal = f"{balance:.2f}"
-
-        if row_to_update:
-            ws.update_cell(row_to_update, 2, username)
-            ws.update_cell(row_to_update, 3, formatted_bal)
+        # Local persistent mirror for the existing paper-trading UI.
+        stamp=db_now()
+        row=db_conn().execute("SELECT id FROM web_users WHERE id=?", (user_id,)).fetchone()
+        if row:
+            db_conn().execute("UPDATE web_users SET username=?,balance=?,updated_at=? WHERE id=?",(username or "trader",balance,stamp,user_id))
         else:
-            ws.append_row([user_id, username, formatted_bal])
+            email=f"{user_id[:60]}@telegram.local"
+            try:
+                db_conn().execute(
+                    "INSERT INTO web_users VALUES(?,?,?,?,?,?,?,?,?)",
+                    (user_id,email,username or "trader",username or "Trader",generate_password_hash(secrets.token_hex(16)),"USER",balance,stamp,stamp)
+                )
+            except sqlite3.IntegrityError:
+                # A browser-generated ID should never overwrite another account.
+                pass
+        db_conn().commit()
 
-        return jsonify({"status": "success", "updated_row": row_to_update})
+        if spreadsheet:
+            try:
+                ws = spreadsheet.worksheet("Leaderboard")
+                all_vals = ws.get_all_values()
+                row_to_update = None
+                for i, row in enumerate(all_vals[1:], start=2):
+                    if len(row) >= 1 and row[0].strip() == user_id:
+                        row_to_update = i; break
+                formatted_bal = f"{balance:.2f}"
+                if row_to_update:
+                    ws.update_cell(row_to_update, 2, username or "Trader")
+                    ws.update_cell(row_to_update, 3, formatted_bal)
+                else:
+                    ws.append_row([user_id, username or "Trader", formatted_bal])
+            except Exception as sheet_err:
+                print(f"Sheets sync warning: {sheet_err}")
+        return jsonify({"status": "success"})
     except Exception as e:
         print(f"Xatolik update_balance: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Balance sync failed"}), 500
+
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     global spreadsheet
     try:
         if not spreadsheet:
-            return jsonify({"status": "success", "leaders": []})
-
+            rows=[]
+            for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
+                rows.append({
+                    "User ID":u["id"],
+                    "Username":"@"+str(u["username"]).lstrip("@"),
+                    "Balance":float(u["balance"])
+                })
+            rows.sort(key=lambda x:x["Balance"], reverse=True)
+            return jsonify({"status":"success","leaders":rows})
         try:
             ws = spreadsheet.worksheet("Leaderboard")
         except Exception:
-            return jsonify({"status": "success", "leaders": []})
-
+            return jsonify({"status":"success","leaders":[]})
         records = ws.get_all_records()
-        valid_leaders = []
-
+        valid_leaders=[]
         for r in records:
-            raw_bal = str(r.get("Balance", "0")).replace(" ", "").replace("\xa0", "").replace(",", ".")
-            try:
-                bal_val = float(raw_bal)
-            except Exception:
-                bal_val = 0.0
-
+            raw_bal=str(r.get("Balance","0")).replace(" ","").replace("\xa0","").replace(",",".")
+            try: bal_val=float(raw_bal)
+            except Exception: bal_val=0.0
             valid_leaders.append({
-                "User ID": str(r.get("User ID", "")),
-                "Username": str(r.get("Username", "Trader")),
-                "Balance": bal_val
+                "User ID":str(r.get("User ID","")),
+                "Username":str(r.get("Username","Trader")),
+                "Balance":bal_val
             })
-
-        sorted_leaders = sorted(valid_leaders, key=lambda x: x["Balance"], reverse=True)[:10]
-        return jsonify({"status": "success", "leaders": sorted_leaders})
+        sorted_leaders=sorted(valid_leaders,key=lambda x:x["Balance"],reverse=True)[:10]
+        return jsonify({"status":"success","leaders":sorted_leaders})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status":"error","message":"Leaderboard unavailable"}),500
 
-# --- OBSIDIAN HQ: LIVE AGENT LOGS VA TASKS ENDPOINT ---
+
 @app.route('/api/agent_tasks', methods=['GET'])
 def get_agent_tasks():
     """Izometrik HQ ofisdagi Live Ticker va statuslar uchun jonli ma'lumotlar"""
