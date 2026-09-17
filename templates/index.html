@@ -6,28 +6,40 @@
 <title>Obsidian Lab — Build. Trade. Compete.</title>
 <meta name="theme-color" content="#f7f7f5">
 <style>
-:root{--bg:#f7f7f5;--paper:#fff;--ink:#111;--muted:#777;--line:#e7e7e2;--soft:#f0f0eb;--green:#177245;--red:#b33a3a}
+:root{--bg:#e7e3da;--paper:#f0ede6;--ink:#171717;--muted:#73736d;--line:#d2cec4;--soft:#dedad1;--green:#177245;--red:#d95c5c}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input{font:inherit}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 header{height:72px;border-bottom:1px solid var(--line);background:rgba(247,247,245,.94);backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
 .nav{max-width:1180px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em}.mark{width:28px;height:28px;border:1.5px solid #111;display:grid;place-items:center;font-size:12px}.brand span{font-size:15px}
 .links{display:flex;gap:7px}.links button{border:0;background:transparent;padding:9px 12px;color:#666;cursor:pointer;font-size:13px}.links button:hover,.links button.active{color:#111;background:#ecece7;border-radius:8px}
-.menu{display:none;border:1px solid var(--line);background:white;border-radius:8px;padding:8px 10px}
+.menu{display:none;border:1px solid var(--line);background:#f0ede6;border-radius:8px;padding:8px 10px}
 main{max-width:1180px;margin:auto;padding:0 22px 70px}.page{display:none}.page.active{display:block}
 .hero{min-height:590px;display:grid;align-content:center;grid-template-columns:1.15fr .85fr;gap:70px;padding:80px 0}.eyebrow{font-size:11px;letter-spacing:.16em;color:#777;margin-bottom:22px}.hero h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.075em;margin:0 0 28px;max-width:780px}.hero p{font-size:17px;line-height:1.7;color:#6d6d68;max-width:570px;margin:0 0 34px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #111;background:#111;color:white;padding:12px 17px;border-radius:8px;cursor:pointer;font-size:13px}.btn.secondary{background:transparent;color:#111;border-color:var(--line)}.btn:hover{transform:translateY(-1px)}
-.statusbox{align-self:end;border:1px solid var(--line);background:white;padding:22px;border-radius:12px}.statusline{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:12px}.statusline:last-child{border:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2b8a57;margin-right:8px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{border:1px solid var(--line);background:white;border-radius:12px;padding:20px;min-height:150px;cursor:pointer;transition:.18s}.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.05)}.card small{color:#999}.card h3{margin:28px 0 8px;font-size:15px}.card p{font-size:12px;color:#777;line-height:1.5;margin:0}
+.statusbox{align-self:end;border:1px solid var(--line);background:#f0ede6;padding:22px;border-radius:12px}.statusline{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:12px}.statusline:last-child{border:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2b8a57;margin-right:8px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{border:1px solid var(--line);background:#f0ede6;border-radius:12px;padding:20px;min-height:150px;cursor:pointer;transition:.18s}.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.05)}.card small{color:#999}.card h3{margin:28px 0 8px;font-size:15px}.card p{font-size:12px;color:#777;line-height:1.5;margin:0}
 .sectionHead{padding:58px 0 24px;display:flex;align-items:end;justify-content:space-between;gap:20px}.sectionHead h2{font-size:34px;letter-spacing:-.05em;margin:0}.sectionHead p{color:#777;font-size:13px}
-.panel{border:1px solid var(--line);background:white;border-radius:12px;overflow:hidden}.toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}.input,.select{border:1px solid var(--line);background:#fafaf8;border-radius:7px;padding:9px 11px;font-size:12px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:15px 16px;border-bottom:1px solid var(--line);font-size:12px}.table th{color:#999;font-weight:500}.table tr:last-child td{border:0}.up{color:var(--green)}.down{color:var(--red)}
+.panel{border:1px solid var(--line);background:#f0ede6;border-radius:12px;overflow:hidden}.toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}.input,.select{border:1px solid var(--line);background:#fafaf8;border-radius:7px;padding:9px 11px;font-size:12px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:15px 16px;border-bottom:1px solid var(--line);font-size:12px}.table th{color:#999;font-weight:500}.table tr:last-child td{border:0}.up{color:var(--green)}.down{color:var(--red)}
 .tradegrid{display:grid;grid-template-columns:1fr 330px;gap:14px}.chart{height:480px;display:grid;place-items:center;background:repeating-linear-gradient(0deg,#fff,#fff 39px,#f1f1ed 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#f1f1ed 80px);position:relative}.chart:after{content:"BTCUSDT  •  TradingView";position:absolute;left:18px;top:16px;color:#999;font:11px monospace}.fakechart{width:82%;height:50%;border-bottom:2px solid #222;border-left:1px solid #ddd;clip-path:polygon(0 80%,8% 70%,16% 74%,24% 55%,31% 62%,39% 42%,47% 50%,55% 32%,64% 37%,72% 20%,80% 28%,88% 10%,100% 16%,100% 100%,0 100%);background:#111}
 .order{padding:20px}.order h3{margin:0 0 18px;font-size:15px}.field{margin:12px 0}.field label{display:block;color:#888;font-size:11px;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:7px;background:#fafaf8}.full{width:100%;margin-top:10px}
-.office{display:grid;grid-template-columns:220px 1fr;min-height:580px}.side{border-right:1px solid var(--line);padding:16px}.side button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:11px;border-radius:7px;color:#777;font-size:12px;cursor:pointer}.side button.active,.side button:hover{background:#f0f0eb;color:#111}.officeview{padding:30px}.room{height:430px;border:1px solid var(--line);border-radius:10px;background:#f5f5f1;position:relative;overflow:hidden}.desk{position:absolute;width:190px;height:75px;border:1px solid #bbb;background:#fff;left:30%;top:45%;box-shadow:0 10px 25px #ddd}.screen{position:absolute;width:70px;height:45px;background:#202020;left:60px;top:-50px;border-radius:3px}.person{position:absolute;width:24px;height:34px;border-radius:12px 12px 6px 6px;background:#111;left:44%;top:55%;transition:.4s}.person:before{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#aaa;left:5px;top:-12px}.person.a{left:23%;top:31%}.person.b{left:70%;top:28%}.tag{position:absolute;font:10px monospace;color:#555}
+.office{display:grid;grid-template-columns:220px 1fr;min-height:580px}.side{border-right:1px solid var(--line);padding:16px}.side button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:11px;border-radius:7px;color:#777;font-size:12px;cursor:pointer}.side button.active,.side button:hover{background:#f0f0eb;color:#111}.officeview{padding:30px}.room{height:430px;border:1px solid var(--line);border-radius:10px;background:#f5f5f1;position:relative;overflow:hidden}.desk{position:absolute;width:190px;height:75px;border:1px solid #bbb;background:#f0ede6;left:30%;top:45%;box-shadow:0 10px 25px #ddd}.screen{position:absolute;width:70px;height:45px;background:#202020;left:60px;top:-50px;border-radius:3px}.person{position:absolute;width:24px;height:34px;border-radius:12px 12px 6px 6px;background:#111;left:44%;top:55%;transition:.4s}.person:before{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#aaa;left:5px;top:-12px}.person.a{left:23%;top:31%}.person.b{left:70%;top:28%}.tag{position:absolute;font:10px monospace;color:#555}
 footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px monospace;display:flex;justify-content:space-between}
 .toast{position:fixed;right:20px;bottom:20px;background:#111;color:#fff;padding:12px 15px;border-radius:8px;font-size:12px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
 @media(max-width:800px){.links{display:none}.menu{display:block}.hero{grid-template-columns:1fr;padding:60px 0;min-height:auto;gap:45px}.cards{grid-template-columns:1fr 1fr}.tradegrid{grid-template-columns:1fr}.office{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto}.side button{min-width:max-content}.chart{height:360px}}
 @media(max-width:520px){.cards{grid-template-columns:1fr}.hero h1{font-size:48px}.sectionHead{display:block}.sectionHead h2{font-size:28px}.table{min-width:650px}.panel{overflow-x:auto}footer{display:block;line-height:2}}
 </style>
+
+<style>
+.auth-grid{max-width:1000px;margin:70px auto;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper)}
+.auth-art{background:#171717;color:#fff;padding:45px;min-height:470px;display:flex;flex-direction:column;justify-content:flex-end}
+.auth-art h2{font-size:48px;line-height:.94;letter-spacing:-.06em;margin:20px 0}
+.auth-art p{color:#aaa;font-size:13px;line-height:1.6}
+.auth-form{padding:45px;min-height:470px}.auth-form.standalone{max-width:480px;margin:80px auto;border:1px solid var(--line);background:#f0ede6;border-radius:14px}
+.auth-form h2{font-size:32px;letter-spacing:-.05em;margin:8px 0}.auth-form>p{font-size:13px;color:#777}
+.settings-pane h3{margin-top:0;font-size:18px}
+@media(max-width:700px){.auth-grid{grid-template-columns:1fr;margin:35px 0}.auth-art{min-height:240px;padding:28px}.auth-art h2{font-size:40px}.auth-form{padding:28px}.auth-form.standalone{margin:40px 0}}
+</style>
+
 </head>
 <body>
 <header><div class="nav">
@@ -68,7 +80,7 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
   <div>
     <div class="panel chart" style="height:520px;display:block;padding:0;overflow:hidden">
       <div style="height:100%;position:relative">
-        <div id="chartLoading" style="position:absolute;z-index:2;left:18px;top:14px;font:11px monospace;color:#888;background:#fff;padding:4px 7px;border-radius:5px">CONNECTING TO TRADINGVIEW…</div>
+        <div id="chartLoading" style="position:absolute;z-index:2;left:18px;top:14px;font:11px monospace;color:#888;background:#f0ede6;padding:4px 7px;border-radius:5px">CONNECTING TO TRADINGVIEW…</div>
         <iframe id="tvFrame"
           title="TradingView chart"
           src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
@@ -136,12 +148,6 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 
 <section class="page" id="leaderboard">
 <div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p id="leader-status">Loading paper performance…</p></div>
-<div id="jasur-card" class="panel" style="margin-bottom:12px;padding:15px;border:1px solid #dfe7e1;background:#fbfdfb">
-  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-    <div><span style="font-size:11px;color:#777;font-family:monospace">AI PAPER TRADER</span><br><b>🤖 Jasur</b> <span style="font-size:11px;color:#177245">● PAPER ONLY</span></div>
-    <div id="jasur-mini" style="font:11px monospace;color:#777">Loading AI status…</div>
-  </div>
-</div>
 <div class="panel">
   <div class="toolbar">
     <button class="btn secondary lb-filter active" data-period="all">All Time</button>
@@ -203,16 +209,96 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 </div>
 </div>
 </section>
+
+<section class="page" id="profile">
+<div class="sectionHead"><div><div class="eyebrow mono">05 / PROFILE</div><h2>Profile</h2></div><p>Your trading identity</p></div>
+<div class="cards">
+<div class="card"><small>USER</small><h3 id="profile-name">@trader</h3><p>Obsidian Lab member</p></div>
+<div class="card"><small>BALANCE</small><h3 id="profile-balance">$10,000.00</h3><p>Paper account</p></div>
+<div class="card"><small>RANK</small><h3 id="profile-rank">—</h3><p>Leaderboard position</p></div>
+<div class="card"><small>MODE</small><h3>PAPER</h3><p>Zero real-money risk</p></div>
+</div>
+<div class="panel" style="margin-top:14px;padding:22px">
+<h3 style="margin:0 0 16px">Statistics</h3>
+<div class="table" style="overflow:auto"><table class="table"><tr><td>Total profit</td><td id="profile-profit">$0.00</td></tr><tr><td>Trades</td><td id="profile-trades">0</td></tr><tr><td>Win rate</td><td id="profile-win">—</td></tr><tr><td>Points</td><td id="profile-points">0</td></tr></table></div>
+</div>
+</section>
+
+<section class="page" id="notifications">
+<div class="sectionHead"><div><div class="eyebrow mono">06 / NOTIFICATIONS</div><h2>Notifications</h2></div><p>System and trading activity</p></div>
+<div class="panel" id="notification-list">
+<div style="padding:20px;border-bottom:1px solid var(--line)"><b>System online</b><div style="font-size:12px;color:#777;margin-top:5px">Obsidian Lab is ready for paper trading.</div></div>
+<div style="padding:20px;border-bottom:1px solid var(--line)"><b>Paper account</b><div style="font-size:12px;color:#777;margin-top:5px">Your starting balance is $10,000.</div></div>
+</div>
+</section>
+
+<section class="page" id="settings">
+<div class="sectionHead"><div><div class="eyebrow mono">07 / SETTINGS</div><h2>Settings</h2></div><p>Account preferences</p></div>
+<div class="office panel">
+<aside class="side">
+<button class="active settings-tab" data-tab="settings-profile">Profile</button>
+<button class="settings-tab" data-tab="settings-security">Security</button>
+<button class="settings-tab" data-tab="settings-notifications">Notifications</button>
+<button class="settings-tab" data-tab="settings-integrations">Integrations</button>
+<button class="settings-tab" data-tab="settings-appearance">Appearance</button>
+</aside>
+<div class="officeview">
+<div id="settings-profile" class="settings-pane"><h3>Profile</h3><div class="field"><label>USERNAME</label><input id="settings-username" value="@trader"></div><button class="btn" onclick="saveSettings()">Save changes</button></div>
+<div id="settings-security" class="settings-pane" style="display:none"><h3>Security</h3><p style="color:#777;font-size:13px">Authentication settings are handled by the backend when connected.</p></div>
+<div id="settings-notifications" class="settings-pane" style="display:none"><h3>Notifications</h3><p style="color:#777;font-size:13px">Trade, leaderboard and system notifications.</p></div>
+<div id="settings-integrations" class="settings-pane" style="display:none"><h3>Integrations</h3><div class="cards"><div class="card"><small>TELEGRAM</small><h3>Telegram</h3><p id="tg-status">Backend configured</p></div><div class="card"><small>GOOGLE SHEETS</small><h3>Google Sheets</h3><p>Leaderboard sync</p></div></div></div>
+<div id="settings-appearance" class="settings-pane" style="display:none"><h3>Appearance</h3><p style="color:#777;font-size:13px">Obsidian warm-stone interface.</p></div>
+</div>
+</div>
+</section>
+
+<section class="page" id="login">
+<div class="auth-grid">
+<div class="auth-art"><div class="eyebrow mono">OBSIDIAN LAB</div><h2>Build.<br>Trade.<br>Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div>
+<div class="auth-form"><div class="eyebrow mono">ACCOUNT</div><h2>Welcome back</h2><p>Sign in to your account</p><div class="field"><label>EMAIL</label><input id="login-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="login-password" type="password" placeholder="••••••••"></div><button class="btn full" onclick="demoLogin()">Sign in</button><button class="btn secondary full" onclick="go('register')">Create account</button><p style="font-size:12px;color:#777;text-align:center">Forgot password? <a href="#forgot-password" style="color:#111">Reset</a></p></div>
+</div>
+</section>
+
+<section class="page" id="register">
+<div class="auth-grid"><div class="auth-art"><div class="eyebrow mono">OBSIDIAN LAB</div><h2>Create.<br>Learn.<br>Compete.</h2></div>
+<div class="auth-form"><div class="eyebrow mono">REGISTER</div><h2>Create account</h2><div class="field"><label>USERNAME</label><input id="reg-username" placeholder="@username"></div><div class="field"><label>EMAIL</label><input id="reg-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="reg-password" type="password"></div><button class="btn full" onclick="demoRegister()">Create account</button><button class="btn secondary full" onclick="go('login')">Sign in</button></div></div>
+</section>
+
+<section class="page" id="forgot-password">
+<div class="auth-form standalone"><div class="eyebrow mono">PASSWORD RECOVERY</div><h2>Forgot password?</h2><p style="color:#777">Enter your email to request a reset link.</p><div class="field"><label>EMAIL</label><input type="email" id="forgot-email" placeholder="you@example.com"></div><button class="btn full" onclick="show('Reset link requested')">Send reset link</button><button class="btn secondary full" onclick="go('login')">Back to sign in</button></div>
+</section>
+
+<section class="page" id="admin">
+<div class="sectionHead"><div><div class="eyebrow mono">ADMIN / SYSTEM</div><h2>Admin</h2></div><p>System control center</p></div>
+<div class="cards"><div class="card"><small>USERS</small><h3 id="admin-users">—</h3><p>Registered traders</p></div><div class="card"><small>TRADES</small><h3 id="admin-trades">—</h3><p>Paper activity</p></div><div class="card"><small>MARKETS</small><h3>8</h3><p>Tracked assets</p></div><div class="card"><small>SYSTEM</small><h3><span class="dot"></span>ONLINE</h3><p>Backend status</p></div></div>
+<div class="panel" style="margin-top:14px;padding:20px"><b>Admin sections</b><div class="actions" style="margin-top:16px"><button class="btn secondary" onclick="show('Users management')">Users</button><button class="btn secondary" onclick="go('markets')">Markets</button><button class="btn secondary" onclick="go('trade')">Trades</button><button class="btn secondary" onclick="go('leaderboard')">Leaderboard</button><button class="btn secondary" onclick="go('office')">Office</button><button class="btn secondary" onclick="show('Integration settings')">Integrations</button><button class="btn secondary" onclick="show('System logs')">Logs</button></div></div>
+</section>
+
+<section class="page" id="market-detail">
+<div class="sectionHead"><div><div class="eyebrow mono">MARKET / ASSET</div><h2 id="detail-symbol">BTC / USDT</h2></div><button class="btn" onclick="go('trade')">Trade →</button></div>
+<div class="cards"><div class="card"><small>PRICE</small><h3 id="detail-price">$—</h3><p>Live market price</p></div><div class="card"><small>24H</small><h3 class="up">+2.41%</h3><p>Market change</p></div><div class="card"><small>VOLUME</small><h3>LIVE</h3><p>Market volume</p></div><div class="card"><small>STATUS</small><h3><span class="dot"></span>LIVE</h3><p>Market data</p></div></div>
+<div class="panel chart" style="margin-top:14px;height:480px;display:block;padding:0;overflow:hidden"><iframe id="detail-frame" style="width:100%;height:100%;border:0"></iframe></div>
+</section>
+
 </main>
 <footer><span>© 2026 OBSIDIAN LAB</span><span>PAPER TRADING · ZERO REAL-MONEY RISK</span></footer>
 <div class="toast" id="toast"></div>
 <script>
-const pages=["home","markets","trade","leaderboard","office"];
+const pages=["home","markets","trade","leaderboard","office","profile","notifications","settings","login","register","forgot-password","admin","market-detail"];
 const data=[["BTCUSDT","$78,100.00","+2.41%"],["ETHUSDT","$2,500.00","+1.18%"],["SOLUSDT","$186.20","-0.74%"],["BNBUSDT","$684.30","+0.42%"]];
-function go(p){pages.forEach(x=>document.getElementById(x).classList.toggle("active",x===p));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));history.replaceState(null,"","#"+p);window.scrollTo(0,0);if(p==="leaderboard")loadLeaderboard();if(p==="office")loadOffice()}
+function go(p){
+  if(p.startsWith("market/")){const sym=p.split("/")[1]||"BTCUSDT";openMarketDetail(sym);return}
+  pages.forEach(x=>document.getElementById(x)?.classList.toggle("active",x===p));
+  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+  history.replaceState(null,"","#"+p);window.scrollTo(0,0);
+  if(p==="leaderboard")loadLeaderboard();
+  if(p==="office")loadOffice();
+  if(p==="profile")loadProfile();
+  if(p==="admin")loadAdmin();
+}
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.getElementById("menu").onclick=()=>{let n=document.getElementById("nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.right="22px";n.style.top="65px";n.style.background="#fff";n.style.padding="8px";n.style.border="1px solid #e7e7e2";n.style.borderRadius="8px";n.style.flexDirection="column"};
-function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="go('trade');document.getElementById('asset').value='${x[0]}'">Trade</button></td></tr>`).join("")}
+function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="openMarketDetail('${x[0]}')">View</button></td></tr>`).join("")}
 function filterMarkets(){renderMarkets(document.getElementById("search").value)}
 const API_BASE=location.origin;
 const userId=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe?.user?.id)?String(Telegram.WebApp.initDataUnsafe.user.id):("web-"+(localStorage.getItem("obs_user_id")||crypto.randomUUID()));
@@ -348,7 +434,51 @@ document.getElementById("lev").value=String(currentLeverage);
 setAssetUI();updateUI();updateTicker();setInterval(updateTicker,4000);
 function show(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
 document.getElementById("users").textContent=localStorage.getItem("obs_users")||"ACTIVE";
-let hash=location.hash.slice(1);go(pages.includes(hash)?hash:"home");renderMarkets();
+let hash=location.hash.slice(1);
+if(hash.startsWith("markets/")) openMarketDetail(hash.split("/")[1]);
+else go(pages.includes(hash)?hash:"home");
+renderMarkets();
+
+
+function openMarketDetail(sym){
+  pages.forEach(x=>document.getElementById(x)?.classList.toggle("active",x==="market-detail"));
+  document.querySelectorAll("[data-page]").forEach(b=>b.classList.remove("active"));
+  const clean=(sym||"BTCUSDT").toUpperCase();
+  document.getElementById("detail-symbol").textContent=clean.replace("USDT"," / USDT");
+  document.getElementById("detail-price").textContent=prices[clean]?money(prices[clean]):"—";
+  document.getElementById("detail-frame").src="https://s.tradingview.com/widgetembed/?frameElementId=detail&symbol=BINANCE%3A"+clean+"&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
+  history.replaceState(null,"","#markets/"+clean);
+  updateTicker();
+}
+function saveSettings(){
+  const v=document.getElementById("settings-username").value.trim();
+  if(v){myUsername=v.startsWith("@")?v:"@"+v;safeSet("obs_confirmed_username",myUsername);document.getElementById("nav-username")?.textContent=myUsername;syncWithSheets();show("Settings saved")}
+}
+function demoLogin(){show("Demo sign-in complete");go("trade")}
+function demoRegister(){
+  const v=document.getElementById("reg-username").value.trim();
+  if(v){myUsername=v.startsWith("@")?v:"@"+v;safeSet("obs_confirmed_username",myUsername);show("Account created");go("trade")}
+}
+async function loadProfile(){
+  document.getElementById("profile-name").textContent=myUsername;
+  document.getElementById("profile-balance").textContent=money(balance);
+  document.getElementById("profile-profit").textContent=money(balance-10000);
+  try{
+    const r=await fetch("/api/leaderboard?t="+Date.now(),{cache:"no-store"});const d=await r.json();
+    if(d.status==="success"){
+      const me=(d.leaders||[]).find(x=>String(x["User ID"])===String(userId)||String(x.Username)===String(myUsername));
+      if(me){document.getElementById("profile-rank").textContent="#"+(d.leaders.indexOf(me)+1);document.getElementById("profile-points").textContent=Math.max(0,Math.round(Number(me.Balance)-10000))}
+    }
+  }catch(e){}
+}
+async function loadAdmin(){
+  try{const r=await fetch("/api/leaderboard?t="+Date.now(),{cache:"no-store"});const d=await r.json();document.getElementById("admin-users").textContent=d.leaders?.length||"—";document.getElementById("admin-trades").textContent="LIVE"}catch(e){}
+}
+document.querySelectorAll(".settings-tab").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".settings-tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+  document.querySelectorAll(".settings-pane").forEach(x=>x.style.display="none");
+  document.getElementById(b.dataset.tab).style.display="block";
+}));
 
 // ===== Leaderboard =====
 let leaderboardPeriod="all";
@@ -410,22 +540,6 @@ function checkResetButton(){
 }
 const oldUpdateUI=updateUI;
 updateUI=function(){oldUpdateUI();checkResetButton()};
-
-
-// ===== Jasur AI Paper Trader status =====
-async function loadJasurStatus(){
-  const el=document.getElementById("jasur-mini"); if(!el)return;
-  try{
-    const r=await fetch("/api/jasur?t="+Date.now(),{cache:"no-store"});
-    const d=await r.json();
-    if(d.status!=="success")throw new Error();
-    const p=d.position;
-    el.innerHTML=p
-      ? `<b style="color:${p.direction==="LONG"?"#177245":"#b33a3a"}">${p.direction}</b> ${p.symbol} · Entry ${money(p.entry)} · Balance ${money(d.balance)}`
-      : `Scanning ICT · Balance ${money(d.balance)} · ${d.trades} closed trades`;
-  }catch(e){el.textContent="Jasur status unavailable";}
-}
-loadJasurStatus();setInterval(loadJasurStatus,10000);
 
 // ===== Web Office live backend =====
 let officeData=null;
