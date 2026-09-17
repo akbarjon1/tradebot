@@ -23,12 +23,15 @@ import uuid
 import datetime
 import threading
 import hashlib
+import sqlite3
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 import feedparser
 import telebot
 import gspread
 from google.oauth2.service_account import Credentials
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from google import genai
 from google.genai import types as genai_types
 from groq import Groq
@@ -171,6 +174,8 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "obsidian-lab-change-this-secret")
+DB_PATH = os.getenv("OBSIDIAN_DB", "obsidian_lab.db")
 CORS(app)
 
 # Render uchun Telegram Webhook.
@@ -271,16 +276,128 @@ def health():
 
 @app.route('/', methods=['GET'])
 def home():
-    trades = get_trades_from_sheets()
-    return render_template(
-        'index.html',
-        title="Obsidian Lab — Trade Smarter. Real Markets. Zero Risk.",
-        username="@trader",
-        api_base="https://tradebot-xelo.onrender.com",
-        bot_url="https://t.me/your_bot_username",
-        trades=trades,
-        comments=comments_store
-    )
+    return render_template('home.html', title='Obsidian Lab — Build. Trade. Compete.', username=session.get('username','@trader'))
+
+
+# ===== OBSIDIAN LAB MULTI-PAGE SITE =====
+def db():
+    conn=sqlite3.connect(DB_PATH)
+    conn.row_factory=sqlite3.Row
+    return conn
+
+def init_db():
+    conn=db(); c=conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'USER', created_at TEXT NOT NULL)""")
+    conn.commit(); conn.close()
+init_db()
+
+def bootstrap_admin():
+    email=os.getenv('ADMIN_EMAIL','').strip().lower(); pw=os.getenv('ADMIN_PASSWORD','')
+    if not email or not pw: return
+    conn=db(); row=conn.execute('SELECT id FROM users WHERE email=?',(email,)).fetchone()
+    if not row:
+        username=os.getenv('ADMIN_USERNAME','admin')
+        try: conn.execute('INSERT INTO users(name,username,email,password_hash,role,created_at) VALUES(?,?,?,?,?,?)',('Obsidian Admin',username,email,generate_password_hash(pw),'ADMIN',datetime.datetime.utcnow().isoformat())); conn.commit()
+        except sqlite3.IntegrityError: pass
+    else: conn.execute("UPDATE users SET role='ADMIN' WHERE email=?",(email,)); conn.commit()
+    conn.close()
+bootstrap_admin()
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get('user_id'): return redirect(url_for('login', next=request.path))
+        return view(*args, **kwargs)
+    return wrapped
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if session.get('role')!='ADMIN': return redirect(url_for('login'))
+        return view(*args, **kwargs)
+    return wrapped
+
+@app.route('/markets')
+def markets_page(): return render_template('markets.html', title='Markets — Obsidian Lab')
+@app.route('/markets/<symbol>')
+def market_detail(symbol): return render_template('market_detail.html', symbol=symbol.upper(), title=f'{symbol.upper()} — Obsidian Lab')
+@app.route('/trade')
+@login_required
+def trade_page(): return render_template('trade.html', title='Trade — Obsidian Lab', username=session.get('username','@trader'))
+@app.route('/leaderboard')
+def leaderboard_page(): return render_template('leaderboard.html', title='Leaderboard — Obsidian Lab')
+@app.route('/profile')
+@login_required
+def profile_page(): return render_template('profile.html', title='Profile — Obsidian Lab', username=session.get('username','@trader'))
+@app.route('/profile/<user_id>')
+def public_profile(user_id): return render_template('profile.html', title='Profile — Obsidian Lab', username=session.get('username','@trader'), profile_id=user_id)
+@app.route('/web-office')
+@login_required
+def office_page(): return render_template('office.html', title='Web Office — Obsidian Lab', section='overview')
+@app.route('/web-office/<section>')
+@login_required
+def office_section(section):
+    allowed={'tasks','projects','team','documents','calendar','analytics'}
+    if section not in allowed: return redirect(url_for('office_page'))
+    return render_template('office.html', title=f'{section.title()} — Web Office', section=section)
+@app.route('/notifications')
+@login_required
+def notifications_page(): return render_template('notifications.html', title='Notifications — Obsidian Lab')
+@app.route('/settings')
+@login_required
+def settings_page(): return render_template('settings.html', title='Settings — Obsidian Lab', section='profile')
+@app.route('/settings/<section>')
+@login_required
+def settings_section(section):
+    allowed={'profile','security','notifications','integrations','appearance'}
+    if section not in allowed: return redirect(url_for('settings_page'))
+    return render_template('settings.html', title=f'{section.title()} — Settings', section=section)
+@app.route('/login', methods=['GET','POST'])
+def login():
+    error=None
+    if request.method=='POST':
+        email=request.form.get('email','').strip().lower(); pw=request.form.get('password','')
+        conn=db(); user=conn.execute('SELECT * FROM users WHERE email=?',(email,)).fetchone(); conn.close()
+        if user and check_password_hash(user['password_hash'],pw):
+            session.update(user_id=user['id'],username=user['username'],role=user['role'])
+            return redirect(request.args.get('next') or url_for('home'))
+        error='Email yoki parol noto‘g‘ri.'
+    return render_template('login.html', title='Sign in — Obsidian Lab', error=error)
+@app.route('/register', methods=['GET','POST'])
+def register():
+    error=None
+    if request.method=='POST':
+        name=request.form.get('name','').strip(); username=request.form.get('username','').strip(); email=request.form.get('email','').strip().lower(); pw=request.form.get('password',''); cp=request.form.get('confirm_password','')
+        if not name or not username or not email or len(pw)<6: error='Barcha maydonlarni to‘ldiring. Parol kamida 6 belgidan iborat.'
+        elif pw!=cp: error='Parollar mos emas.'
+        else:
+            try:
+                conn=db(); cur=conn.execute('INSERT INTO users(name,username,email,password_hash,role,created_at) VALUES(?,?,?,?,?,?)',(name,username,email,generate_password_hash(pw),'USER',datetime.datetime.utcnow().isoformat())); conn.commit(); uid=cur.lastrowid; conn.close(); session.update(user_id=uid,username='@'+username.lstrip('@'),role='USER'); return redirect(url_for('home'))
+            except sqlite3.IntegrityError: error='Username yoki email allaqachon mavjud.'
+    return render_template('register.html', title='Create account — Obsidian Lab', error=error)
+@app.route('/forgot-password', methods=['GET','POST'])
+def forgot_password(): return render_template('forgot.html', title='Reset password — Obsidian Lab', sent=request.method=='POST')
+@app.route('/logout')
+def logout(): session.clear(); return redirect(url_for('home'))
+
+@app.route('/admin')
+@admin_required
+def admin_home(): return render_template('admin.html', title='Admin — Obsidian Lab', section='overview')
+@app.route('/admin/<section>')
+@admin_required
+def admin_section(section): return render_template('admin.html', title=f'Admin {section.title()} — Obsidian Lab', section=section)
+
+@app.route('/api/price')
+def api_price():
+    symbol=request.args.get('symbol','BTCUSDT').upper()
+    if not re.fullmatch(r'[A-Z0-9]{5,15}',symbol): return jsonify(status='error',message='Invalid symbol'),400
+    for host in ('https://api.binance.com','https://api1.binance.com','https://api2.binance.com','https://api3.binance.com','https://data-api.binance.vision'):
+        try:
+            r=requests.get(host+'/api/v3/ticker/price',params={'symbol':symbol},timeout=4,headers={'User-Agent':'ObsidianLab/1.0'})
+            d=r.json(); p=float(d.get('price',0))
+            if p>0:return jsonify(status='success',symbol=symbol,price=p,source='BINANCE')
+        except Exception: pass
+    return jsonify(status='error',message='Market data unavailable'),503
 
 @app.route('/add_comment', methods=['POST'])
 def add_comment():
@@ -343,40 +460,6 @@ def update_balance():
         print(f"Xatolik update_balance: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/price', methods=['GET'])
-def get_market_price():
-    """Server-side Binance price proxy so the browser does not depend on Binance CORS/network access."""
-    symbol = str(request.args.get('symbol', 'BTCUSDT')).upper().strip()
-    if symbol not in {'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'}:
-        return jsonify({"status": "error", "message": "Unsupported symbol"}), 400
-    try:
-        last_error = None
-        for host in (
-            'https://api.binance.com',
-            'https://api1.binance.com',
-            'https://api2.binance.com',
-            'https://api3.binance.com',
-            'https://data-api.binance.vision',
-        ):
-            try:
-                r = requests.get(
-                    host + '/api/v3/ticker/price',
-                    params={'symbol': symbol},
-                    timeout=4,
-                    headers={'User-Agent': 'ObsidianLab/1.0'},
-                )
-                r.raise_for_status()
-                data = r.json()
-                price = float(data.get('price', 0))
-                if price > 0:
-                    return jsonify({"status": "success", "symbol": symbol, "price": price, "source": "BINANCE"})
-            except Exception as exc:
-                last_error = exc
-        raise RuntimeError(f'Binance mirrors unavailable: {last_error}')
-    except Exception as e:
-        print(f"Xatolik /api/price: {e}")
-        return jsonify({"status": "error", "message": "Market data temporarily unavailable"}), 503
-
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     global spreadsheet
@@ -422,12 +505,7 @@ def get_agent_tasks():
             "jasur": {
                 "name": "Jasur",
                 "role": "ICT Market Analyst",
-                "current_task": (
-                    "PAPER " + str(load_jasur_state().get("position", {}).get("direction", "")) + " " +
-                    str(load_jasur_state().get("position", {}).get("symbol", "Scanning 15m Liquidity"))
-                    if load_jasur_state().get("position")
-                    else str(load_jasur_state().get("last_analysis", latest_ict_status.get("BTC", "Scanning 15m Liquidity")))
-                ),
+                "current_task": latest_ict_status.get("BTC", "Scanning 15m Liquidity"),
                 "location": "Central Desk"
             },
             "alex": {
@@ -496,276 +574,6 @@ def npc_chat():
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
-
-
-# --- 4.5. JASUR AI PAPER TRADER ---
-# Jasur faqat PAPER hisobda ishlaydi. Real exchange order yubormaydi.
-JASUR_ID = "AI_JASUR"
-JASUR_NAME = "Jasur 🤖"
-JASUR_START_BALANCE = 10000.0
-JASUR_RISK_PER_TRADE = 500.0
-JASUR_LEVERAGE = 3
-JASUR_STATE_FILE = os.path.join(os.getcwd(), "jasur_paper_state.json")
-jasur_lock = threading.Lock()
-
-def _default_jasur_state():
-    return {
-        "user_id": JASUR_ID,
-        "username": JASUR_NAME,
-        "balance": JASUR_START_BALANCE,
-        "position": None,
-        "trades": 0,
-        "wins": 0,
-        "losses": 0,
-        "last_signal": "NO_SIGNAL",
-        "last_analysis": "Waiting for ICT scan...",
-        "last_update": None
-    }
-
-def load_jasur_state():
-    try:
-        if os.path.exists(JASUR_STATE_FILE):
-            with open(JASUR_STATE_FILE, "r", encoding="utf-8") as f:
-                state = json.load(f)
-            base = _default_jasur_state()
-            base.update(state)
-            return base
-    except Exception as e:
-        print(f"⚠️ Jasur state o'qilmadi: {e}")
-    return _default_jasur_state()
-
-def save_jasur_state(state):
-    tmp = JASUR_STATE_FILE + ".tmp"
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(state, f, ensure_ascii=False, indent=2)
-        os.replace(tmp, JASUR_STATE_FILE)
-    except Exception as e:
-        print(f"⚠️ Jasur state saqlanmadi: {e}")
-
-def sync_jasur_leaderboard(state):
-    """Leaderboard sheetida AI_JASUR qatorini yaratadi/yangilaydi."""
-    global spreadsheet
-    if not spreadsheet:
-        return False
-    try:
-        ws = spreadsheet.worksheet("Leaderboard")
-        rows = ws.get_all_values()
-        row_no = None
-        for i, row in enumerate(rows[1:], start=2):
-            if row and str(row[0]).strip() == JASUR_ID:
-                row_no = i
-                break
-        bal = f"{float(state.get('balance', JASUR_START_BALANCE)):.2f}"
-        if row_no:
-            ws.update_cell(row_no, 2, JASUR_NAME)
-            ws.update_cell(row_no, 3, bal)
-        else:
-            ws.append_row([JASUR_ID, JASUR_NAME, bal])
-        return True
-    except Exception as e:
-        print(f"⚠️ Jasur Leaderboard sync xatoligi: {e}")
-        return False
-
-def _extract_float(text, patterns):
-    for pattern in patterns:
-        m = re.search(pattern, text or "", re.I)
-        if m:
-            try:
-                return float(m.group(1).replace(",", ""))
-            except Exception:
-                pass
-    return None
-
-def parse_jasur_signal(ai_text, current_price):
-    """AI javobidan faqat LONG/SHORT + TP/SL ni oladi."""
-    if not ai_text or "SIGNAL_FOUND" not in ai_text:
-        return None
-    direction_match = re.search(r"(?:Yo['’`]?nalish|Direction)\s*:\s*(LONG|SHORT)", ai_text, re.I)
-    direction = direction_match.group(1).upper() if direction_match else None
-    if direction not in ("LONG", "SHORT"):
-        return None
-
-    tp = _extract_float(ai_text, [
-        r"Take[- ]Profit[^$0-9]*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)",
-        r"TP[^$0-9]*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)"
-    ])
-    sl = _extract_float(ai_text, [
-        r"Stop[- ]Loss[^$0-9]*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)",
-        r"\bSL\b[^$0-9]*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)"
-    ])
-
-    # AI TP/SL bermasa signalni avtomatik ochmaymiz.
-    if not tp or not sl:
-        return None
-
-    valid = (direction == "LONG" and sl < current_price < tp) or (direction == "SHORT" and tp < current_price < sl)
-    if not valid:
-        return None
-    return {"direction": direction, "tp": tp, "sl": sl}
-
-def jasur_mark_to_market(state, price):
-    pos = state.get("position")
-    if not pos:
-        return
-    entry = float(pos["entry"])
-    size = float(pos["size"])
-    lev = float(pos["leverage"])
-    diff = (price - entry) / entry
-    if pos["direction"] == "SHORT":
-        diff = -diff
-    pos["unrealized_pnl"] = round(size * diff * lev, 2)
-
-def jasur_close_position(state, price, reason):
-    pos = state.get("position")
-    if not pos:
-        return
-    entry = float(pos["entry"])
-    size = float(pos["size"])
-    lev = float(pos["leverage"])
-    diff = (price - entry) / entry
-    if pos["direction"] == "SHORT":
-        diff = -diff
-    pnl = round(size * diff * lev, 2)
-    state["balance"] = round(float(state["balance"]) + size + pnl, 2)
-    state["trades"] = int(state.get("trades", 0)) + 1
-    if pnl >= 0:
-        state["wins"] = int(state.get("wins", 0)) + 1
-    else:
-        state["losses"] = int(state.get("losses", 0)) + 1
-    state["last_analysis"] = f"Closed {pos['direction']} {pos['symbol']} | {reason} | PnL {pnl:+.2f}"
-    state["position"] = None
-
-def jasur_process_symbol(sym, candles_raw):
-    current_price = float(candles_raw[-1][4])
-    state = load_jasur_state()
-
-    with jasur_lock:
-        # Avval eski pozitsiyani TP/SL bilan tekshiramiz.
-        pos = state.get("position")
-        if pos and pos.get("symbol") == sym:
-            jasur_mark_to_market(state, current_price)
-            if pos["direction"] == "LONG":
-                if current_price >= float(pos["tp"]):
-                    jasur_close_position(state, current_price, "TAKE PROFIT")
-                elif current_price <= float(pos["sl"]):
-                    jasur_close_position(state, current_price, "STOP LOSS")
-            else:
-                if current_price <= float(pos["tp"]):
-                    jasur_close_position(state, current_price, "TAKE PROFIT")
-                elif current_price >= float(pos["sl"]):
-                    jasur_close_position(state, current_price, "STOP LOSS")
-            save_jasur_state(state)
-            sync_jasur_leaderboard(state)
-
-        # Faqat bo'sh hisobda yangi signal qidiramiz.
-        state = load_jasur_state()
-        if state.get("position"):
-            return
-
-        candles = []
-        for c in candles_raw[-15:]:
-            candles.append({
-                "open": float(c[1]),
-                "high": float(c[2]),
-                "low": float(c[3]),
-                "close": float(c[4]),
-                "volume": float(c[5])
-            })
-
-        prompt = f"""
-Sen Obsidian Lab'dagi Jasur ismli AI ICT paper traderisan.
-Sening vazifang faqat PAPER hisobda savdo qilish. Real pul, real exchange order yoki API order yuborish yo'q.
-Aktiv: {sym}
-Current price: {current_price}
-15m OHLCV oxirgi 15 sham:
-{json.dumps(candles, ensure_ascii=False)}
-
-Faqat to'liq ICT setup bo'lsa signal ber:
-1) liquidity sweep / Turtle Soup
-2) CISD / market structure shift
-3) FVG
-4) aniq target va invalidation.
-
-Juda konservativ bo'l. Setup to'liq bo'lmasa NO_SIGNAL.
-
-Agar signal bo'lsa aynan quyidagi formatga yaqin yoz:
-SIGNAL_FOUND
-Yo'nalish: LONG yoki SHORT
-Take-Profit: aniq narx
-Stop-Loss: aniq narx
-ICT Tahlil: 1-2 jumla
-
-Agar setup yo'q bo'lsa faqat:
-NO_SIGNAL
-"""
-
-        ai_text = get_ai_analysis(prompt)
-        state["last_signal"] = "SIGNAL_FOUND" if ai_text and "SIGNAL_FOUND" in ai_text else "NO_SIGNAL"
-        state["last_analysis"] = (ai_text or "AI unavailable")[:1500]
-        state["last_update"] = datetime.datetime.utcnow().isoformat()
-
-        signal = parse_jasur_signal(ai_text, current_price)
-        if signal:
-            size = min(JASUR_RISK_PER_TRADE, float(state["balance"]))
-            if size >= 10:
-                state["balance"] = round(float(state["balance"]) - size, 2)
-                state["position"] = {
-                    "symbol": sym,
-                    "direction": signal["direction"],
-                    "entry": current_price,
-                    "tp": signal["tp"],
-                    "sl": signal["sl"],
-                    "size": size,
-                    "leverage": JASUR_LEVERAGE,
-                    "opened_at": datetime.datetime.utcnow().isoformat(),
-                    "unrealized_pnl": 0.0
-                }
-                state["last_analysis"] = f"OPENED {signal['direction']} {sym} @ {current_price:.2f} | TP {signal['tp']:.2f} | SL {signal['sl']:.2f}"
-                print(f"🤖 JASUR PAPER: {state['last_analysis']}")
-        save_jasur_state(state)
-        sync_jasur_leaderboard(state)
-
-def jasur_autotrader_loop():
-    """Har 15 daqiqada AI tahlil qiladi va signal bo'lsa PAPER trade ochadi."""
-    print("🤖 [JASUR AI PAPER] Avtonom paper trader ishga tushdi!")
-    # Server restart bo'lsa Jasur mavjud balansini Leaderboardga qayta yozadi.
-    state = load_jasur_state()
-    sync_jasur_leaderboard(state)
-
-    while True:
-        try:
-            # Bir vaqtning o'zida bitta aktivni boshqaradi.
-            for sym in ("BTCUSDT", "ETHUSDT"):
-                url = f"https://api.binance.com/api/v3/klines?symbol={sym}&interval=15m&limit=25"
-                res = requests.get(url, timeout=10)
-                if res.status_code == 200:
-                    jasur_process_symbol(sym, res.json())
-                time.sleep(2)
-        except Exception as e:
-            print(f"⚠️ [JASUR AI PAPER] {e}")
-        time.sleep(900)
-
-@app.route('/api/jasur', methods=['GET'])
-def get_jasur():
-    state = load_jasur_state()
-    pos = state.get("position")
-    return jsonify({
-        "status": "success",
-        "agent": "Jasur",
-        "mode": "PAPER",
-        "user_id": JASUR_ID,
-        "username": JASUR_NAME,
-        "balance": round(float(state.get("balance", 10000)), 2),
-        "trades": int(state.get("trades", 0)),
-        "wins": int(state.get("wins", 0)),
-        "losses": int(state.get("losses", 0)),
-        "win_rate": round((int(state.get("wins", 0)) / int(state.get("trades", 1))) * 100, 2) if int(state.get("trades", 0)) else 0,
-        "position": pos,
-        "last_signal": state.get("last_signal"),
-        "last_analysis": state.get("last_analysis"),
-        "last_update": state.get("last_update")
-    })
 
 # --- 5. ICT (SMART MONEY CONCEPTS) AVTO-SIGNAL SKANERI ---
 def scan_and_post_ai_signals():
@@ -1090,9 +898,6 @@ if __name__ == "__main__":
 
     t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
     t_radar.start()
-
-    t_jasur = threading.Thread(target=jasur_autotrader_loop, daemon=True)
-    t_jasur.start()
 
     # Polling o'rniga Telegram Webhook. Bu getUpdates 409 Conflict muammosini
     # bartaraf qiladi va Render uchun barqarorroq ishlaydi.
