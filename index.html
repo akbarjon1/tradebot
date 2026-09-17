@@ -29,7 +29,30 @@
     body { background-color: #f8fafc; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
     .custom-scroll::-webkit-scrollbar { width: 3px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  </style>
+  #hq-action-btn{min-width:150px;letter-spacing:.03em} #lounge-canvas{touch-action:none}
+</style>
+<style>
+  #hq-action-btn{transition:transform .15s,opacity .15s}#hq-action-btn:not(.hidden){transform:scale(1)}
+  .hq-panel{background:rgba(15,23,42,.96);border:1px solid rgba(71,85,105,.8);backdrop-filter:blur(8px);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+</style>
+
+
+<style>
+  .hq-glow{animation:hqGlow 2s ease-in-out infinite alternate}
+  @keyframes hqGlow{from{box-shadow:0 0 8px rgba(99,102,241,.15)}to{box-shadow:0 0 22px rgba(99,102,241,.35)}}
+  .hq-toast{animation:hqToast .25s ease-out}
+  @keyframes hqToast{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+
+<style>
+</style>
+
+<style id="hq-upgrade-style">
+.hq-monitor-glow{animation:hqMonitorGlow 1.8s ease-in-out infinite alternate}
+@keyframes hqMonitorGlow{from{filter:drop-shadow(0 0 2px rgba(56,189,248,.25))}to{filter:drop-shadow(0 0 9px rgba(56,189,248,.7))}}
+.hq-monitor-btn{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(15,23,42,.94);border:1px solid rgba(56,189,248,.55);color:#67e8f9;border-radius:8px;padding:5px 8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
@@ -50,8 +73,7 @@
       <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
         <span>🎮</span> HQ Office
       </button>
-
-      <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
+<button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span id="nav-username">@trader</span> ✏️
       </button>
@@ -155,6 +177,7 @@
     </div>
   </main>
 
+
   <!-- ========================================== -->
   <!-- 🕹️ OBSIDIAN HQ: ISOMETRIC AI AGENTS OFFICE -->
   <!-- ========================================== -->
@@ -171,11 +194,55 @@
     </div>
 
     <!-- CANVAS CONTAINER -->
-    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#2b1f1a] shadow-2xl">
-      <canvas id="lounge-canvas" width="640" height="420" class="w-full h-full max-w-xl object-contain"></canvas>
+    <div class="flex-1 my-2 relative flex items-center justify-center rounded-2xl overflow-hidden border border-slate-800 bg-[#15100e] shadow-2xl">
+      <canvas id="lounge-canvas" width="900" height="600" class="w-full h-full object-contain"></canvas>
+      <!-- MEDIA WALL: 3 katta HQ monitor -->
+      <div id="hq-media-overlay" class="hidden absolute inset-0 z-40 flex items-center justify-center p-4">
+        <div class="hq-panel w-full max-w-2xl rounded-2xl p-3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] font-mono font-bold text-cyan-300" id="hq-media-title">OBSIDIAN MEDIA WALL</div>
+            <button onclick="closeHQMedia()" class="text-rose-400 text-xs font-bold">✕ CLOSE</button>
+          </div>
+          <div id="hq-media-content" class="rounded-xl overflow-hidden bg-black aspect-video"></div>
+        </div>
+      </div>
+      <div id="hq-dashboard-overlay" class="hidden absolute inset-0 z-40 pointer-events-none">
+        <div class="hq-panel absolute top-3 right-3 w-[360px] max-w-[calc(100%-24px)] rounded-2xl p-4 font-mono pointer-events-auto">
+          <div class="flex justify-between items-center mb-3">
+            <b class="text-cyan-300 text-xs">🪟 WINDOW VIEW // DASHBOARD</b>
+            <button onclick="closeHQMedia()" class="text-rose-400 text-xs font-bold">✕ CLOSE</button>
+          </div>
+          <div class="rounded-xl overflow-hidden border border-cyan-400/30 bg-slate-950 mb-3">
+            <div class="relative h-36 bg-sky-400">
+              <div class="absolute inset-x-0 bottom-0 h-12 bg-slate-800"></div>
+              <div class="absolute left-5 bottom-7 w-10 h-7 bg-slate-500"></div>
+              <div class="absolute left-20 bottom-7 w-14 h-9 bg-slate-600"></div>
+              <div class="absolute right-5 bottom-7 w-12 h-6 bg-slate-700"></div>
+              <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-slate-200/80"></div>
+              <div class="absolute left-0 right-0 top-1/2 h-1 bg-slate-200/80"></div>
+              <div class="absolute left-8 bottom-3 w-8 h-2 bg-red-500"></div>
+              <div class="absolute right-8 bottom-3 w-10 h-2 bg-cyan-400"></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
+            <div class="bg-slate-950 rounded-xl p-3"><span class="text-slate-500">SYSTEM</span><b class="block text-emerald-400 mt-1">ONLINE</b></div>
+            <div class="bg-slate-950 rounded-xl p-3"><span class="text-slate-500">AGENTS</span><b class="block text-cyan-300 mt-1">3 / 3</b></div>
+            <div class="bg-slate-950 rounded-xl p-3"><span class="text-slate-500">MISSIONS</span><b id="dash-missions" class="block text-amber-300 mt-1">0 / 6</b></div>
+            <div class="bg-slate-950 rounded-xl p-3"><span class="text-slate-500">XP</span><b id="dash-xp" class="block text-indigo-300 mt-1">0</b></div>
+          </div>
+          <div class="mt-3 bg-slate-950 rounded-xl p-3">
+            <div class="text-[9px] text-slate-500 mb-2">LIVE AGENT FEED</div>
+            <div id="dash-agent-feed" class="space-y-1 text-[10px] text-slate-300"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- LIVE TASK TICKER + AGENT STATUS STRIP (VIDEODAGI MONITORING PANELI) -->
-      <div class="absolute top-2 left-2 right-2 z-10 flex flex-col gap-1.5">
+      <div id="hq-top-info" class="absolute top-2 left-2 right-2 z-10 flex flex-col items-end gap-1.5 pointer-events-none">
+        <style>
+          #hq-top-info > div { width:min(560px, calc(100% - 8px)); margin-left:auto; }
+          #hq-top-info #hq-status-strip { justify-content:flex-start; }
+        </style>
         <div class="bg-slate-900/90 border border-slate-800 backdrop-blur-sm rounded-xl px-3 py-1.5 flex items-center justify-between text-[10px] font-mono text-slate-300">
           <div class="flex items-center gap-2 truncate">
             <span id="hq-live-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
@@ -183,10 +250,48 @@
           </div>
           <span class="text-slate-500 text-[9px]">LIVE AGENTS</span>
         </div>
-        <div id="hq-status-strip" class="bg-slate-900/80 border border-slate-800/70 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-3 text-[9px] font-mono text-slate-400 overflow-x-auto custom-scroll whitespace-nowrap">
-          <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Serverga ulanmoqda...</span>
+      </div>
+
+      <!-- EXTRA HQ INTERACTIONS -->
+      <div id="hq-action-wrap" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <button id="hq-action-btn" onclick="performNearbyAction()" class="hidden bg-indigo-600 active:bg-indigo-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold shadow-lg">USE</button>
+      </div>
+      <div id="hq-hud" class="absolute bottom-2 left-2 z-10 flex gap-1.5 text-[9px] font-mono">
+        <span class="bg-slate-900/90 text-amber-300 border border-slate-700 rounded-lg px-2 py-1">⭐ XP <b id="hq-xp">0</b></span>
+        <span class="bg-slate-900/90 text-yellow-300 border border-slate-700 rounded-lg px-2 py-1">🪙 <b id="hq-coins">100</b></span>
+      </div>
+      <div id="mission-panel" class="hidden absolute top-14 right-2 z-20 w-56 hq-panel rounded-xl p-3 text-[10px] font-mono text-slate-200">
+        <div class="flex justify-between font-bold mb-2"><span>🎯 MISSIONS</span><span id="mission-count" class="text-emerald-400">0/6</span></div>
+        <div id="mission-list" class="space-y-1"></div>
+      </div>
+      <div id="terminal-panel" class="hidden absolute inset-8 z-30 hq-panel rounded-2xl p-4 text-slate-100 font-mono">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-3"><b> OBSIDIAN TRADING TERMINAL</b><button onclick="closeTerminal()" class="text-rose-400">✕</button></div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-slate-800 rounded-lg p-2"><div class="text-slate-400">BTC/USDT</div><b id="term-btc">104,250</b><span id="term-btc-change" class="ml-2 text-emerald-400">+0.42%</span></div>
+          <div class="bg-slate-800 rounded-lg p-2"><div class="text-slate-400">ETH/USDT</div><b id="term-eth">4,120</b><span id="term-eth-change" class="ml-2 text-rose-400">-0.18%</span></div>
+          <div class="bg-slate-800 rounded-lg p-2"><div class="text-slate-400">GOLD</div><b id="term-gold">3,690</b><span class="ml-2 text-emerald-400">+0.21%</span></div>
+          <div class="bg-slate-800 rounded-lg p-2"><div class="text-slate-400">PAPER BALANCE</div><b id="term-balance">$10,000</b></div>
+        </div>
+        <div class="mt-3 bg-slate-950 rounded-xl p-3 h-32 relative overflow-hidden"><div class="text-[9px] text-slate-500 mb-1">LIVE CANDLE FEED</div><canvas id="chart-canvas" width="520" height="90" class="w-full h-24"></canvas></div>
+        <button onclick="placePaperTrade()" class="mt-3 w-full bg-emerald-600 hover:bg-emerald-500 rounded-xl py-2 text-xs font-bold">SIMULATE BUY</button>
+      </div>
+      <div id="room-panel" class="hidden absolute inset-8 z-30 hq-panel rounded-2xl p-4 text-slate-100 font-mono">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-3"><b id="room-title">ROOM</b><button onclick="closeRoom()" class="text-rose-400">✕</button></div>
+        <div id="room-content" class="text-xs leading-relaxed"></div>
+      </div>
+      <button id="mission-toggle" onclick="toggleMissions()" class="absolute top-14 left-2 z-20 bg-slate-900/90 border border-slate-700 text-amber-300 px-2 py-1 rounded-lg text-[9px] font-mono">🎯 MISSIONS</button>
+      <button id="ai-hq-toggle" onclick="toggleHQAI()" class="absolute top-14 left-24 z-20 bg-slate-900/90 border border-slate-700 text-cyan-300 px-2 py-1 rounded-lg text-[9px] font-mono">🤖 AI</button>
+      <div id="hq-clock" class="absolute top-14 right-2 z-20 bg-slate-900/90 border border-slate-700 text-slate-200 px-2 py-1 rounded-lg text-[9px] font-mono">09:00 • DAY</div>
+      <div id="hq-ai-panel" class="hidden absolute top-24 left-2 z-30 w-64 hq-panel rounded-xl p-3 text-[10px] font-mono text-slate-200">
+        <div class="flex justify-between items-center mb-2"><b class="text-cyan-300">🤖 OBSIDIAN AI</b><button onclick="toggleHQAI()" class="text-slate-500">✕</button></div>
+        <div id="hq-ai-reply" class="bg-slate-950 rounded-lg p-2 leading-relaxed text-slate-300">System online. Ask about HQ, missions or market.</div>
+        <div class="grid grid-cols-3 gap-1 mt-2">
+          <button onclick="askHQAI('status')" class="bg-slate-800 rounded-lg py-1.5">STATUS</button>
+          <button onclick="askHQAI('mission')" class="bg-slate-800 rounded-lg py-1.5">MISSIONS</button>
+          <button onclick="askHQAI('market')" class="bg-slate-800 rounded-lg py-1.5">MARKET</button>
         </div>
       </div>
+      <div id="hq-event-toast" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 z-40 bg-slate-950/95 border border-indigo-500/60 text-white rounded-xl px-4 py-2 text-[10px] font-mono shadow-xl hq-toast"></div>
 
       <!-- MOBIL JOYSTICK -->
       <div class="absolute bottom-3 right-3 grid grid-cols-3 gap-1 opacity-85 select-none">
@@ -194,13 +299,20 @@
         <button onclick="movePlayer(0, -18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▲</button>
         <div></div>
         <button onclick="movePlayer(-18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">◀</button>
-        <button onclick="interactWithNearby()" class="w-10 h-10 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">TALK</button>
+        <button onclick="getNearbyAction()?performNearbyAction():interactWithNearby()" class="w-10 h-10 bg-indigo-600 active:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center">TALK</button>
         <button onclick="movePlayer(18, 0)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▶</button>
         <div></div>
         <button onclick="movePlayer(0, 18)" class="w-10 h-10 bg-slate-800 active:bg-slate-700 text-white rounded-xl text-sm font-bold shadow flex items-center justify-center">▼</button>
         <div></div>
       </div>
     </div>
+
+    <!-- 🪑 CHAIR SIT/STAND CONTROL — QO'SHILDI -->
+    <button id="chair-action-btn"
+      onclick="toggleChairSeat()"
+      class="hidden absolute bottom-3 left-3 z-20 bg-amber-500 active:bg-amber-400 text-white px-5 py-3 rounded-xl text-sm font-extrabold shadow-lg">
+      SIT
+    </button>
 
     <!-- DIALOG BOX -->
     <div id="dialog-box" class="hidden bg-slate-900 text-slate-100 rounded-2xl p-3 text-xs font-mono space-y-2 border border-slate-800 max-w-xl mx-auto w-full">
@@ -433,6 +545,7 @@
       }
     }
 
+
     // ==========================================
     // 🕹️ OBSIDIAN HQ: ISOMETRIC 2.5D AGENTS ENGINE
     // ==========================================
@@ -446,31 +559,251 @@
 
     // O'yinchi
     let player = {
-      x: 320, y: 350, targetX: 320, targetY: 350,
+      x: 450, y: 450, targetX: 450, targetY: 450,
       speed: 2.8, isMoving: false,
       color: '#4f46e5', name: myUsername || '@trader'
     };
+
+
+
+    // ==========================================================
+    // ☕ COFFEE + 🚬 SMOKE AREA + ❌⭕ XO
+    // ==========================================================
+    const hqConsumables = {
+      coffee:{x:80,y:430,r:50,label:'☕ MAKE COFFEE'},
+      smoke:{x:735,y:335,r:58,label:'🚬 SMOKE AREA'},
+      xo:{x:160,y:535,r:58,label:'❌⭕ PLAY XO IN GAMING'}
+    };
+    let consumeTimer=null, consumeKind=null;
+    let windowSmokeActive=false;
+    const smokeWindow={x:837,y:54,r:72,label:'🪟 SMOKE BY WINDOW'};
+    function nearSmokeWindow(){
+      return player && !playerSitting && Math.hypot(player.x-smokeWindow.x,player.y-smokeWindow.y)<smokeWindow.r;
+    }
+    function startWindowSmoke(){
+      if(consumeKind || coffeeState==='held') return;
+      if(!nearSmokeWindow()){showConsumeToast('🪟 Window oldiga boring');return}
+      consumeKind='smoke';
+      windowSmokeActive=true;
+      showConsumeToast('🚬 Deraza oldida chekish — 10 soniya');
+      document.getElementById('live-hq-ticker').innerText='🚬 Smoke Area: window session active';
+      clearTimeout(consumeTimer);
+      consumeTimer=setTimeout(()=>{
+        consumeKind=null;windowSmokeActive=false;
+        showConsumeToast('🚬 Cigarette tugadi');
+        document.getElementById('live-hq-ticker').innerText='🚬 Smoke session finished.';
+      },10000);
+    }
+
+    let coffeeState='idle'; // idle -> brewing -> ready -> held
+    let coffeeBrewUntil=0;
+
+    function nearestHQConsumable(){
+      if(!player || playerSitting) return null;
+      let best=null,bd=Infinity;
+      for(const [key,o] of Object.entries(hqConsumables)){
+        const d=Math.hypot(player.x-o.x,player.y-o.y);
+        if(d<o.r && d<bd){
+          let label=o.label;
+          if(key==='coffee'){
+            if(coffeeState==='brewing') label='☕ BREWING...';
+            else if(coffeeState==='ready') label='☕ TAKE COFFEE';
+            else label='☕ MAKE COFFEE';
+          }
+          best={key,...o,label};bd=d;
+        }
+      }
+      return best;
+    }
+
+    function showConsumeToast(text){
+      const el=document.getElementById('hq-consume-toast'); if(!el)return;
+      el.innerText=text;el.classList.remove('hidden');
+      clearTimeout(el._t);el._t=setTimeout(()=>el.classList.add('hidden'),1800);
+    }
+
+    function startCoffee(){
+      if(coffeeState!=='idle') return;
+      coffeeState='brewing';
+      coffeeBrewUntil=performance.now()+2200;
+      showConsumeToast('☕ Coffee tayyorlanmoqda...');
+      document.getElementById('live-hq-ticker').innerText='☕️ Coffee machine: brewing...';
+      setTimeout(()=>{
+        if(coffeeState!=='brewing')return;
+        coffeeState='ready';
+        showConsumeToast('☕ Coffee tayyor — E bosib OLING');
+        document.getElementById('live-hq-ticker').innerText='☕️ Coffee tayyor. Uni olib yurishingiz mumkin.';
+      },2200);
+    }
+
+    function takeCoffee(){
+      if(coffeeState!=='ready') return;
+      coffeeState='held';
+      consumeKind='coffeeHeld';
+      showConsumeToast('☕ Coffee qo‘lda — 10 soniya');
+      document.getElementById('live-hq-ticker').innerText='☕️ You: Coffee olib yuribdi...';
+      clearTimeout(consumeTimer);
+      consumeTimer=setTimeout(()=>{
+        coffeeState='idle';
+        consumeKind=null;
+        showConsumeToast('☕ Coffee tugadi');
+        document.getElementById('live-hq-ticker').innerText='☕️ Coffee break finished.';
+      },10000);
+    }
+
+    function coffeeInteraction(){
+      if(coffeeState==='idle'){ startCoffee(); return; }
+      if(coffeeState==='brewing'){ showConsumeToast('☕ Hali tayyor emas...'); return; }
+      if(coffeeState==='ready'){ takeCoffee(); return; }
+    }
+
+    function drinkCoffee(){
+      // Backwards-compatible helper: if coffee is ready at the machine, pick it up.
+      if(coffeeState==='ready') takeCoffee();
+      else if(coffeeState==='idle') startCoffee();
+    }
+
+    function smokeCigarette(){
+      if(consumeKind || coffeeState==='held') return;
+      consumeKind='smoke';
+      showConsumeToast('🚬 Smoke Area — 10 soniya');
+      clearTimeout(consumeTimer);
+      consumeTimer=setTimeout(()=>{
+        consumeKind=null;
+        showConsumeToast('🚬 Smoke session tugadi');
+      },10000);
+    }
+
+    let xoBoard=[],xoTurn='X',xoOpen=false;
+    function openXO(){
+      xoOpen=true;document.getElementById('xo-modal').classList.remove('hidden');document.getElementById('xo-modal').classList.add('flex');resetXO();
+    }
+    function closeXO(){
+      xoOpen=false;const m=document.getElementById('xo-modal');m.classList.add('hidden');m.classList.remove('flex');
+    }
+    function resetXO(){xoBoard=Array(9).fill('');xoTurn='X';renderXO()}
+    function renderXO(){
+      const b=document.getElementById('xo-board'),st=document.getElementById('xo-status');if(!b)return;
+      b.innerHTML=xoBoard.map((v,i)=>`<button onclick="xoPlay(${i})" class="aspect-square rounded-xl bg-slate-900 border border-slate-700 text-3xl font-black text-cyan-300">${v}</button>`).join('');
+      st.innerText=xoTurn==='X'?'Your turn':'AI thinking...';
+    }
+    function xoWinner(){
+      const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for(const [a,b,c] of lines)if(xoBoard[a]&&xoBoard[a]===xoBoard[b]&&xoBoard[a]===xoBoard[c])return xoBoard[a];
+      return xoBoard.every(Boolean)?'DRAW':null;
+    }
+    function xoPlay(i){
+      if(xoTurn!=='X'||xoBoard[i])return;
+      xoBoard[i]='X';let w=xoWinner();if(w){renderXO();setTimeout(()=>showConsumeToast(w==='DRAW'?'🤝 XO draw':'🏆 XO '+w),100);return}
+      xoTurn='O';renderXO();
+      setTimeout(()=>{
+        const free=xoBoard.map((v,i)=>v?null:i).filter(i=>i!==null);
+        if(!free.length)return;
+        // Simple AI: win, block, center, then random.
+        let pick=null;
+        for(const mark of ['O','X']){
+          for(const i of free){
+            const old=xoBoard[i];xoBoard[i]=mark;
+            if(xoWinner()===mark){pick=i;xoBoard[i]=old;break}
+            xoBoard[i]=old;
+          }
+          if(pick!==null)break;
+        }
+        if(pick===null && !xoBoard[4])pick=4;
+        if(pick===null)pick=free[Math.floor(Math.random()*free.length)];
+        xoBoard[pick]='O';w=xoWinner();
+        if(w){xoTurn='X';renderXO();showConsumeToast(w==='DRAW'?'🤝 XO draw':'🤖 XO '+w);return}
+        xoTurn='X';renderXO();
+      },350);
+    }
+
+    // ==========================================================
+    // 🖥️ HQ MEDIA WALL — 3 ta katta monitor
+    // ==========================================================
+    const hqMonitors = [
+      {id:'youtube', x:450, y:170, r:82, label:'POWER ON • YOUTUBE', title:'📺 OBSIDIAN MEDIA // YOUTUBE',
+       url:'https://www.youtube.com/embed/AeTXnQ4Co0w?autoplay=1&rel=0'},
+      {id:'tradingview', x:735, y:145, r:72, label:'OPEN • TRADINGVIEW', title:'📊 OBSIDIAN MARKETS // TRADINGVIEW',
+       url:'https://s.tradingview.com/widgetembed/?frameElementId=hq_tv&symbol=BINANCE%3ABTCUSDT&interval=15&theme=dark&style=1&timezone=Asia%2FTashkent'},
+      {id:'dashboard', x:735, y:315, r:72, label:'OPEN • DASHBOARD', title:'🖥️ OBSIDIAN LAB // DASHBOARD'}
+    ];
+    let activeHQMonitor = null;
+
+    function getNearbyMonitor(){
+      if(!player || playerSitting) return null;
+      return hqMonitors.find(m => Math.hypot(player.x-m.x, player.y-m.y) < m.r) || null;
+    }
+    function updateHQMonitorPrompt(){
+      const m = getNearbyMonitor();
+      if(!m) return;
+      ctx.fillStyle='rgba(15,23,42,.94)';
+      ctx.strokeStyle='#38bdf8';
+      ctx.lineWidth=1;
+      rr(m.x-78,m.y-58,156,23,7,null,null);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#67e8f9';ctx.font='bold 9px "JetBrains Mono",monospace';
+      ctx.textAlign='center';ctx.fillText(`E  ${m.label}`,m.x,m.y-43);ctx.textAlign='left';
+    }
+    function activateHQMonitor(m){
+      if(!m) return;
+      activeHQMonitor=m.id;
+      const media=document.getElementById('hq-media-overlay');
+      const dash=document.getElementById('hq-dashboard-overlay');
+      const title=document.getElementById('hq-media-title');
+      const content=document.getElementById('hq-media-content');
+      if(media) media.classList.add('hidden');
+      if(dash) dash.classList.add('hidden');
+      if(m.id==='dashboard'){
+        if(dash) dash.classList.remove('hidden');
+        updateHQDashboard();
+      } else {
+        if(title) title.innerText=m.title;
+        if(content){
+          content.innerHTML=`<iframe src="${m.url}" class="w-full h-full border-0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+        }
+        if(media) media.classList.remove('hidden');
+      }
+      document.getElementById('live-hq-ticker').innerText =
+        m.id==='youtube' ? '📺 Media Wall: YouTube live screen ON' :
+        m.id==='tradingview' ? '📊 Media Wall: TradingView monitor ON' :
+        '🖥️ Media Wall: Obsidian Lab dashboard ON';
+    }
+    function closeHQMedia(){
+      activeHQMonitor=null;
+      const media=document.getElementById('hq-media-overlay');
+      const dash=document.getElementById('hq-dashboard-overlay');
+      if(media) media.classList.add('hidden');
+      if(dash) dash.classList.add('hidden');
+      const content=document.getElementById('hq-media-content');
+      if(content) content.innerHTML='';
+    }
+    function updateHQDashboard(){
+      const done=missions.filter(m=>missionState[m[0]]).length;
+      const a=document.getElementById('dash-missions'), x=document.getElementById('dash-xp'), feed=document.getElementById('dash-agent-feed');
+      if(a)a.innerText=`${done} / ${missions.length}`;
+      if(x)x.innerText=hqXP;
+      if(feed)feed.innerHTML=npcs.map(n=>`<div class="flex justify-between gap-3 border-b border-slate-800 pb-1"><b class="text-slate-200">${n.name}</b><span class="text-emerald-400 truncate">${n.liveTask||n.status}</span></div>`).join('');
+    }
 
     // AI Agentlar (Videodagi kabi vazifalari va holatlari bilan)
     const npcs = [
       {
         id: 'jasur', name: 'Jasur', role: 'ICT Analyst',
         status: 'Scanning 15m FVG',
-        x: 180, y: 220, targetX: 180, targetY: 220, baseX: 180, baseY: 220,
+        x: 220, y: 300, targetX: 220, targetY: 300, baseX: 220, baseY: 300,
         bodyColor: '#d97706', hairColor: '#451a03',
         state: 'desk', timer: 120, coffee: true
       },
       {
         id: 'alex', name: 'Alex', role: 'Algo & Dev',
         status: 'Testing CISD Script',
-        x: 460, y: 220, targetX: 460, targetY: 220, baseX: 460, baseY: 220,
+        x: 610, y: 300, targetX: 610, targetY: 300, baseX: 610, baseY: 300,
         bodyColor: '#10b981', hairColor: '#0f172a',
         state: 'desk', timer: 160, coffee: false
       },
       {
         id: 'whale', name: 'Mister Whale', role: 'Fund Manager',
         status: 'Reviewing Leaderboard',
-        x: 320, y: 130, targetX: 320, targetY: 130, baseX: 320, baseY: 130,
+        x: 450, y: 255, targetX: 450, targetY: 255, baseX: 450, baseY: 255,
         bodyColor: '#0284c7', hairColor: '#ffffff',
         state: 'meeting', timer: 200, coffee: true
       }
@@ -537,6 +870,8 @@
     function closeLoungeModal() {
       document.getElementById('lounge-modal').classList.add('hidden');
       closeDialog();
+      closeTerminal();
+      closeRoom();
       loungeActive = false;
       if (hqPollInterval) { clearInterval(hqPollInterval); hqPollInterval = null; }
     }
@@ -566,9 +901,15 @@
       if (hasCoffee) {
         ctx.fillRect(x + 10, y - 10 + breathe, 5, 5);
         ctx.fillStyle = '#ffffff';
+        // Coffee cup in hand
         ctx.fillRect(x + 12, y - 15 + breathe, 7, 7);
-        if (Math.random() < 0.25) {
-          smokeParticles.push({ x: x + 15, y: y - 16 + breathe, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
+        ctx.fillStyle='#c08457'; ctx.fillRect(x + 13, y - 14 + breathe, 5, 6);
+        ctx.strokeStyle='rgba(255,255,255,.72)'; ctx.lineWidth=1.2;
+        const st=performance.now()/300;
+        for(let si=0;si<2;si++){
+          ctx.beginPath();
+          ctx.arc(x+15+si*4, y-21+Math.sin(st+si)*3+breathe, 2.5, 0, Math.PI*2);
+          ctx.stroke();
         }
       } else {
         ctx.fillRect(x - 13, y - 12 + breathe, 4, 11);
@@ -589,130 +930,381 @@
       ctx.fillRect(x - 9, y - 34 + breathe, 18, 7);
       ctx.fillRect(x - 9, y - 30 + breathe, 3, 5);
 
-      // VIDEODAGI AGENT STATUS BADGE (QORA PLASHKA)
-      const badgeW = Math.max(ctx.measureText(status).width + 16, 75);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.roundRect(x - (badgeW / 2), y - 62, badgeW, 24, 5);
-      ctx.fill();
-      ctx.stroke();
+      // Agent yozuvi faqat o'yinchi yaqinlashganda ko'rinadi.
+      // O'yinchining o'ziga ortiqcha badge chizilmaydi.
+      const showLabel = (typeof player !== 'undefined' && name !== player.name && Math.hypot(player.x - x, player.y - y) < 115);
+      if (showLabel) {
+        const badgeW = Math.max(ctx.measureText(status).width + 16, 75);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x - (badgeW / 2) + 5, y - 62); ctx.lineTo(x + (badgeW / 2) - 5, y - 62); ctx.quadraticCurveTo(x + (badgeW / 2), y - 62, x + (badgeW / 2), y - 57); ctx.lineTo(x + (badgeW / 2), y - 43); ctx.quadraticCurveTo(x + (badgeW / 2), y - 38, x + (badgeW / 2) - 5, y - 38); ctx.lineTo(x - (badgeW / 2) + 5, y - 38); ctx.quadraticCurveTo(x - (badgeW / 2), y - 38, x - (badgeW / 2), y - 43); ctx.lineTo(x - (badgeW / 2), y - 57); ctx.quadraticCurveTo(x - (badgeW / 2), y - 62, x - (badgeW / 2) + 5, y - 62);
+        ctx.fill();
+        ctx.stroke();
 
-      // Ism va Role
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 9px "JetBrains Mono", monospace';
-      ctx.fillText(name, x - (badgeW / 2) + 6, y - 50);
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 9px "JetBrains Mono", monospace';
+        ctx.fillText(name, x - (badgeW / 2) + 6, y - 50);
 
-      // Status
-      ctx.fillStyle = '#10b981';
-      ctx.font = '7.5px monospace';
-      ctx.fillText(status, x - (badgeW / 2) + 6, y - 41);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '7.5px monospace';
+        ctx.fillText(status, x - (badgeW / 2) + 6, y - 41);
+      }
     }
 
     // 2. VIDEODAGI KABI OCH RANGLI IZOMETRIK OFIS INTERYERI
     function drawIsometricOffice() {
-      // Asosiy pol (Videodagi och krem/bej laminat)
-      ctx.fillStyle = '#f1ece4';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // ==========================================================
+      // OBSIDIAN MEDIA HQ — PREMIUM REFERENCE FLOOR
+      // Visual-only redesign. Existing coordinates/interactions stay.
+      // ==========================================================
+      const W = canvas.width, H = canvas.height;
 
-      // Parket teksturasi
-      ctx.strokeStyle = '#e2dad0';
-      ctx.lineWidth = 1;
-      for (let y = 0; y < canvas.height; y += 24) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      // ----- helpers -----
+      function rr(x,y,w,h,r,fill,stroke=null,lw=1){
+        const q=Math.min(r,w/2,h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+q,y);
+        ctx.lineTo(x+w-q,y);
+        ctx.quadraticCurveTo(x+w,y,x+w,y+q);
+        ctx.lineTo(x+w,y+h-q);
+        ctx.quadraticCurveTo(x+w,y+h,x+w-q,y+h);
+        ctx.lineTo(x+q,y+h);
+        ctx.quadraticCurveTo(x,y+h,x,y+h-q);
+        ctx.lineTo(x,y+q);
+        ctx.quadraticCurveTo(x,y,x+q,y);
+        ctx.closePath();
+        if(fill){ctx.fillStyle=fill;ctx.fill();}
+        if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}
       }
-
-      // SHISHA DEVORLI MEETING ROOM (YUQORIDA)
-      ctx.fillStyle = 'rgba(203, 213, 225, 0.35)';
-      ctx.fillRect(190, 30, 260, 95);
-      ctx.strokeStyle = '#64748b';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(190, 30, 260, 95);
-
-      // Meeting stoli va stullar
-      ctx.fillStyle = '#e2e8f0';
-      ctx.beginPath();
-      ctx.ellipse(320, 78, 65, 30, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.stroke();
-
-      // Meeting Room Divani (Whale turadigan joy)
-      ctx.fillStyle = '#3b82f6';
-      ctx.fillRect(295, 105, 50, 16);
-
-      // ISH STOLLARI (VIDEODAGI KABI YOG'OCH STOLLAR VA NOUTBUKLAR)
-      function drawDesk(x, y, hasLaptop = true) {
-        // Stol soyasi
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-        ctx.fillRect(x - 4, y + 26, 68, 6);
-        // Yog'och stol usti
-        ctx.fillStyle = '#fde68a';
-        ctx.fillRect(x, y, 60, 28);
-        ctx.fillStyle = '#d97706';
-        ctx.fillRect(x, y + 25, 60, 3); // Qirrasi
-        // Stol oyoqlari
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(x + 2, y + 28, 4, 15);
-        ctx.fillRect(x + 54, y + 28, 4, 15);
-
-        // Noutbuk / Monitor
-        if (hasLaptop) {
-          ctx.fillStyle = '#1e293b';
-          ctx.fillRect(x + 18, y + 4, 24, 16);
-          ctx.fillStyle = '#38bdf8';
-          ctx.fillRect(x + 20, y + 6, 20, 12);
+      function shadowEllipse(x,y,rx,ry,a=.16){
+        ctx.fillStyle=`rgba(15,23,42,${a})`;
+        ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();
+      }
+      function line(x1,y1,x2,y2,color,w=1){
+        ctx.strokeStyle=color;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      }
+      function text(t,x,y,size=10,color='#334155',weight='700',align='left'){
+        ctx.font=`${weight} ${size}px monospace`;ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.textAlign='left';
+      }
+      function panel(x,y,w,h,fill='#f7f1e7',stroke='#d6c8b6'){
+        rr(x,y,w,h,4,fill,stroke,1.5);
+      }
+      function plant(px,py,scale=1,type=0){
+        shadowEllipse(px,py+17*scale,16*scale,5*scale,.13);
+        ctx.fillStyle=type===2?'#b45309':'#334155';
+        ctx.fillRect(px-7*scale,py+4*scale,14*scale,13*scale);
+        ctx.fillStyle=type===1?'#166534':'#15803d';
+        if(type===2){
+          ctx.beginPath();ctx.ellipse(px,py-5*scale,18*scale,13*scale,0,0,Math.PI*2);ctx.fill();
+          ctx.beginPath();ctx.ellipse(px-10*scale,py+1*scale,10*scale,8*scale,-.45,0,Math.PI*2);ctx.fill();
+          ctx.beginPath();ctx.ellipse(px+10*scale,py+1*scale,10*scale,8*scale,.45,0,Math.PI*2);ctx.fill();
+        } else {
+          for(let i=0;i<5;i++){
+            const a=-1.5+i*.75;
+            ctx.save();ctx.translate(px,py);ctx.rotate(a);
+            ctx.beginPath();ctx.ellipse(0,-10*scale,5*scale,15*scale,0,0,Math.PI*2);ctx.fill();ctx.restore();
+          }
+          ctx.beginPath();ctx.ellipse(px,py-7*scale,10*scale,9*scale,0,0,Math.PI*2);ctx.fill();
         }
       }
 
-      // Markazdagi ish stollari (Jasur va Alex)
-      drawDesk(150, 200, true);
-      drawDesk(430, 200, true);
-      drawDesk(150, 270, false);
-      drawDesk(430, 270, false);
+      // ----- premium continuous floor -----
+      ctx.fillStyle='#f3ede3';ctx.fillRect(0,0,W,H);
+      // subtle tile blocks
+      for(let y=0;y<H;y+=32){
+        for(let x=0;x<W;x+=64){
+          ctx.fillStyle=((x/64+y/32)%2===0)?'rgba(255,255,255,.12)':'rgba(220,207,190,.07)';
+          ctx.fillRect(x,y,64,32);
+        }
+      }
+      for(let y=0;y<=H;y+=32) line(0,y,W,y,'rgba(148,128,105,.13)',1);
+      for(let x=0;x<=W;x+=64) line(x,0,x,H,'rgba(148,128,105,.09)',1);
 
-      // SERVER XONASI SHKAF VA CALL-CENTER (O'NG CHEKKADA)
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(575, 40, 48, 120);
-      // Server chiroqchalari
-      for (let sy = 50; sy < 150; sy += 12) {
-        ctx.fillStyle = (tick % 30 < 15) ? '#10b981' : '#ef4444';
-        ctx.fillRect(585, sy, 5, 4);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(595, sy, 18, 2);
+      // outer architectural frame
+      rr(8,8,W-16,H-16,12,'rgba(255,255,255,.04)','#cbbda9',2);
+      // warm inner wall strips
+      ctx.fillStyle='#e5d8c5';ctx.fillRect(16,18,W-32,12);
+      ctx.fillStyle='#d8c5ab';ctx.fillRect(16,H-24,W-32,8);
+      ctx.fillStyle='#d9c9b5';ctx.fillRect(16,18,10,H-42);
+      ctx.fillStyle='#d9c9b5';ctx.fillRect(W-26,18,10,H-42);
+
+      // ----- top-left glass meeting room -----
+      rr(72,26,520,154,2,'rgba(224,234,239,.58)','#34495e',2);
+      // glass reflections
+      ctx.fillStyle='rgba(255,255,255,.30)';ctx.fillRect(80,34,5,138);
+      ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(570,34,5,138);
+      text('MEETING ROOM',92,52,12,'#243444','800');
+      text('Ideas build tomorrow',92,68,7,'#64748b','600');
+
+      // conference table + bevel
+      shadowEllipse(332,123,142,17,.15);
+      rr(176,88,310,64,6,'#b8793c','#8d5a2f',2);
+      rr(182,94,298,50,4,'#c88d4e','#d9a66c',1);
+      // table details
+      for(let i=0;i<6;i++){
+        rr(195+i*50,105,28,14,2,'#172235','#43536a',1);
+        rr(198+i*50,108,22,8,1,'#25364d');
+      }
+      // meeting chairs
+      [194,244,294,344,394,444].forEach((cx,i)=>{
+        shadowEllipse(cx,164,16,5,.15);
+        rr(cx-13,153,26,15,4,'#80512d','#59361f',1);
+        rr(cx-11,140,22,18,4,'#a96c3d','#684126',1);
+      });
+      // wall screen
+      rr(250,38,190,38,4,'#0b1627','#4b5c70',2);
+      line(262,48,428,48,'#22d3ee',2);
+      text('OBSIDIAN MEDIA',345,61,8,'#e2e8f0','800','center');
+      text('TEAM SYNC',345,71,6,'#34d399','700','center');
+
+      // ----- brand wall, top center-right -----
+      rr(600,30,190,118,3,'#eadfce','#bca78c',2);
+      ctx.fillStyle='rgba(246,180,86,.13)';ctx.fillRect(610,40,170,95);
+      // wood panel
+      ctx.fillStyle='#7c4a2b';ctx.fillRect(602,128,186,20);
+      for(let i=0;i<9;i++) line(608+i*20,130,608+i*20,146,'rgba(255,255,255,.08)',1);
+      // logo mark
+      ctx.strokeStyle='#111827';ctx.lineWidth=3;ctx.beginPath();
+      ctx.moveTo(620,56);ctx.lineTo(634,80);ctx.lineTo(647,56);ctx.stroke();
+      text('OBSIDIAN MEDIA',694,77,14,'#111827','800','center');
+      text('CREATE  >  STREAM  >  BUILD',694,99,7,'#475569','700','center');
+      text('HQ  /  01',694,122,6,'#8b7357','700','center');
+      // shelving next to brand wall
+      rr(792,30,78,120,2,'#1b2430','#2f3d4c',2);
+      for(let i=0;i<4;i++){
+        ctx.fillStyle=i%2?'#c08b4d':'#8c633e';ctx.fillRect(800,40+i*25,62,5);
+        ctx.fillStyle='#0f172a';ctx.fillRect(805,47+i*25,22,8);
+        ctx.fillStyle='#cbd5e1';ctx.fillRect(836,48+i*25,17,3);
       }
 
-      // DAM OLISH HUDUDI (PING-PONG STOLI - PASTKI O'NGDA)
-      ctx.fillStyle = '#10b981';
-      ctx.fillRect(490, 340, 95, 45);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(490, 340, 95, 45);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(536, 340, 3, 45); // To'r
+      // ----- top-right city window -----
+      const wx=774,wy=18,ww=112,wh=128;
+      shadowEllipse(wx+ww/2,wy+wh+5,58,7,.15);
+      rr(wx,wy,ww,wh,2,'#26364a','#8793a0',3);
+      // day/night skyline
+      const hour=hqClockMinutes/60, night=hour>=19||hour<7;
+      ctx.fillStyle=night?'#172a46':'#62c8ee';ctx.fillRect(wx+7,wy+7,ww-14,wh-14);
+      // sky glow
+      if(!night){ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(wx+7,wy+7,ww-14,20);}
+      // buildings
+      const bs=[[wx+12,wy+54,23,67],[wx+39,wy+42,28,79],[wx+70,wy+58,26,63]];
+      bs.forEach((b,bi)=>{
+        ctx.fillStyle=bi===1?'#4b5d73':'#5f7185';ctx.fillRect(b[0],b[1],b[2],b[3]);
+        for(let yy=b[1]+10;yy<b[1]+b[3]-6;yy+=15){
+          for(let xx=b[0]+6;xx<b[0]+b[2]-4;xx+=11){
+            if((xx+yy+bi)%2===0){ctx.fillStyle=night?'#f5d67a':'rgba(219,240,249,.65)';ctx.fillRect(xx,yy,4,4);}
+          }
+        }
+      });
+      ctx.fillStyle='#1d2938';ctx.fillRect(wx+7,wy+88,ww-14,39);
+      // street / cars
+      ctx.fillStyle='#697585';ctx.fillRect(wx+7,wy+90,ww-14,2);
+      ctx.fillStyle='#ef4444';ctx.fillRect(wx+25,wy+107,21,5);
+      ctx.fillStyle='#38bdf8';ctx.fillRect(wx+68,wy+109,22,5);
+      // window mullions
+      ctx.strokeStyle='#d9e2e8';ctx.lineWidth=3;ctx.beginPath();
+      ctx.moveTo(wx+ww/2,wy+2);ctx.lineTo(wx+ww/2,wy+wh-2);
+      ctx.moveTo(wx+2,wy+wh/2);ctx.lineTo(wx+ww-2,wy+wh/2);ctx.stroke();
+      text('CITY VIEW',wx+ww/2,wy+wh+13,6,'#8b7357','700','center');
 
-      // KOFE VA CHOY BURCHAGI (CHAP BURCHAK)
-      ctx.fillStyle = '#b45309';
-      ctx.fillRect(30, 140, 70, 32);
-      ctx.fillStyle = '#64748b';
-      ctx.fillRect(40, 120, 24, 20); // Kofe mashinasi
-      if (Math.random() < 0.35) {
-        smokeParticles.push({ x: 52, y: 118, vx: (Math.random() - 0.5) * 0.3, vy: -0.6, life: 30, alpha: 0.8 });
-      }
+      // ----- workspace title -----
+      text('MAIN WORKSPACE',86,206,11,'#334155','800');
+      text('Focus.  Create.  Ship.',86,222,7,'#64748b','600');
 
-      // O'SIMLIKLAR (GULTOVURLAR)
-      function drawPlant(px, py) {
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(px, py, 14, 14);
-        ctx.fillStyle = '#15803d';
-        ctx.beginPath();
-        ctx.ellipse(px + 7, py - 4, 12, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
+      // ----- desk cluster renderer -----
+      function workstation(x,y,flip=false){
+        // rug / floor inset
+        rr(x-36,y-14,126,78,4,'rgba(148,163,184,.16)','#d9d0c3',1);
+        shadowEllipse(x+28,y+48,52,8,.16);
+        // desk
+        rr(x,y,58,26,2,'#b97839','#8b542a',1.5);
+        ctx.fillStyle='#8a5129';ctx.fillRect(x+3,y+23,52,4);
+        ctx.fillStyle='#70401f';ctx.fillRect(x+5,y+27,4,18);ctx.fillRect(x+49,y+27,4,18);
+        // laptop
+        rr(x+15,y-2,29,18,2,'#d1d5db','#6b7280',1);
+        rr(x+18,y+1,23,12,1,'#0b1627','#334155',1);
+        line(x+21,y+4,x+38,y+4,'#22d3ee',1.5);
+        line(x+21,y+8,x+34,y+8,'#34d399',1);
+        ctx.fillStyle='#cbd5e1';ctx.fillRect(x+17,y+17,25,3);
+        // keyboard
+        rr(x+7,y+11,13,5,1,'#334155');
+        // coffee + plant + notebook
+        ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.arc(x+50,y+8,4,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#7c3f1d';ctx.beginPath();ctx.arc(x+50,y+8,2.5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#334155';ctx.fillRect(x+45,y+20,8,2);
+        plant(x+10,y+6,.42,1);
+        // chair
+        const cx=x+29, cy=y+53;
+        shadowEllipse(cx,cy+5,23,6,.17);
+        rr(cx-16,cy-19,32,27,5,'#1f2937','#0f172a',2);
+        rr(cx-11,cy-15,22,17,3,'#2f3c4d');
+        rr(cx-21,cy+5,42,13,5,'#273445','#0f172a',1.5);
+        ctx.fillStyle='#111827';ctx.fillRect(cx-3,cy+18,6,10);ctx.fillRect(cx-16,cy+28,32,3);
       }
-      drawPlant(115, 60);
-      drawPlant(470, 60);
-      drawPlant(30, 340);
+      workstation(178,270); workstation(570,270);
+      workstation(178,400); workstation(570,400);
+
+      // extra small desk accessories to echo reference richness
+      [178,570].forEach(x=>{
+        ctx.fillStyle='#64748b';ctx.fillRect(x+4,245,10,5);
+        ctx.fillStyle='#e2e8f0';ctx.fillRect(x+47,245,9,5);
+      });
+
+      // ----- central media screen -----
+      function bigScreen(mx,my,w,h,titleTxt,sub,chart=false){
+        shadowEllipse(mx+6,my+h/2+12,w*.45,7,.18);
+        rr(mx-w/2,my-h/2,w,h,3,'#172335','#56667a',3);
+        rr(mx-w/2+7,my-h/2+7,w-14,h-14,2,'#061525','#20334a',1);
+        line(mx-w/2+16,my-h/2+14,mx+w/2-16,my-h/2+14,'#22d3ee',3);
+        text(titleTxt,mx,my-3,10,'#e5e7eb','800','center');
+        text(sub,mx,my+13,7,'#34d399','700','center');
+        if(chart){
+          ctx.strokeStyle='#22c55e';ctx.lineWidth=2;ctx.beginPath();
+          const pts=[[mx-43,my+22],[mx-30,my+17],[mx-20,my+20],[mx-8,my+10],[mx+4,my+15],[mx+16,my+2],[mx+29,my+8],[mx+43,my-7]];
+          pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
+        }
+        ctx.fillStyle='#334155';ctx.fillRect(mx-5,my+h/2,10,14);
+        ctx.fillStyle='#26364a';ctx.fillRect(mx-34,my+h/2+13,68,5);
+      }
+      bigScreen(450,168,205,96,'OBSIDIAN MEDIA','▶ YOUTUBE LIVE');
+      bigScreen(730,142,150,82,'MARKETS','BTC / USDT',true);
+      // right dashboard display
+      bigScreen(730,315,150,88,'HQ CORE','3 AGENTS ONLINE');
+      // dashboard preview
+      rr(668,289,124,53,2,'#0a1829','#41536a',1.5);
+      line(678,299,782,299,'#22d3ee',2);
+      text('SYSTEM  ONLINE',730,315,7,'#34d399','700','center');
+      text('AI  /  MARKET  /  MEDIA',730,328,5,'#94a3b8','600','center');
+
+      // ----- coffee zone, lower-left -----
+      rr(34,365,112,104,4,'#a85b22','#7c3f1d',2);
+      ctx.fillStyle='#d39a58';ctx.fillRect(34,365,112,9);
+      rr(45,386,38,34,3,'#1f2937','#111827',1);
+      ctx.fillStyle='#0f172a';ctx.fillRect(51,392,26,17);
+      line(54,397,73,397,'#22d3ee',2);
+      // machine knobs
+      ctx.fillStyle='#cbd5e1';ctx.fillRect(52,413,8,3);ctx.fillRect(68,413,8,3);
+      // cups and beans
+      for(let i=0;i<3;i++){
+        ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.arc(100+i*12,395,5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#7c3f1d';ctx.beginPath();ctx.arc(100+i*12,395,3,0,Math.PI*2);ctx.fill();
+      }
+      text('COFFEE',46,452,9,'#fff','800');
+      text('Better Conversations',46,463,6,'#fef3c7','600');
+      plant(137,405,.65,2);
+
+      // coffee stools
+      [70,101,132].forEach((cx)=>{
+        shadowEllipse(cx,480,13,5,.14);
+        ctx.fillStyle='#9a5b25';ctx.beginPath();ctx.ellipse(cx,474,12,7,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#5b351e';ctx.fillRect(cx-2,479,4,13);
+      });
+
+      // ----- gaming zone -----
+      rr(52,500,190,76,5,'#0f766e','#0b5f59',2);
+      text('🎮 GAMING ZONE',68,518,9,'#f8fafc','800');
+      text('Play. Relax. Repeat.',68,531,6,'#d1fae5','600');
+      // gaming chairs
+      [102,190].forEach(cx=>{
+        shadowEllipse(cx,566,31,7,.16);
+        rr(cx-26,535,52,31,14,'#26354a','#172235',2);
+        rr(cx-20,541,40,20,10,'#33465e');
+      });
+      // round table + controller
+      ctx.fillStyle='#8b5e35';ctx.beginPath();ctx.ellipse(146,554,24,12,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#111827';ctx.beginPath();ctx.ellipse(146,551,11,6,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#22d3ee';ctx.fillRect(142,549,8,3);
+      // subtle RGB strip
+      line(60,570,234,570,'rgba(34,211,238,.45)',2);
+
+      // ----- gear/storage -----
+      rr(278,495,138,76,3,'#334155','#1f2937',2);
+      text('GEAR',347,515,9,'#f8fafc','800','center');
+      for(let i=0;i<5;i++){
+        ctx.fillStyle='#475569';ctx.fillRect(286+i*25,526,20,33);
+        ctx.strokeStyle='#64748b';ctx.strokeRect(286+i*25,526,20,33);
+        ctx.fillStyle=i===2?'#22c55e':'#64748b';ctx.fillRect(293+i*25,532,6,3);
+        ctx.fillStyle='#94a3b8';ctx.fillRect(291+i*25,550,10,2);
+      }
+      // equipment crate
+      ctx.fillStyle='#111827';ctx.fillRect(405,525,12,27);
+      ctx.fillStyle='#22d3ee';ctx.fillRect(408,531,6,3);
+
+      // ----- lounge -----
+      rr(670,475,180,96,5,'rgba(255,255,255,.42)','#d2c4b0',1.5);
+      text('CHILL LOUNGE',685,493,8,'#475569','800');
+      // sofa
+      rr(690,512,95,34,10,'#687789','#4b5968',2);
+      rr(696,502,83,23,9,'#7d8b99','#566473',1);
+      // table
+      shadowEllipse(815,528,22,6,.12);
+      ctx.fillStyle='#1f2937';ctx.beginPath();ctx.ellipse(815,523,23,12,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#b7793d';ctx.beginPath();ctx.ellipse(815,521,18,8,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.arc(807,520,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(821,520,3,0,Math.PI*2);ctx.fill();
+
+      // ----- ping-pong -----
+      shadowEllipse(515,555,92,8,.18);
+      rr(442,490,170,58,2,'#047857','#065f46',2);
+      ctx.strokeStyle='#f8fafc';ctx.lineWidth=2;ctx.strokeRect(448,496,158,46);
+      line(527,496,527,542,'#fff',2);
+      // net
+      ctx.fillStyle='#e5e7eb';ctx.fillRect(526,488,4,63);
+      // paddles
+      ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(462,513,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#111827';ctx.beginPath();ctx.arc(582,525,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.arc(526,520,3,0,Math.PI*2);ctx.fill();
+      text('PING-PONG',527,566,8,'#475569','800','center');
+      text('Small Breaks. Big Ideas.',527,577,5,'#94a3b8','600','center');
+
+      // ----- lift, bottom-right -----
+      shadowEllipse(806,567,38,8,.17);
+      rr(760,452,82,112,4,'#8b98a5','#687482',2);
+      rr(769,461,64,92,2,'#1b2533','#0f172a',2);
+      line(775,469,827,469,'#39485a',2);
+      ctx.fillStyle='#22c55e';ctx.fillRect(799,478,14,4);
+      ctx.fillStyle='#cbd5e1';ctx.fillRect(786,540,12,2);ctx.fillRect(804,540,12,2);
+      text('LIFT',801,579,8,'#64748b','800','center');
+      text('Next Level ↑',801,588,5,'#94a3b8','600','center');
+
+      // ----- wall art / decor -----
+      rr(854,178,34,90,2,'#eee4d5','#c4b5a2',1);
+      text('DISCIPLINE',871,198,5,'#334155','800','center');
+      text('CREATES',871,208,5,'#334155','800','center');
+      text('FREEDOM',871,218,5,'#334155','800','center');
+      line(862,228,880,228,'#8b7357',1);
+      // decorative shelves / books
+      rr(28,235,55,48,2,'#8b5a2b','#6b4425',1);
+      for(let i=0;i<5;i++){
+        ctx.fillStyle=['#0f766e','#475569','#a16207','#334155','#0f766e'][i];
+        ctx.fillRect(35+i*9,245,6,24);
+      }
+      // plants distributed like reference, varied
+      plant(45,72,.9,2); plant(610,185,.62,1); plant(870,390,.75,2);
+      plant(42,535,.8,0); plant(862,535,.85,2); plant(155,335,.55,1);
+
+      // small wall lights
+      [610,720].forEach(px=>{
+        ctx.fillStyle='#f8d9a2';ctx.beginPath();ctx.arc(px,22,5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(245,158,11,.15)';ctx.beginPath();ctx.arc(px,22,15,0,Math.PI*2);ctx.fill();
+      });
+    }
+    
+    // Player oynada cheksa: qo'lida yonayotgan sigaret va tutun ko'rinadi
+    function drawPlayerSmoking(x,y){
+      if(!windowSmokeActive || consumeKind!=='smoke') return;
+      ctx.strokeStyle='#fed7aa';ctx.lineWidth=4;
+      ctx.beginPath();ctx.moveTo(x+8,y-7);ctx.lineTo(x+17,y-2);ctx.stroke();
+      ctx.strokeStyle='#e5e7eb';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x+17,y-2);ctx.lineTo(x+25,y-5);ctx.stroke();
+      ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(x+27,y-5,2.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(226,232,240,.65)';
+      for(let i=0;i<3;i++){
+        const sy=y-14-i*8-Math.sin((tick+i)*.18)*3;
+        ctx.beginPath();ctx.arc(x+27+i*2,sy,3+i,0,Math.PI*2);ctx.fill();
+      }
     }
 
     function handleSmoke() {
@@ -744,9 +1336,9 @@
           if (npc.id === 'jasur') {
             const acts = [
               { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Scanning 15m FVG', time: 240, coffee: false },
-              { x: 65, y: 155, status: 'Brewing Coffee', time: 180, coffee: true },
-              { x: 320, y: 90, status: 'Reporting to Whale', time: 200, coffee: true },
-              { x: 510, y: 350, status: 'Ping-Pong break', time: 150, coffee: false }
+              { x: 80, y: 430, status: 'Brewing Coffee', time: 180, coffee: true },
+              { x: 450, y: 255, status: 'Reporting to Whale', time: 200, coffee: true },
+              { x: 530, y: 500, status: 'Ping-Pong break', time: 150, coffee: false }
             ];
             const a = acts[Math.floor(Math.random() * acts.length)];
             npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
@@ -757,8 +1349,8 @@
           if (npc.id === 'alex') {
             const acts = [
               { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Testing CISD Script', time: 300, coffee: false },
-              { x: 570, y: 140, status: 'Checking Servers', time: 180, coffee: false },
-              { x: 65, y: 155, status: 'Coffee refill', time: 160, coffee: true }
+              { x: 735, y: 315, status: 'Checking Servers', time: 180, coffee: false },
+              { x: 80, y: 430, status: 'Coffee refill', time: 160, coffee: true }
             ];
             const a = acts[Math.floor(Math.random() * acts.length)];
             npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
@@ -769,7 +1361,7 @@
           if (npc.id === 'whale') {
             const acts = [
               { x: npc.baseX, y: npc.baseY, status: npc.liveTask || 'Reviewing Leaderboard', time: 360, coffee: true },
-              { x: 320, y: 240, status: 'Inspecting Desks', time: 200, coffee: true }
+              { x: 450, y: 300, status: 'Inspecting Desks', time: 200, coffee: true }
             ];
             const a = acts[Math.floor(Math.random() * acts.length)];
             npc.targetX = a.x; npc.targetY = a.y; npc.status = a.status;
@@ -781,8 +1373,7 @@
         const dy = npc.targetY - npc.y;
         const dist = Math.hypot(dx, dy);
         if (dist > 3) {
-          npc.x += (dx / dist) * 0.9;
-          npc.y += (dy / dist) * 0.9;
+          moveWithCollision(npc,(dx / dist) * 0.9,(dy / dist) * 0.9,10,true);
           npc.isMoving = true;
         } else {
           npc.isMoving = false;
@@ -790,57 +1381,477 @@
       });
     }
 
+    // SMART OFFICE COLLISION
+    const hqSolidRects=[
+      {x:190,y:275,w:60,h:28,pad:9},{x:580,y:275,w:60,h:28,pad:9},
+      {x:190,y:405,w:60,h:28,pad:9},{x:580,y:405,w:60,h:28,pad:9},
+      {x:35,y:390,w:95,h:50,pad:7},{x:455,y:485,w:150,h:55,pad:7},
+      {x:790,y:450,w:65,h:105,pad:7}
+    ];
+    function hitRect(x,y,r,o){const cx=Math.max(o.x,Math.min(x,o.x+o.w)),cy=Math.max(o.y,Math.min(y,o.y+o.h));return Math.hypot(x-cx,y-cy)<r+o.pad;}
+    function canMoveTo(x,y,r=11,ignoreNPC=false){
+      if(x<28||x>canvas.width-28||y<82||y>canvas.height-22)return false;
+      if(hqSolidRects.some(o=>hitRect(x,y,r,o)))return false;
+      // Glass meeting room walls with a doorway at the south-center.
+      const walls=[{x:90,y:30,w:500,h:5},{x:90,y:30,w:5,h:145},{x:585,y:30,w:5,h:145},{x:90,y:170,w:235,h:5},{x:425,y:170,w:165,h:5}];
+      if(walls.some(o=>hitRect(x,y,r,{...o,pad:1})))return false;
+      if(!ignoreNPC && npcs.some(n=>Math.hypot(x-n.x,y-n.y)<r+10))return false;
+      return true;
+    }
+    function moveWithCollision(ent,dx,dy,r=11,ignoreNPC=false){let moved=false;const nx=ent.x+dx,ny=ent.y+dy;if(canMoveTo(nx,ent.y,r,ignoreNPC)){ent.x=nx;moved=true;}if(canMoveTo(ent.x,ny,r,ignoreNPC)){ent.y=ny;moved=true;}return moved;}
+
+    const hqKeys = {};
     function updatePlayer() {
+      if (playerSitting) { player.isMoving = false; return; }
+
+      let kx = 0, ky = 0;
+      if (hqKeys['KeyA'] || hqKeys['ArrowLeft']) kx -= 1;
+      if (hqKeys['KeyD'] || hqKeys['ArrowRight']) kx += 1;
+      if (hqKeys['KeyW'] || hqKeys['ArrowUp']) ky -= 1;
+      if (hqKeys['KeyS'] || hqKeys['ArrowDown']) ky += 1;
+
+      if (kx || ky) {
+        const len = Math.hypot(kx,ky) || 1;
+        moveWithCollision(player,(kx/len)*player.speed*1.65,(ky/len)*player.speed*1.65,11,true);
+        player.targetX = player.x; player.targetY = player.y;
+        player.isMoving = true;
+        return;
+      }
+
       const dx = player.targetX - player.x;
       const dy = player.targetY - player.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 3) {
-        player.x += (dx / dist) * player.speed;
-        player.y += (dy / dist) * player.speed;
+      if (dist > 2.5) {
+        const step = Math.min(player.speed, dist);
+        moveWithCollision(player,(dx / dist) * step,(dy / dist) * step,11,true);
         player.isMoving = true;
       } else {
         player.isMoving = false;
       }
     }
 
-    // ASOSIY RENDER SIKLI
+
+    // ==========================================================
+    // 🪑 CHAIR / SIT-STAND SYSTEM — QO'SHILDI
+    // ==========================================================
+    const officeChairs = [
+      { id:'chair-1', x:220, y:350, radius:42 },
+      { id:'chair-2', x:610, y:350, radius:42 },
+      { id:'chair-3', x:220, y:420, radius:42 },
+      { id:'chair-4', x:610, y:420, radius:42 },
+      { id:'meeting-1', x:250, y:132, radius:28 },
+      { id:'meeting-2', x:300, y:150, radius:28 },
+      { id:'meeting-3', x:355, y:150, radius:28 },
+      { id:'meeting-4', x:410, y:150, radius:28 },
+      { id:'meeting-5', x:465, y:150, radius:28 },
+      { id:'meeting-6', x:520, y:132, radius:28 }
+    ];
+    let playerSitting = false;
+    let currentChair = null;
+
+    function drawOfficeChair(chair) {
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.beginPath();
+      ctx.ellipse(chair.x, chair.y + 13, 24, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(chair.x - 18, chair.y - 18, 36, 22);
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(chair.x - 14, chair.y - 15, 28, 3);
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(chair.x - 22, chair.y + 3, 44, 12);
+
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(chair.x - 27, chair.y - 1, 6, 16);
+      ctx.fillRect(chair.x + 21, chair.y - 1, 6, 16);
+
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(chair.x - 3, chair.y + 15, 6, 13);
+      ctx.fillRect(chair.x - 16, chair.y + 27, 32, 3);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(chair.x - 18, chair.y + 27, 5, 4);
+      ctx.fillRect(chair.x + 13, chair.y + 27, 5, 4);
+    }
+
+    function drawAllOfficeChairs() {
+      officeChairs.forEach(drawOfficeChair);
+    }
+
+    function getNearbyChair() {
+      if (!player || playerSitting) return null;
+      return officeChairs.find(chair =>
+        Math.hypot(player.x - chair.x, player.y - chair.y) < chair.radius
+      ) || null;
+    }
+
+    function updateChairPrompt() {
+      const btn = document.getElementById('chair-action-btn');
+      if (!btn) return;
+
+      if (playerSitting) {
+        btn.classList.remove('hidden');
+        btn.innerText = 'STAND';
+        btn.className =
+          'absolute bottom-3 left-3 z-20 bg-rose-600 active:bg-rose-500 text-white px-5 py-3 rounded-xl text-sm font-extrabold shadow-lg';
+        return;
+      }
+
+      const chair = getNearbyChair();
+      if (chair) {
+        btn.classList.remove('hidden');
+        btn.innerText = 'SIT';
+        btn.className =
+          'absolute bottom-3 left-3 z-20 bg-amber-500 active:bg-amber-400 text-white px-5 py-3 rounded-xl text-sm font-extrabold shadow-lg';
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(chair.x - 28, chair.y - 52, 56, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText('SIT', chair.x - 9, chair.y - 39);
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
+
+    function toggleChairSeat() {
+      if (playerSitting) {
+        const chair = currentChair || officeChairs[0];
+        playerSitting = false;
+        player.isMoving = false;
+        player.x = chair.x;
+        player.y = chair.y + 32;
+        player.targetX = player.x;
+        player.targetY = player.y;
+        currentChair = null;
+        return;
+      }
+
+      const chair = getNearbyChair();
+      if (!chair) return;
+
+      currentChair = chair;
+      playerSitting = true;
+      player.x = chair.x;
+      player.y = chair.y + 4;
+      player.targetX = player.x;
+      player.targetY = player.y;
+      player.isMoving = false;
+    }
+
+    // ==========================================================
+    // 📱 SENSOR EKRAN — BOSIB/YURGIZIB HARAKAT
+    // ==========================================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function canvasTouchPoint(e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      if (!touch || !canvas) return null;
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+        y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    if (canvas) {
+      canvas.addEventListener('touchstart', e => {
+        if (!loungeActive || playerSitting) return;
+        const pt = canvasTouchPoint(e);
+        if (!pt) return;
+        touchStartX = pt.x;
+        touchStartY = pt.y;
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', e => {
+        if (!loungeActive || playerSitting) return;
+        const pt = canvasTouchPoint(e);
+        if (!pt) return;
+
+        const dx = pt.x - touchStartX;
+        const dy = pt.y - touchStartY;
+
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          moveWithCollision(player, dx * 0.18, dy * 0.18, 11, true);
+          player.targetX = player.x;
+          player.targetY = player.y;
+          touchStartX = pt.x;
+          touchStartY = pt.y;
+        }
+      }, { passive: true });
+
+      canvas.addEventListener('touchend', e => {
+        if (!loungeActive || playerSitting) return;
+        const pt = canvasTouchPoint(e);
+        if (!pt) return;
+
+        const dx = pt.x - touchStartX;
+        const dy = pt.y - touchStartY;
+
+        if (Math.abs(dx) < 15 && Math.abs(dy) < 15) {
+          const dx = pt.x - player.x, dy = pt.y - player.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const step = Math.min(120, dist);
+          player.targetX = Math.max(40, Math.min(canvas.width - 40, player.x + (dx / dist) * step));
+          player.targetY = Math.max(90, Math.min(canvas.height - 30, player.y + (dy / dist) * step));
+        }
+      }, { passive: true });
+    }
+
+
+    // ==========================================================
+    // 🎮 HQ GAMEPLAY: MACBOOK / MISSION / ROOMS / MINI-GAMES
+    // ==========================================================
+    const hqDesks = [
+      { id:'desk-1', x:220, y:350, laptopX:220, laptopY:309 },
+      { id:'desk-2', x:610, y:350, laptopX:610, laptopY:309 },
+      { id:'desk-3', x:220, y:420, laptopX:220, laptopY:379 },
+      { id:'desk-4', x:610, y:420, laptopX:610, laptopY:379 }
+    ];
+    const hqInteractables = {
+      coffee:{x:80,y:430,r:42,label:'MAKE COFFEE'},
+      pingpong:{x:530,y:560,r:55,label:'PLAY PING-PONG'},
+      lift:{x:760,y:505,r:52,label:'ENTER LIFT'},
+      secret:{x:450,y:92,r:38,label:'SCAN WALL'},
+      meeting:{x:340,y:112,r:88,label:'ENTER MEETING ROOM'},
+      lounge:{x:337,y:565,r:48,label:'SIT LOUNGE'},
+      gaming:{x:165,y:575,r:48,label:'SIT GAMING'}
+    };
+    let hqXP=0, hqCoins=100, terminalOpen=false, miniGameRunning=false;
+    let hqClockMinutes=9*60, hqEventTimer=0, hqEventIndex=-1, secretUnlocked=false;
+    const hqEvents=[
+      ['📢 TEAM SYNC','All agents are syncing their tasks. Check the status strip.'],
+      ['⚠️ MARKET ALERT','Volatility detected. Open a MacBook and inspect the terminal.'],
+      ['☕ COFFEE BREAK','The office is taking a short coffee break.'],
+      ['🔐 SECURITY SWEEP','A hidden system panel may be available near the north wall.']
+    ];
+    let missionState = {sit:false, laptop:false, talk:false, coffee:false, pingpong:false, lift:false};
+    const missions=[
+      ['sit','🪑 Sit on any office chair'],['laptop','💻 Use a MacBook'],['talk','🤖 Talk to an AI Agent'],
+      ['coffee','☕ Make coffee'],['pingpong','🎮 Play ping-pong'],['lift','🛗 Enter the lift']
+    ];
+    function addReward(xp,coins=0){ hqXP+=xp; hqCoins+=coins; updateHqHud(); }
+    function updateHqHud(){ const x=document.getElementById('hq-xp'),c=document.getElementById('hq-coins'); if(x)x.innerText=hqXP;if(c)c.innerText=hqCoins; }
+    function completeMission(id){ if(!missionState[id]){ missionState[id]=true; addReward(50,10); } renderMissions(); }
+    function renderMissions(){
+      const done=missions.filter(m=>missionState[m[0]]).length; const mc=document.getElementById('mission-count'); const ml=document.getElementById('mission-list');
+      if(mc)mc.innerText=`${done}/${missions.length}`;
+      if(ml)ml.innerHTML=missions.map(m=>`<div class="flex gap-1.5 ${missionState[m[0]]?'text-emerald-400 line-through':'text-slate-300'}"><span>${missionState[m[0]]?'✓':'○'}</span><span>${m[1]}</span></div>`).join('');
+      if(done===missions.length && !missionState.rewarded){ missionState.rewarded=true; addReward(250,100); }
+    }
+    function toggleMissions(){ const el=document.getElementById('mission-panel'); if(el)el.classList.toggle('hidden'); renderMissions(); }
+    function getNearbyDesk(){if(playerSitting)return null;let best=null,bd=Infinity;for(const d of hqDesks){const z=Math.hypot(player.x-d.laptopX,player.y-d.laptopY);if(z<52&&z<bd){best=d;bd=z;}}return best;}
+    function getNearbyObject(){if(playerSitting)return null;let best=null,bd=Infinity;for(const [key,o] of Object.entries(hqInteractables)){const z=Math.hypot(player.x-o.x,player.y-o.y);if(z<o.r&&z<bd){best={key,...o};bd=z;}}return best;}
+    function getNearbyAction(){
+      if(playerSitting)return {type:'stand',label:'STAND',dist:0};
+      const a=[];const ch=getNearbyChair();if(ch)a.push({type:'chair',label:'SIT',chair:ch,dist:Math.hypot(player.x-ch.x,player.y-ch.y)});
+      const d=getNearbyDesk();if(d)a.push({type:'laptop',label:'USE MACBOOK',desk:d,dist:Math.hypot(player.x-d.laptopX,player.y-d.laptopY)});
+      const n=getNearbyNPC();if(n)a.push({type:'npc',label:'TALK',npc:n,dist:Math.hypot(player.x-n.x,player.y-n.y)});
+      if(nearSmokeWindow())a.push({type:'smoke',label:'SMOKE BY WINDOW',window:smokeWindow,dist:Math.hypot(player.x-smokeWindow.x,player.y-smokeWindow.y)});
+      const c=nearestHQConsumable();if(c&&c.key!=='smoke')a.push({type:c.key,label:c.label,consumable:c,dist:Math.hypot(player.x-c.x,player.y-c.y)});
+      const m=getNearbyMonitor();if(m)a.push({type:'monitor',label:m.id==='youtube'?'OPEN YOUTUBE':m.id==='tradingview'?'OPEN TRADINGVIEW':'OPEN DASHBOARD',monitor:m,dist:Math.hypot(player.x-m.x,player.y-m.y)});
+      const o=getNearbyObject();if(o)a.push({type:o.key,label:o.label,obj:o,dist:Math.hypot(player.x-o.x,player.y-o.y)});
+      return a.sort((x,y)=>x.dist-y.dist)[0]||null;
+    }
+    function updateHqAction(){const btn=document.getElementById('hq-action-btn');if(!btn)return;const a=getNearbyAction();if(!a){btn.classList.add('hidden');return;}btn.classList.remove('hidden');btn.innerText='E  '+a.label;btn.className='bg-indigo-600 active:bg-indigo-500 text-white px-5 py-3 rounded-xl text-xs font-extrabold shadow-lg';}
+    function performNearbyAction(){
+      const a=getNearbyAction();if(!a)return;
+      if(a.type==='stand'){toggleChairSeat();return;}
+      if(a.type==='chair'){toggleChairSeat(a.chair);completeMission('sit');return;}
+      if(a.type==='laptop'){const chair=officeChairs.find(c=>c.id===a.desk.id.replace('desk','chair'));if(chair)toggleChairSeat(chair);setTimeout(openTerminal,140);completeMission('laptop');return;}
+      if(a.type==='npc'){interactWithNearby();return;}
+      if(a.type==='coffee'){coffeeInteraction();if(coffeeState==='ready'||coffeeState==='held')completeMission('coffee');return;}
+      if(a.type==='pingpong'){playPingPong();completeMission('pingpong');return;}
+      if(a.type==='lift'){useLift();completeMission('lift');return;}
+      if(a.type==='secret'){useSecretRoom();return;}
+      if(a.type==='meeting'){enterMeetingRoom();return;}
+      if(a.type==='lounge'){toggleChairSeat({id:'lounge-sofa',x:337,y:565,radius:35});showConsumeToast('🛋️ Lounge — E STAND');return;}
+      if(a.type==='gaming'){toggleChairSeat({id:'gaming-chair',x:165,y:585,radius:35});showConsumeToast('🎮 Gaming — E STAND');return;}
+      if(a.type==='monitor'){activateHQMonitor(a.monitor);return;}
+      if(a.type==='smoke'){startWindowSmoke();return;}
+      if(a.type==='xo'){openXO();return;}
+    }
+    function enterMeetingRoom(){const panel=document.getElementById('room-panel');document.getElementById('room-title').innerText='🏢 MEETING ROOM // TEAM SYNC';document.getElementById('room-content').innerHTML='<div class="bg-slate-950 rounded-xl p-3"><b class="text-cyan-300">OBSIDIAN MEDIA</b><div class="text-slate-400 mt-1">TEAM SYNC • 6 seats • laptops ready</div><div class="mt-3 text-emerald-400">ROOM ACCESS GRANTED</div></div>';panel.classList.remove('hidden');}
+
+    function openTerminal(){ terminalOpen=true; document.getElementById('terminal-panel').classList.remove('hidden'); drawTerminalChart(); }
+    function closeTerminal(){ terminalOpen=false; document.getElementById('terminal-panel').classList.add('hidden'); }
+    function drawTerminalChart(){
+      const c=document.getElementById('chart-canvas'); if(!c)return; const x=c.getContext('2d'); x.clearRect(0,0,c.width,c.height);
+      x.strokeStyle='#334155'; for(let i=0;i<6;i++){x.beginPath();x.moveTo(0,i*15);x.lineTo(c.width,i*15);x.stroke();}
+      let px=0,py=55;x.strokeStyle='#22c55e';x.lineWidth=2;x.beginPath();x.moveTo(px,py);
+      for(let i=0;i<40;i++){px+=13;py=Math.max(8,Math.min(82,py+(Math.random()-.45)*16));x.lineTo(px,py);}x.stroke();
+    }
+    function placePaperTrade(){ addReward(25,25); const b=document.getElementById('term-balance'); if(b)b.innerText=`$${(10000+hqCoins*2).toLocaleString()}`; drawTerminalChart(); }
+    function makeCoffee(){
+      // Legacy mission helper now starts the real coffee-machine workflow.
+      coffeeInteraction();
+      addReward(10,5);
+      document.getElementById('live-hq-ticker').innerText='☕️ You: Coffee break at Obsidian HQ...';
+    }
+    function playPingPong(){
+      if(miniGameRunning)return; miniGameRunning=true; let score=0;
+      const panel=document.getElementById('room-panel'); const title=document.getElementById('room-title'),content=document.getElementById('room-content');
+      panel.classList.remove('hidden'); title.innerText='🎮 PING-PONG MINI GAME';
+      content.innerHTML='<div class="mb-3">Tap the button 5 times before the timer ends.</div><button id="pong-hit" class="w-full bg-emerald-600 rounded-xl py-3 font-bold">HIT 🏓</button><div id="pong-score" class="mt-2 text-amber-300">Score: 0/5</div>';
+      const hit=document.getElementById('pong-hit'),sc=document.getElementById('pong-score');
+      hit.onclick=()=>{score++;sc.innerText=`Score: ${score}/5`;if(score>=5){addReward(100,40);completeMission('pingpong');closeRoom();miniGameRunning=false;}};
+      setTimeout(()=>{if(miniGameRunning){closeRoom();miniGameRunning=false;}},8000);
+    }
+    function useLift(){
+      const panel=document.getElementById('room-panel'); document.getElementById('room-title').innerText='🛗 OBSIDIAN HQ — FLOOR 2';
+      document.getElementById('room-content').innerHTML='<div class="mb-3">Lift doors open. Floor 2 contains the Meeting Lounge, Strategy Room and private trading pods.</div><div class="grid grid-cols-3 gap-2"><button onclick="showRoom(\'Meeting Lounge\',\'A glass meeting room for the team.\')" class="bg-slate-800 rounded-lg p-2">Meeting</button><button onclick="showRoom(\'Strategy Room\',\'Whiteboard + market planning zone.\')" class="bg-slate-800 rounded-lg p-2">Strategy</button><button onclick="showRoom(\'Trading Pods\',\'Private paper-trading stations.\')" class="bg-slate-800 rounded-lg p-2">Pods</button></div>';
+      panel.classList.remove('hidden'); addReward(20,15); document.getElementById('live-hq-ticker').innerText='🛗 You: Arrived on Floor 2.';
+    }
+    function showRoom(title,text){document.getElementById('room-title').innerText=title;document.getElementById('room-content').innerHTML=`<div>${text}</div><div class="mt-3 text-emerald-400">SYSTEM ONLINE • FLOOR 2</div>`;}
+    function closeRoom(){document.getElementById('room-panel').classList.add('hidden');miniGameRunning=false;}
+    function toggleHQAI(){ const el=document.getElementById('hq-ai-panel'); if(el)el.classList.toggle('hidden'); }
+    function askHQAI(topic){
+      const box=document.getElementById('hq-ai-reply'); if(!box)return;
+      const done=missions.filter(m=>missionState[m[0]]).length;
+      const hour=Math.floor(hqClockMinutes/60)%24;
+      if(topic==='status') box.innerText=`HQ ${hour<18?'DAY':'NIGHT'} mode • ${npcs.length} agents online • XP ${hqXP} • ${done}/${missions.length} missions complete.`;
+      if(topic==='mission') box.innerText=done===missions.length?'All missions complete. Bonus reward unlocked.':'Next objective: interact with the nearest highlighted station and complete the remaining checklist.';
+      if(topic==='market') box.innerText=`BTC ${document.getElementById('term-btc')?.innerText||'104,250'} • ETH ${document.getElementById('term-eth')?.innerText||'4,120'} • Paper balance $10,000. Open a MacBook for the full terminal.`;
+    }
+    function showHQEvent(title,text){
+      const el=document.getElementById('hq-event-toast'); if(!el)return;
+      el.innerHTML=`<b class="text-indigo-300">${title}</b><div class="text-slate-300 mt-0.5">${text}</div>`;
+      el.classList.remove('hidden'); clearTimeout(window.__hqToast); window.__hqToast=setTimeout(()=>el.classList.add('hidden'),4200);
+    }
+    function updateHQClock(){
+      hqClockMinutes += 0.12;
+      if(hqClockMinutes>=24*60) hqClockMinutes=0;
+      const h=Math.floor(hqClockMinutes/60), m=Math.floor(hqClockMinutes%60);
+      const night=h>=19 || h<7;
+      const el=document.getElementById('hq-clock'); if(el)el.innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} • ${night?'NIGHT':'DAY'}`;
+      hqEventTimer += 0.12;
+      if(hqEventTimer>45){ hqEventTimer=0; hqEventIndex=(hqEventIndex+1)%hqEvents.length; showHQEvent(hqEvents[hqEventIndex][0],hqEvents[hqEventIndex][1]); }
+    }
+    function drawHQAtmosphere(){
+      const h=hqClockMinutes/60; const night=h>=19 || h<7;
+      if(night){
+        ctx.fillStyle='rgba(7,12,35,0.28)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        const lights=[[150,200],[430,200],[150,270],[430,270],[65,155]];
+        lights.forEach(([x,y])=>{ const g=ctx.createRadialGradient(x,y-18,2,x,y-18,45); g.addColorStop(0,'rgba(250,204,21,.18)'); g.addColorStop(1,'rgba(250,204,21,0)'); ctx.fillStyle=g; ctx.beginPath();ctx.arc(x,y-18,45,0,Math.PI*2);ctx.fill(); });
+      } else if(h<9){ ctx.fillStyle='rgba(251,191,36,0.06)'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+    }
+    function useSecretRoom(){
+      if(!secretUnlocked){
+        if(hqCoins<50){ showHQEvent('🔒 ACCESS DENIED','You need 50 coins to unlock the hidden AI Lab.'); return; }
+        hqCoins-=50; secretUnlocked=true; updateHqHud(); addReward(100,0);
+        showHQEvent('🔓 SECRET LAB UNLOCKED','Obsidian AI Lab access granted.');
+      }
+      const panel=document.getElementById('room-panel'); if(!panel)return;
+      document.getElementById('room-title').innerText='🧠 SECRET AI LAB';
+      document.getElementById('room-content').innerHTML=`<div class="bg-slate-950 rounded-xl p-3">\n        <div class="text-cyan-300 font-bold mb-2">OBSIDIAN CORE // ONLINE</div>\n        <div class="text-slate-400">Experimental agent simulation is running.</div>\n        <div class="grid grid-cols-2 gap-2 mt-3">\n          <button onclick="addReward(40,15);showHQEvent('🧪 EXPERIMENT COMPLETE','AI core calibration rewarded you.');" class="bg-indigo-600 rounded-lg py-2">CALIBRATE</button>\n          <button onclick="showHQEvent('🛰️ SCAN COMPLETE','No anomalies detected.');" class="bg-slate-800 rounded-lg py-2">SCAN CORE</button>\n        </div></div>`;
+      panel.classList.remove('hidden');
+    }
+
+    function drawInteractiveMarkers(){
+      const desk=getNearbyDesk(); if(desk){ctx.fillStyle='#38bdf8';ctx.font='bold 9px monospace';ctx.fillText(' USE',desk.x-17,desk.y-7);}
+      const obj=getNearbyObject(); if(obj){ctx.fillStyle='#6366f1';ctx.font='bold 9px monospace';ctx.fillText(obj.label,obj.x-ctx.measureText(obj.label).width/2,obj.y-35);}
+    }
+
+    // ASOSIY RENDER SIKLI — robust: one interaction/render error must never freeze the game
     function renderLoop() {
       if (!loungeActive || !ctx) return;
       tick++;
 
-      drawIsometricOffice();
-      handleSmoke();
-      updateNPCs();
-      updatePlayer();
-
-      // Y-Sorting (Kim oldinda bo'lsa oxirida chiziladi)
-      let renderables = [
-        { ...player, isPlayer: true },
-        ...npcs.map(n => ({ ...n, isPlayer: false }))
-      ];
-      renderables.sort((a, b) => a.y - b.y);
-
-      renderables.forEach(obj => {
-        if (obj.isPlayer) {
-          drawAgent(obj.x, obj.y, obj.color, '#ffffff', obj.name, 'Trader', 'Online (You)', obj.isMoving);
-        } else {
-          drawAgent(obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name, obj.role, obj.status, obj.isMoving, obj.coffee);
+      try {
+        try {
+          drawIsometricOffice();
+          drawAllOfficeChairs();
+          handleSmoke();
+        } catch (err) {
+          console.error('HQ visual render error:', err);
         }
-      });
 
-      let nearNpc = getNearbyNPC();
-      if (nearNpc) {
-        ctx.fillStyle = '#6366f1';
-        ctx.fillRect(nearNpc.x - 26, nearNpc.y - 78, 52, 16);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 67);
+        try { drawHQAtmosphere(); } catch (err) { console.error('HQ atmosphere error:', err); }
+
+        try {
+          if(windowSmokeActive && tick%3===0){
+            smokeParticles.push({
+              x:player.x+27,y:player.y-15,
+              vx:(Math.random()-.5)*.35,vy:-.7,life:32,alpha:.75
+            });
+          }
+        } catch (err) { console.error('HQ smoke error:', err); }
+
+        try { updateHQClock(); } catch (err) { console.error('HQ clock error:', err); }
+
+        // NPCs and player are independent: if one system fails, the others keep moving.
+        try { updateNPCs(); } catch (err) { console.error('HQ NPC update error:', err); }
+        try { updatePlayer(); } catch (err) { console.error('HQ player update error:', err); }
+
+        try {
+          let renderables = [
+            { ...player, isPlayer: true },
+            ...npcs.map(n => ({ ...n, isPlayer: false }))
+          ];
+          renderables.sort((a, b) => a.y - b.y);
+
+          renderables.forEach(obj => {
+            if (obj.isPlayer) {
+              drawAgent(
+                obj.x, obj.y, obj.color, '#ffffff', obj.name, 'Trader',
+                playerSitting ? 'Sitting • Online' : 'Online (You)',
+                obj.isMoving, coffeeState==='held'
+              );
+              drawPlayerSmoking(obj.x,obj.y);
+            } else {
+              drawAgent(
+                obj.x, obj.y, obj.bodyColor, obj.hairColor, obj.name,
+                obj.role, obj.status, obj.isMoving, obj.coffee
+              );
+            }
+          });
+        } catch (err) { console.error('HQ character render error:', err); }
+
+        try {
+          let nearNpc = getNearbyNPC();
+          if (nearNpc) {
+            ctx.fillStyle = '#6366f1';
+            ctx.fillRect(nearNpc.x - 26, nearNpc.y - 78, 52, 16);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText('💬 [TALK]', nearNpc.x - 21, nearNpc.y - 67);
+          }
+        } catch (err) { console.error('HQ NPC prompt error:', err); }
+
+        try { updateChairPrompt(); } catch (err) { console.error('HQ chair prompt error:', err); }
+        try { updateHqAction(); } catch (err) { console.error('HQ action prompt error:', err); }
+
+        try {
+          const nearby=getNearbyAction();
+          if(nearby && nearby.type!=='stand'){
+            const txt='E  '+nearby.label;
+            ctx.font='bold 9px "JetBrains Mono",monospace';
+            const w=Math.max(92,ctx.measureText(txt).width+22);
+            ctx.fillStyle='rgba(15,23,42,.95)';
+            ctx.strokeStyle='rgba(56,189,248,.75)';
+            ctx.lineWidth=1;
+            rr(player.x-w/2,player.y-70,w,23,7,'rgba(15,23,42,.95)','rgba(56,189,248,.75)',1);
+            ctx.fillStyle='#e2e8f0';
+            ctx.textAlign='center';
+            ctx.fillText(txt,player.x,player.y-55);
+            ctx.textAlign='left';
+          }
+        } catch (err) { console.error('HQ interaction prompt error:', err); }
+
+        try {
+          if(activeHQMonitor==='dashboard' && tick%30===0) updateHQDashboard();
+        } catch (err) { console.error('HQ dashboard error:', err); }
+      } finally {
+        // NEVER let a single E interaction, modal, NPC or drawing error stop the loop.
+        if (loungeActive) requestAnimationFrame(renderLoop);
       }
-
-      requestAnimationFrame(renderLoop);
     }
 
     function movePlayer(dx, dy) {
+      if (playerSitting) return;
       player.targetX = Math.max(40, Math.min(canvas.width - 40, player.targetX + dx));
       player.targetY = Math.max(90, Math.min(canvas.height - 30, player.targetY + dy));
     }
@@ -853,6 +1864,7 @@
       const npc = getNearbyNPC();
       if (!npc) return;
       currentTargetNpc = npc;
+      completeMission('talk');
       document.getElementById('dialog-npc-name').innerText = `${npc.name} (${npc.role})`;
       document.getElementById('dialog-reply').innerText = `"${npc.name} senga qaradi. Hozirgi vazifasi: ${npc.status}. Savolingiz bormi?"`;
       document.getElementById('dialog-box').classList.remove('hidden');
@@ -887,17 +1899,55 @@
     }
 
     window.addEventListener('keydown', (e) => {
-      if (!loungeActive || document.activeElement.tagName === 'INPUT') return;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) movePlayer(0, -20);
-      if (['ArrowDown', 'KeyS'].includes(e.code)) movePlayer(0, 20);
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) movePlayer(-20, 0);
-      if (['ArrowRight', 'KeyD'].includes(e.code)) movePlayer(20, 0);
-      if (['Space', 'KeyE'].includes(e.code)) interactWithNearby();
-      if (['Escape'].includes(e.code)) closeLoungeModal();
+      if (!loungeActive) return;
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const moveCodes = ['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+      if (moveCodes.includes(e.code)) {
+        e.preventDefault();
+        if (!playerSitting) { hqKeys[e.code] = true; player.targetX = player.x; player.targetY = player.y; }
+        return;
+      }
+      if (['Space','KeyE'].includes(e.code)) {
+        e.preventDefault();
+        if (e.repeat) return;
+        try {
+          if (getNearbyAction()) performNearbyAction();
+          else interactWithNearby();
+        } catch (err) {
+          console.error('HQ interaction error:', err);
+        }
+      }
+      if(e.code==='Equal'||e.code==='NumpadAdd'){const z=Math.min(1.16,(window.__hqZoom||1)+.04);canvas.style.transform=`scale(${z})`;window.__hqZoom=z;return;}
+      if(e.code==='Minus'||e.code==='NumpadSubtract'){const z=Math.max(.92,(window.__hqZoom||1)-.04);canvas.style.transform=`scale(${z})`;window.__hqZoom=z;return;}
+      if (e.code==='Escape') { closeHQMedia(); closeLoungeModal(); }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) hqKeys[e.code]=false;
+    });
+    window.addEventListener('blur', () => {
+      Object.keys(hqKeys).forEach(k => hqKeys[k] = false);
     });
 
     init();
+    renderMissions();
+    updateHqHud();
+    updateHQClock();
     setInterval(updateTicker, 1000);
   </script>
+
+<!-- HQ MINI-GAME / CONSUMABLE INTERACTION UI -->
+<div id="xo-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/65 backdrop-blur-sm">
+  <div class="hq-panel rounded-2xl p-4 w-[310px]">
+    <div class="flex items-center justify-between mb-3">
+      <div><b class="text-cyan-300 font-mono">XO ARENA</b><div id="xo-status" class="text-[10px] text-slate-400">Your turn</div></div>
+      <button onclick="closeXO()" class="text-rose-400 font-bold">✕</button>
+    </div>
+    <div id="xo-board" class="grid grid-cols-3 gap-2"></div>
+    <button onclick="resetXO()" class="mt-3 w-full rounded-xl bg-cyan-500 text-slate-950 font-bold py-2 text-xs">NEW ROUND</button>
+  </div>
+</div>
+<div id="hq-consume-toast" class="hidden fixed left-1/2 -translate-x-1/2 bottom-5 z-[90] rounded-xl px-4 py-2 bg-slate-950/95 border border-cyan-400/30 text-xs font-mono shadow-2xl"></div>
+
 </body>
 </html>
