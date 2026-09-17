@@ -172,6 +172,12 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
 CORS(app)
 
+# Render uchun Telegram Webhook.
+# getUpdates/long-polling o'rniga webhook ishlatamiz — 409 Conflict yo'qoladi.
+WEBHOOK_BASE_URL = get_env("WEBHOOK_BASE_URL", "https://tradebot-xelo.onrender.com").rstrip("/")
+WEBHOOK_PATH = f"/telegram/{TELEGRAM_BOT_TOKEN}"
+WEBHOOK_URL = f"{WEBHOOK_BASE_URL}{WEBHOOK_PATH}"
+
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
 def get_ai_analysis(prompt: str) -> str:
     if gemini_client:
@@ -243,6 +249,18 @@ def save_trade_to_sheets(title, content):
 
 # --- 4. FLASK WEB SAYTI VA API ENDPOINTS ---
 comments_store = []
+
+@app.route(WEBHOOK_PATH, methods=['POST'])
+def telegram_webhook():
+    try:
+        update_json = request.get_data(as_text=True)
+        if update_json:
+            update = telebot.types.Update.de_json(update_json)
+            bot.process_new_updates([update])
+        return "OK", 200
+    except Exception as e:
+        print(f"⚠️ Telegram webhook update xatosi: {e}")
+        return "OK", 200
 
 @app.route('/', methods=['GET'])
 def home():
@@ -757,4 +775,20 @@ if __name__ == "__main__":
     t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
     t_radar.start()
 
-    bot.infinity_polling()
+    # Polling o'rniga Telegram Webhook. Bu getUpdates 409 Conflict muammosini
+    # bartaraf qiladi va Render uchun barqarorroq ishlaydi.
+    try:
+        bot.remove_webhook()
+        time.sleep(1)
+        webhook_result = bot.set_webhook(
+            url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
+        print(f"✅ Telegram Webhook o'rnatildi: {WEBHOOK_URL}")
+        print(f"✅ Telegram webhook result: {webhook_result}")
+    except Exception as e:
+        print(f"❌ Telegram webhook o'rnatilmadi: {e}")
+
+    # Flask server daemon threadda ishlaydi; processni tirik ushlab turamiz.
+    while True:
+        time.sleep(3600)
