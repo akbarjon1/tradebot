@@ -22,6 +22,7 @@ import json
 import uuid
 import datetime
 import threading
+import hashlib
 import requests
 import feedparser
 import telebot
@@ -174,8 +175,10 @@ CORS(app)
 
 # Render uchun Telegram Webhook.
 # getUpdates/long-polling o'rniga webhook ishlatamiz — 409 Conflict yo'qoladi.
-WEBHOOK_BASE_URL = get_env("WEBHOOK_BASE_URL", "https://tradebot-xelo.onrender.com").rstrip("/")
-WEBHOOK_PATH = f"/telegram/{TELEGRAM_BOT_TOKEN}"
+WEBHOOK_BASE_URL = get_env("WEBHOOK_BASE_URL", get_env("RENDER_EXTERNAL_URL", "https://tradebot-xelo.onrender.com")).rstrip("/")
+# Tokenni URL ichida ochiq ko'rsatmaslik uchun deterministik secret path.
+WEBHOOK_SECRET = hashlib.sha256(TELEGRAM_BOT_TOKEN.encode("utf-8")).hexdigest()[:40]
+WEBHOOK_PATH = f"/telegram/webhook/{WEBHOOK_SECRET}"
 WEBHOOK_URL = f"{WEBHOOK_BASE_URL}{WEBHOOK_PATH}"
 
 # --- 2. UNIVERSAL AI TAHLIL FUNKSIYASI ---
@@ -261,6 +264,10 @@ def telegram_webhook():
     except Exception as e:
         print(f"⚠️ Telegram webhook update xatosi: {e}")
         return "OK", 200
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok", "telegram": "webhook", "service": "obsidian-lab"}), 200
 
 @app.route('/', methods=['GET'])
 def home():
@@ -449,7 +456,7 @@ def npc_chat():
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
 
 # --- 5. ICT (SMART MONEY CONCEPTS) AVTO-SIGNAL SKANERI ---
 def scan_and_post_ai_signals():
