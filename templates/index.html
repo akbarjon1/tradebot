@@ -253,17 +253,17 @@ function updateUI(){
 }
 async function updateTicker(){
   try{
-    const res=await fetch("https://api.binance.com/api/v3/ticker/price?symbol="+currentAsset+"&t="+Date.now());
+    const res=await fetch("/api/price?symbol="+encodeURIComponent(currentAsset)+"&t="+Date.now(),{cache:"no-store"});
     const d=await res.json();
-    if(d.price)prices[currentAsset]=Number(d.price);
-    document.getElementById("price-status").textContent="BINANCE LIVE";
+    if(!res.ok || d.status!=="success" || !d.price) throw new Error(d.message||"price unavailable");
+    prices[currentAsset]=Number(d.price);
+    document.getElementById("price-status").textContent="● BINANCE LIVE";
     document.getElementById("price-status").style.color="#177245";
   }catch(e){
-    if(!prices[currentAsset])prices[currentAsset]=currentAsset==="BTCUSDT"?78100:2500;
-    document.getElementById("price-status").textContent="OFFLINE / SIM";
+    document.getElementById("price-status").textContent="● CONNECTION ERROR";
     document.getElementById("price-status").style.color="#b33a3a";
   }
-  const p=document.getElementById("live-price"); if(p)p.textContent=money(prices[currentAsset]);
+  const p=document.getElementById("live-price"); if(p)p.textContent=prices[currentAsset]?money(prices[currentAsset]):"$—";
   updateUI();
   checkStops();
 }
@@ -301,6 +301,7 @@ async function syncWithSheets(){
   }catch(e){}
 }
 document.getElementById("chartLoading")?.remove();
+document.getElementById("price-status")?.replaceChildren(document.createTextNode("connecting…"));
 document.getElementById("lev").value=String(currentLeverage);
 setAssetUI();updateUI();updateTicker();setInterval(updateTicker,4000);
 function show(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
