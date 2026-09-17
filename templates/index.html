@@ -136,6 +136,12 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 
 <section class="page" id="leaderboard">
 <div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p id="leader-status">Loading paper performance…</p></div>
+<div id="jasur-card" class="panel" style="margin-bottom:12px;padding:15px;border:1px solid #dfe7e1;background:#fbfdfb">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+    <div><span style="font-size:11px;color:#777;font-family:monospace">AI PAPER TRADER</span><br><b>🤖 Jasur</b> <span style="font-size:11px;color:#177245">● PAPER ONLY</span></div>
+    <div id="jasur-mini" style="font:11px monospace;color:#777">Loading AI status…</div>
+  </div>
+</div>
 <div class="panel">
   <div class="toolbar">
     <button class="btn secondary lb-filter active" data-period="all">All Time</button>
@@ -404,6 +410,22 @@ function checkResetButton(){
 }
 const oldUpdateUI=updateUI;
 updateUI=function(){oldUpdateUI();checkResetButton()};
+
+
+// ===== Jasur AI Paper Trader status =====
+async function loadJasurStatus(){
+  const el=document.getElementById("jasur-mini"); if(!el)return;
+  try{
+    const r=await fetch("/api/jasur?t="+Date.now(),{cache:"no-store"});
+    const d=await r.json();
+    if(d.status!=="success")throw new Error();
+    const p=d.position;
+    el.innerHTML=p
+      ? `<b style="color:${p.direction==="LONG"?"#177245":"#b33a3a"}">${p.direction}</b> ${p.symbol} · Entry ${money(p.entry)} · Balance ${money(d.balance)}`
+      : `Scanning ICT · Balance ${money(d.balance)} · ${d.trades} closed trades`;
+  }catch(e){el.textContent="Jasur status unavailable";}
+}
+loadJasurStatus();setInterval(loadJasurStatus,10000);
 
 // ===== Web Office live backend =====
 let officeData=null;
