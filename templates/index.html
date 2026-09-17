@@ -13,7 +13,7 @@ header{height:72px;border-bottom:1px solid var(--line);background:rgba(247,247,2
 .nav{max-width:1180px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em}.mark{width:28px;height:28px;border:1.5px solid #111;display:grid;place-items:center;font-size:12px}.brand span{font-size:15px}
 .links{display:flex;gap:7px}.links button{border:0;background:transparent;padding:9px 12px;color:#666;cursor:pointer;font-size:13px}.links button:hover,.links button.active{color:#111;background:#ecece7;border-radius:8px}
-.menu{display:none;border:1px solid var(--line);background:#f0ede6;border-radius:8px;padding:8px 10px}
+.links-account{border:1px solid var(--line);background:transparent;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;margin-left:8px}.menu{display:none;border:1px solid var(--line);background:#f0ede6;border-radius:8px;padding:8px 10px}
 main{max-width:1180px;margin:auto;padding:0 22px 70px}.page{display:none}.page.active{display:block}
 .hero{min-height:590px;display:grid;align-content:center;grid-template-columns:1.15fr .85fr;gap:70px;padding:80px 0}.eyebrow{font-size:11px;letter-spacing:.16em;color:#777;margin-bottom:22px}.hero h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.075em;margin:0 0 28px;max-width:780px}.hero p{font-size:17px;line-height:1.7;color:#6d6d68;max-width:570px;margin:0 0 34px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #111;background:#111;color:white;padding:12px 17px;border-radius:8px;cursor:pointer;font-size:13px}.btn.secondary{background:transparent;color:#111;border-color:var(--line)}.btn:hover{transform:translateY(-1px)}
 .statusbox{align-self:end;border:1px solid var(--line);background:#f0ede6;padding:22px;border-radius:12px}.statusline{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:12px}.statusline:last-child{border:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2b8a57;margin-right:8px}
@@ -261,11 +261,11 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 
 <section class="page" id="register">
 <div class="auth-grid"><div class="auth-art"><div class="eyebrow mono">OBSIDIAN LAB</div><h2>Create.<br>Learn.<br>Compete.</h2></div>
-<div class="auth-form"><div class="eyebrow mono">REGISTER</div><h2>Create account</h2><div class="field"><label>USERNAME</label><input id="reg-username" placeholder="@username"></div><div class="field"><label>EMAIL</label><input id="reg-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="reg-password" type="password"></div><button class="btn full" onclick="demoRegister()">Create account</button><button class="btn secondary full" onclick="go('login')">Sign in</button></div></div>
+<div class="auth-form"><div class="eyebrow mono">REGISTER</div><h2>Create account</h2><div class="field"><label>USERNAME</label><input id="reg-username" placeholder="@username"></div><div class="field"><label>EMAIL</label><input id="reg-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="reg-password" type="password"></div><div class="field"><label>CONFIRM PASSWORD</label><input id="reg-confirm" type="password"></div><button class="btn full" onclick="demoRegister()">Create account</button><button class="btn secondary full" onclick="go('login')">Sign in</button></div></div>
 </section>
 
 <section class="page" id="forgot-password">
-<div class="auth-form standalone"><div class="eyebrow mono">PASSWORD RECOVERY</div><h2>Forgot password?</h2><p style="color:#777">Enter your email to request a reset link.</p><div class="field"><label>EMAIL</label><input type="email" id="forgot-email" placeholder="you@example.com"></div><button class="btn full" onclick="show('Reset link requested')">Send reset link</button><button class="btn secondary full" onclick="go('login')">Back to sign in</button></div>
+<div class="auth-form standalone"><div class="eyebrow mono">PASSWORD RECOVERY</div><h2>Forgot password?</h2><p style="color:#777">Enter your email to request a reset link.</p><div class="field"><label>EMAIL</label><input type="email" id="forgot-email" placeholder="you@example.com"></div><button class="btn full" onclick="requestPasswordReset()">Send reset link</button><button class="btn secondary full" onclick="go('login')">Back to sign in</button></div>
 </section>
 
 <section class="page" id="admin">
@@ -285,19 +285,36 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px mono
 <div class="toast" id="toast"></div>
 <script>
 const pages=["home","markets","trade","leaderboard","office","profile","notifications","settings","login","register","forgot-password","admin","market-detail"];
-const data=[["BTCUSDT","$78,100.00","+2.41%"],["ETHUSDT","$2,500.00","+1.18%"],["SOLUSDT","$186.20","-0.74%"],["BNBUSDT","$684.30","+0.42%"]];
-function go(p){
+const routeMap={home:"/",markets:"/markets",trade:"/trade",leaderboard:"/leaderboard",office:"/office",profile:"/profile",notifications:"/notifications",settings:"/settings",login:"/login",register:"/register",["forgot-password"]:"/forgot-password",admin:"/admin"};
+let webSession=null;
+function pageFromPath(){
+  const p=location.pathname.replace(/\/+$/,"")||"/";
+  if(p==="/")return "home";
+  if(p.startsWith("/markets/"))return "market-detail";
+  if(p.startsWith("/profile/"))return "profile";
+  if(p==="/markets")return "markets";
+  for(const [k,v] of Object.entries(routeMap)){if(v!=="/"&&p===v)return k}
+  return "home";
+}
+function go(p,replace=false){
   if(p.startsWith("market/")){const sym=p.split("/")[1]||"BTCUSDT";openMarketDetail(sym);return}
+  if(p.startsWith("/")){history[replace?"replaceState":"pushState"]({}, "", p);p=pageFromPath()}
+  else if(routeMap[p]){history[replace?"replaceState":"pushState"]({}, "", routeMap[p]);}
   pages.forEach(x=>document.getElementById(x)?.classList.toggle("active",x===p));
   document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
-  history.replaceState(null,"","#"+p);window.scrollTo(0,0);
+  window.scrollTo(0,0);
   if(p==="leaderboard")loadLeaderboard();
   if(p==="office")loadOffice();
-  if(p==="profile")loadProfile();
+  if(p==="profile"||p==="market-detail")loadProfile();
   if(p==="admin")loadAdmin();
+  if(p==="notifications")loadNotifications();
+  if(p==="settings")loadWebSettings();
+  updateAuthUI();
 }
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.getElementById("menu").onclick=()=>{let n=document.getElementById("nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.right="22px";n.style.top="65px";n.style.background="#fff";n.style.padding="8px";n.style.border="1px solid #e7e7e2";n.style.borderRadius="8px";n.style.flexDirection="column"};
+window.addEventListener("popstate",()=>go(pageFromPath(),true));
+
 function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="openMarketDetail('${x[0]}')">View</button></td></tr>`).join("")}
 function filterMarkets(){renderMarkets(document.getElementById("search").value)}
 const API_BASE=location.origin;
@@ -480,6 +497,54 @@ document.querySelectorAll(".settings-tab").forEach(b=>b.addEventListener("click"
   document.getElementById(b.dataset.tab).style.display="block";
 }));
 
+
+// ===== SERVER ACCOUNT / AUTH =====
+async function apiJSON(url, options={}){
+  const headers=Object.assign({"Content-Type":"application/json"},options.headers||{});
+  if(webSession?.csrf)headers["X-CSRF-Token"]=webSession.csrf;
+  const r=await fetch(url,Object.assign({},options,{headers,credentials:"same-origin",cache:"no-store"}));
+  const d=await r.json().catch(()=>({}));
+  if(d.csrf)webSession=Object.assign(webSession||{}, {csrf:d.csrf});
+  if(!r.ok)throw new Error(d.message||d.error||"Request failed");
+  return d;
+}
+async function loadWebSession(){
+  try{webSession=await apiJSON("/api/session");}catch(e){webSession=null}
+  updateAuthUI();
+}
+function updateAuthUI(){
+  const links=document.getElementById("nav");if(!links)return;
+  let account=document.getElementById("accountNav");
+  if(!account){account=document.createElement("button");account.id="accountNav";account.className="links-account";links.parentElement.appendChild(account);}
+  const u=webSession?.user;
+  account.textContent=u?("@"+u.username+" · Account"):"Sign in";
+  account.onclick=()=>go(u?"profile":"login");
+}
+async function demoLogin(){
+  const email=document.getElementById("login-email")?.value.trim(),password=document.getElementById("login-password")?.value;
+  if(!email||!password)return show("Email va parolni kiriting");
+  try{webSession=await apiJSON("/api/auth/login",{method:"POST",body:JSON.stringify({email,password,remember:true})});show("Signed in");go("profile");}
+  catch(e){show(e.message);}
+}
+async function demoRegister(){
+  const username=document.getElementById("reg-username")?.value.trim(),email=document.getElementById("reg-email")?.value.trim(),password=document.getElementById("reg-password")?.value,confirm=document.getElementById("reg-confirm")?.value;
+  if(!username||!email||!password||!confirm)return show("Barcha maydonlarni to'ldiring");
+  try{await apiJSON("/api/auth/register",{method:"POST",body:JSON.stringify({username,email,password,confirm,name:username})});show("Account yaratildi");go("login");}
+  catch(e){show(e.message);}
+}
+async function logoutWeb(){try{await apiJSON("/api/auth/logout",{method:"POST",body:"{}"});}catch(e){}webSession=null;show("Signed out");go("home");}
+async function requestPasswordReset(){show("Reset email setup server SMTP talab qiladi");}
+async function loadNotifications(){
+  if(!webSession?.user)return;
+  try{
+    const d=await apiJSON("/api/notifications");const box=document.getElementById("notification-list");
+    if(box)box.innerHTML=d.items.length?d.items.map(x=>`<div style="padding:20px;border-bottom:1px solid var(--line)"><b>${String(x.title).replace(/</g,"&lt;")}</b><div style="font-size:12px;color:#777;margin-top:5px">${String(x.message).replace(/</g,"&lt;")}</div></div>`).join(""):"<div style='padding:30px;color:#888'>No notifications yet.</div>";
+  }catch(e){}
+}
+async function loadWebSettings(){
+  if(!webSession?.user)return;
+  const n=document.getElementById("settings-username");if(n)n.value="@"+webSession.user.username;
+}
 // ===== Leaderboard =====
 let leaderboardPeriod="all";
 async function loadLeaderboard(){
@@ -594,6 +659,7 @@ loadOffice();
 setInterval(loadLeaderboard,15000);
 setInterval(loadOffice,5000);
 
+loadWebSession().finally(()=>go(pageFromPath(),true));
 </script>
 </body>
 </html>
