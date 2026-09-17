@@ -1,665 +1,252 @@
-<!DOCTYPE html>
-<html lang="uz">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Obsidian Lab — Build. Trade. Compete.</title>
-<meta name="theme-color" content="#f7f7f5">
+<title>OBSIDIAN LAB — Build. Trade. Compete.</title>
 <style>
-:root{--bg:#e7e3da;--paper:#f0ede6;--ink:#171717;--muted:#73736d;--line:#d2cec4;--soft:#dedad1;--green:#177245;--red:#d95c5c}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input{font:inherit}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-header{height:72px;border-bottom:1px solid var(--line);background:rgba(247,247,245,.94);backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
-.nav{max-width:1180px;height:100%;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em}.mark{width:28px;height:28px;border:1.5px solid #111;display:grid;place-items:center;font-size:12px}.brand span{font-size:15px}
-.links{display:flex;gap:7px}.links button{border:0;background:transparent;padding:9px 12px;color:#666;cursor:pointer;font-size:13px}.links button:hover,.links button.active{color:#111;background:#ecece7;border-radius:8px}
-.links-account{border:1px solid var(--line);background:transparent;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;margin-left:8px}.menu{display:none;border:1px solid var(--line);background:#f0ede6;border-radius:8px;padding:8px 10px}
-main{max-width:1180px;margin:auto;padding:0 22px 70px}.page{display:none}.page.active{display:block}
-.hero{min-height:590px;display:grid;align-content:center;grid-template-columns:1.15fr .85fr;gap:70px;padding:80px 0}.eyebrow{font-size:11px;letter-spacing:.16em;color:#777;margin-bottom:22px}.hero h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.075em;margin:0 0 28px;max-width:780px}.hero p{font-size:17px;line-height:1.7;color:#6d6d68;max-width:570px;margin:0 0 34px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #111;background:#111;color:white;padding:12px 17px;border-radius:8px;cursor:pointer;font-size:13px}.btn.secondary{background:transparent;color:#111;border-color:var(--line)}.btn:hover{transform:translateY(-1px)}
-.statusbox{align-self:end;border:1px solid var(--line);background:#f0ede6;padding:22px;border-radius:12px}.statusline{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:13px 0;font-size:12px}.statusline:last-child{border:0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2b8a57;margin-right:8px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{border:1px solid var(--line);background:#f0ede6;border-radius:12px;padding:20px;min-height:150px;cursor:pointer;transition:.18s}.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.05)}.card small{color:#999}.card h3{margin:28px 0 8px;font-size:15px}.card p{font-size:12px;color:#777;line-height:1.5;margin:0}
-.sectionHead{padding:58px 0 24px;display:flex;align-items:end;justify-content:space-between;gap:20px}.sectionHead h2{font-size:34px;letter-spacing:-.05em;margin:0}.sectionHead p{color:#777;font-size:13px}
-.panel{border:1px solid var(--line);background:#f0ede6;border-radius:12px;overflow:hidden}.toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}.input,.select{border:1px solid var(--line);background:#fafaf8;border-radius:7px;padding:9px 11px;font-size:12px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:15px 16px;border-bottom:1px solid var(--line);font-size:12px}.table th{color:#999;font-weight:500}.table tr:last-child td{border:0}.up{color:var(--green)}.down{color:var(--red)}
-.tradegrid{display:grid;grid-template-columns:1fr 330px;gap:14px}.chart{height:480px;display:grid;place-items:center;background:repeating-linear-gradient(0deg,#fff,#fff 39px,#f1f1ed 40px),repeating-linear-gradient(90deg,transparent,transparent 79px,#f1f1ed 80px);position:relative}.chart:after{content:"BTCUSDT  •  TradingView";position:absolute;left:18px;top:16px;color:#999;font:11px monospace}.fakechart{width:82%;height:50%;border-bottom:2px solid #222;border-left:1px solid #ddd;clip-path:polygon(0 80%,8% 70%,16% 74%,24% 55%,31% 62%,39% 42%,47% 50%,55% 32%,64% 37%,72% 20%,80% 28%,88% 10%,100% 16%,100% 100%,0 100%);background:#111}
-.order{padding:20px}.order h3{margin:0 0 18px;font-size:15px}.field{margin:12px 0}.field label{display:block;color:#888;font-size:11px;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:7px;background:#fafaf8}.full{width:100%;margin-top:10px}
-.office{display:grid;grid-template-columns:220px 1fr;min-height:580px}.side{border-right:1px solid var(--line);padding:16px}.side button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:11px;border-radius:7px;color:#777;font-size:12px;cursor:pointer}.side button.active,.side button:hover{background:#f0f0eb;color:#111}.officeview{padding:30px}.room{height:430px;border:1px solid var(--line);border-radius:10px;background:#f5f5f1;position:relative;overflow:hidden}.desk{position:absolute;width:190px;height:75px;border:1px solid #bbb;background:#f0ede6;left:30%;top:45%;box-shadow:0 10px 25px #ddd}.screen{position:absolute;width:70px;height:45px;background:#202020;left:60px;top:-50px;border-radius:3px}.person{position:absolute;width:24px;height:34px;border-radius:12px 12px 6px 6px;background:#111;left:44%;top:55%;transition:.4s}.person:before{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#aaa;left:5px;top:-12px}.person.a{left:23%;top:31%}.person.b{left:70%;top:28%}.tag{position:absolute;font:10px monospace;color:#555}
-footer{border-top:1px solid var(--line);padding:22px 0;color:#999;font:10px monospace;display:flex;justify-content:space-between}
-.toast{position:fixed;right:20px;bottom:20px;background:#111;color:#fff;padding:12px 15px;border-radius:8px;font-size:12px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
-@media(max-width:800px){.links{display:none}.menu{display:block}.hero{grid-template-columns:1fr;padding:60px 0;min-height:auto;gap:45px}.cards{grid-template-columns:1fr 1fr}.tradegrid{grid-template-columns:1fr}.office{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto}.side button{min-width:max-content}.chart{height:360px}}
-@media(max-width:520px){.cards{grid-template-columns:1fr}.hero h1{font-size:48px}.sectionHead{display:block}.sectionHead h2{font-size:28px}.table{min-width:650px}.panel{overflow-x:auto}footer{display:block;line-height:2}}
+:root{
+ --bg:#e7e3da;--card:#f1eee7;--ink:#151515;--muted:#77756e;--line:#d1cdc3;
+ --accent:#b8ff3d;--green:#477743;--red:#c95757;--dark:#171717;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:14px}
+button,input,select,textarea{font:inherit}
+a{text-decoration:none;color:inherit}
+button,a{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+header{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:50;background:rgba(231,227,218,.96);backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:1.8px;white-space:nowrap}
+.logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;font-size:18px}
+nav{display:flex;gap:29px;margin:auto}
+nav a{font-size:12px;padding:26px 0;position:relative;color:#333}
+nav a:hover{opacity:.55}
+nav a.active{font-weight:700}
+nav a.active:after{content:"";position:absolute;bottom:13px;left:0;right:0;height:2px;background:var(--ink)}
+.headRight{display:flex;align-items:center;gap:12px}
+.iconBtn{border:0;background:transparent;padding:8px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--dark);color:#fff;font-weight:700}
+.menu{display:none}
+main{max-width:1450px;margin:auto;padding:42px 4.5% 65px;min-height:calc(100vh - 130px)}
+.hero{min-height:485px;display:flex;align-items:center;position:relative;overflow:hidden}
+.heroText{max-width:650px;z-index:3}
+.eyebrow{font-size:10px;letter-spacing:2px;font-weight:700}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;box-shadow:0 0 0 3px rgba(184,255,61,.12)}
+.hero h1{font-size:clamp(46px,6vw,78px);line-height:1.02;letter-spacing:-4px;margin:22px 0}
+.hero p{max-width:450px;line-height:1.85;color:var(--muted);font-size:14px}
+.heroArt{position:absolute;right:-3%;bottom:-80px;width:54%;height:600px;opacity:.98;background:
+linear-gradient(140deg,transparent 0 28%,#343632 28% 31%,transparent 31% 34%,#1a1b19 34% 39%,transparent 39%),
+linear-gradient(35deg,#121311 0 20%,#383a35 20% 33%,#171916 33% 48%,#51534d 48% 52%,#10110f 52% 72%,#2c2e2a 72% 100%);
+clip-path:polygon(13% 100%,25% 67%,35% 60%,40% 40%,50% 32%,55% 16%,63% 7%,70% 13%,74% 32%,83% 41%,86% 68%,94% 78%,100% 100%);
+}
+.caption{position:absolute;right:12%;top:48%;z-index:4;color:#eee;letter-spacing:2px;font-size:10px;border-left:2px solid var(--accent);padding-left:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;padding:12px 19px;font-size:11px;font-weight:700;transition:.18s}
+.btn:hover{transform:translateY(-1px);opacity:.87}
+.btn.light{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.green{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.grid{display:grid;gap:18px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px;box-shadow:0 5px 18px rgba(0,0,0,.025)}
+.navCard{min-height:145px;transition:.2s}
+.navCard:hover{transform:translateY(-5px);box-shadow:0 12px 28px rgba(0,0,0,.07)}
+.navCard .bigIcon{font-size:25px;margin-bottom:18px}
+.navCard h3{margin:0 0 8px;font-size:14px}
+.muted{color:var(--muted)}
+.small{font-size:10px}
+.status{display:flex;gap:80px;padding:30px 0}
+.status strong{display:block;font-size:11px}
+.status small{color:var(--muted);font-size:9px;letter-spacing:1px}
+.pageHead{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px}
+.pageHead h1{margin:0 0 6px;font-size:38px;letter-spacing:-2px}
+.pageHead p{margin:0;color:var(--muted)}
+.search{max-width:330px}
+input,select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:11px 12px}
+label{font-size:10px;color:var(--muted);display:block;margin:13px 0 5px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:15px 17px;border-bottom:1px solid var(--line);font-size:11px}
+th{color:var(--muted);font-weight:500;font-size:10px}
+tr:last-child td{border-bottom:0}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.coin{width:30px;height:30px;border-radius:50%;background:var(--dark);color:var(--accent);display:inline-grid;place-items:center;font-weight:700;margin-right:9px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.badge{font-size:9px;border:1px solid var(--line);padding:4px 7px;border-radius:4px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:16px 0}
+.tab{border:0;background:#d2cec455;padding:8px 13px;border-radius:5px;font-size:10px}
+.tab.active{background:var(--dark);color:#fff}
+.workspace{display:grid;grid-template-columns:185px 1fr;gap:30px}
+.sidebar{border-right:1px solid var(--line);padding-right:20px}
+.sidebar h4{font-size:10px;letter-spacing:1.8px;margin:8px 0 15px}
+.sidebar a{display:flex;gap:11px;padding:11px 12px;border-radius:5px;font-size:11px;margin-bottom:4px}
+.sidebar a.active{background:#d3d0c7;font-weight:700}
+.stats .card{padding:20px}.statVal{font-size:27px;font-weight:700;letter-spacing:-1px}.statLabel{font-size:10px;color:var(--muted)}
+.officeGrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
+.activity{padding:12px 0;border-bottom:1px solid var(--line)}
+.activity:last-child{border:0}
+.activity strong{font-size:12px}
+.activity small{display:block;color:var(--muted);margin-top:2px}
+.progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden}.progress i{display:block;height:100%;background:var(--green)}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{min-height:83px;border:1px solid var(--line);padding:7px;border-radius:4px;font-size:10px}
+.event{display:block;background:rgba(184,255,61,.3);padding:3px;margin-top:5px}
+.chart{height:300px;position:relative;overflow:hidden}
+.chart svg{width:100%;height:100%}
+.auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
+.authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
+.authForm{background:var(--card);padding:42px;border-radius:0 10px 10px 0}
+.authForm h1{font-size:31px;margin:0 0 7px}
+.modalBack{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:100;padding:20px}
+.modalBack.show{display:grid}
+.modal{background:var(--card);width:min(600px,100%);max-height:90vh;overflow:auto;border-radius:11px;border:1px solid var(--line);padding:25px}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--dark);color:#fff;padding:14px 20px;border-radius:7px;display:none;z-index:200}
+.toast.show{display:block}
+footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:1px}
+.empty{text-align:center;padding:50px;color:var(--muted)}
+.hide{display:none!important}
+@media(max-width:1050px){nav{gap:17px}.g4{grid-template-columns:repeat(2,1fr)}.officeGrid{grid-template-columns:1fr 1fr}.terminal{grid-template-columns:1fr!important}.heroArt{opacity:.35;width:70%}}
+@media(max-width:720px){
+ header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
+ main{padding:25px 17px 45px}.hero{min-height:510px;align-items:flex-start}.hero h1{font-size:43px;letter-spacing:-2px}.heroArt{bottom:-10px;width:90%;height:340px}.caption{display:none}.g4,.g3,.g2,.officeGrid,.auth{grid-template-columns:1fr}.status{gap:22px;flex-wrap:wrap}.pageHead{align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:0 0 8px;display:flex;overflow:auto}.sidebar h4{display:none}.sidebar a{white-space:nowrap}.auth{margin:0}.authArt{min-height:170px;border-radius:10px 10px 0 0;padding:25px}.authForm{border-radius:0 0 10px 10px;padding:26px}footer{gap:12px;flex-direction:column}
+}
 </style>
-
-<style>
-.auth-grid{max-width:1000px;margin:70px auto;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper)}
-.auth-art{background:#171717;color:#fff;padding:45px;min-height:470px;display:flex;flex-direction:column;justify-content:flex-end}
-.auth-art h2{font-size:48px;line-height:.94;letter-spacing:-.06em;margin:20px 0}
-.auth-art p{color:#aaa;font-size:13px;line-height:1.6}
-.auth-form{padding:45px;min-height:470px}.auth-form.standalone{max-width:480px;margin:80px auto;border:1px solid var(--line);background:#f0ede6;border-radius:14px}
-.auth-form h2{font-size:32px;letter-spacing:-.05em;margin:8px 0}.auth-form>p{font-size:13px;color:#777}
-.settings-pane h3{margin-top:0;font-size:18px}
-@media(max-width:700px){.auth-grid{grid-template-columns:1fr;margin:35px 0}.auth-art{min-height:240px;padding:28px}.auth-art h2{font-size:40px}.auth-form{padding:28px}.auth-form.standalone{margin:40px 0}}
-</style>
-
 </head>
 <body>
-<header><div class="nav">
-<div class="brand"><div class="mark">O</div><span>OBSIDIAN LAB</span></div>
-<nav class="links" id="nav">
-<button data-page="home">Home</button><button data-page="markets">Markets</button><button data-page="trade">Trade</button><button data-page="leaderboard">Leaderboard</button><button data-page="office">Web Office</button>
-</nav><button class="menu" id="menu">☰</button>
-</div></header>
-
-<main>
-<section class="page active" id="home">
-<div class="hero"><div>
-<div class="eyebrow mono">OBSIDIAN LAB / SYSTEM ONLINE</div>
-<h1>Build.<br>Trade.<br>Compete.</h1>
-<p>A minimal paper-trading environment for people who want to study markets, execute ideas and compete without risking real capital.</p>
-<div class="actions"><button class="btn" onclick="go('trade')">Open terminal</button><button class="btn secondary" onclick="go('markets')">Explore markets</button></div>
+<header>
+<a class="logo" href="#/"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
+<nav id="nav">
+<a data-route="/" href="#/">Home</a><a data-route="/markets" href="#/markets">Markets</a><a data-route="/trade" href="#/trade">Trade</a><a data-route="/leaderboard" href="#/leaderboard">Leaderboard</a><a data-route="/web-office" href="#/web-office">Web Office</a>
+</nav>
+<div class="headRight">
+<button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
+<a id="avatar" class="avatar" href="#/login">↗</a>
+<button class="iconBtn menu" id="menuBtn">☰</button>
 </div>
-<div class="statusbox mono"><div class="statusline"><span>MARKET DATA</span><span><i class="dot"></i>ONLINE</span></div><div class="statusline"><span>TRADING MODE</span><span>PAPER</span></div><div class="statusline"><span>NETWORK</span><span>STABLE</span></div><div class="statusline"><span>USERS</span><span id="users">—</span></div></div></div>
-<div class="cards">
-<div class="card" onclick="go('markets')"><small>01 / MARKETS</small><h3>Market overview →</h3><p>Watch BTC, ETH and the assets available in the terminal.</p></div>
-<div class="card" onclick="go('trade')"><small>02 / TRADE</small><h3>Trading terminal →</h3><p>Paper trade with persistent balance and positions.</p></div>
-<div class="card" onclick="go('leaderboard')"><small>03 / RANKING</small><h3>Leaderboard →</h3><p>Compare performance with the Obsidian community.</p></div>
-<div class="card" onclick="go('office')"><small>04 / OFFICE</small><h3>Web Office →</h3><p>Enter the virtual HQ and interact with the lab.</p></div>
-</div>
-</section>
+</header>
+<main id="app"></main>
+<footer><span>OBSIDIAN LAB © 2026 — A HIGHER STANDARD</span><span>PAPER TRADING · DEMO MARKET DATA</span></footer>
+<div id="modalBack" class="modalBack"><div id="modal" class="modal"></div></div>
+<div id="toast" class="toast"></div>
 
-<section class="page" id="markets"><div class="sectionHead"><div><div class="eyebrow mono">01 / MARKETS</div><h2>Markets</h2></div><p>Live-style paper market overview</p></div>
-<div class="panel"><div class="toolbar"><input class="input" id="search" placeholder="Search asset..." oninput="filterMarkets()"><select class="select"><option>All assets</option><option>Crypto</option></select></div>
-<table class="table"><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>STATUS</th><th></th></tr></thead><tbody id="marketRows"></tbody></table></div></section>
-
-<section class="page" id="trade">
-<div class="sectionHead">
-  <div><div class="eyebrow mono">02 / TRADE</div><h2>Trading terminal</h2></div>
-  <p>Paper execution · live market price</p>
-</div>
-
-<div class="tradegrid">
-  <div>
-    <div class="panel chart" style="height:520px;display:block;padding:0;overflow:hidden">
-      <div style="height:100%;position:relative">
-        <div id="chartLoading" style="position:absolute;z-index:2;left:18px;top:14px;font:11px monospace;color:#888;background:#f0ede6;padding:4px 7px;border-radius:5px">CONNECTING TO TRADINGVIEW…</div>
-        <iframe id="tvFrame"
-          title="TradingView chart"
-          src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3ABTCUSDT&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"
-          style="width:100%;height:100%;border:0"
-          allowtransparency="true"
-          frameborder="0"></iframe>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:12px;padding:16px">
-      <div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
-        <div>
-          <div class="mono" style="font-size:11px;color:#888">LIVE PRICE</div>
-          <strong id="live-price" style="font-size:25px;letter-spacing:-.04em">$—</strong>
-          <span id="price-status" style="font-size:11px;color:#777;margin-left:8px">connecting</span>
-        </div>
-        <div style="display:flex;gap:7px">
-          <button id="btcBtn" class="btn" style="padding:8px 12px" onclick="switchAsset('BTCUSDT')">BTC</button>
-          <button id="ethBtn" class="btn secondary" style="padding:8px 12px" onclick="switchAsset('ETHUSDT')">ETH</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:12px;padding:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="font-size:13px">Open position</b>
-        <span id="pos-status" class="mono" style="font-size:10px;color:#999">NO POSITION</span>
-      </div>
-      <div id="positionBox" style="margin-top:12px;color:#888;font-size:12px">
-        No open paper position.
-      </div>
-    </div>
-  </div>
-
-  <div class="panel order">
-    <h3>Order</h3>
-    <div style="padding:11px 12px;background:#f6f6f2;border:1px solid var(--line);border-radius:7px;margin-bottom:16px">
-      <div class="mono" style="font-size:10px;color:#888">PAPER BALANCE</div>
-      <strong id="balance" style="font-size:20px">$10,000.00</strong>
-    </div>
-
-    <div class="field"><label>ASSET</label>
-      <select id="asset" onchange="switchAsset(this.value)">
-        <option value="BTCUSDT">BTCUSDT</option>
-        <option value="ETHUSDT">ETHUSDT</option>
-      </select>
-    </div>
-    <div class="field"><label>SIZE (USDT)</label>
-      <input id="trade-amount" type="number" min="10" step="1" value="100">
-    </div>
-    <div class="field"><label>LEVERAGE</label>
-      <select id="lev" onchange="currentLeverage=Number(this.value)">
-        <option value="1">1x</option><option value="5">5x</option><option value="10" selected>10x</option><option value="20">20x</option>
-      </select>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
-      <button class="btn" style="background:#177245;border-color:#177245" onclick="executeOrder('LONG')">BUY / LONG</button>
-      <button class="btn" style="background:#b33a3a;border-color:#b33a3a" onclick="executeOrder('SHORT')">SELL / SHORT</button>
-    </div>
-    <button class="btn secondary full" onclick="closeCurrentPosition()">Close position</button><button id="resetBalanceBtn" class="btn secondary full" onclick="resetPaperAccount()" style="display:none">Reset account → $10,000</button>
-    <div style="margin-top:14px;font-size:10px;line-height:1.5;color:#999">Minimum order: $10. Orders use live Binance price and are simulated locally.</div>
-  </div>
-</div>
-</section>
-
-<section class="page" id="leaderboard">
-<div class="sectionHead"><div><div class="eyebrow mono">03 / LEADERBOARD</div><h2>Leaderboard</h2></div><p id="leader-status">Loading paper performance…</p></div>
-<div class="panel">
-  <div class="toolbar">
-    <button class="btn secondary lb-filter active" data-period="all">All Time</button>
-    <button class="btn secondary lb-filter" data-period="month">Monthly</button>
-    <button class="btn secondary lb-filter" data-period="week">Weekly</button>
-    <button class="btn secondary lb-filter" data-period="today">Today</button>
-    <button class="btn secondary" style="margin-left:auto" onclick="loadLeaderboard()">↻ Refresh</button>
-  </div>
-  <div style="overflow:auto">
-  <table class="table" style="min-width:720px"><thead><tr><th>RANK</th><th>USER</th><th>BALANCE</th><th>PROFIT</th><th>TRADES</th><th>WIN RATE</th><th>POINTS</th></tr></thead>
-  <tbody id="leaders"><tr><td colspan="7" style="text-align:center;color:#999;padding:35px">Loading…</td></tr></tbody></table>
-  </div>
-</div>
-</section>
-
-<section class="page" id="office">
-<div class="sectionHead"><div><div class="eyebrow mono">04 / WEB OFFICE</div><h2>Obsidian HQ</h2></div><p id="office-time">Connecting to office…</p></div>
-<div class="panel office">
-<aside class="side">
-  <button class="active office-tab" data-tab="overview">Overview</button>
-  <button class="office-tab" data-tab="tasks">Tasks</button>
-  <button class="office-tab" data-tab="team">Team</button>
-  <button class="office-tab" data-tab="activity">Activity</button>
-  <button class="office-tab" data-tab="analytics">Analytics</button>
-</aside>
-<div class="officeview">
-  <div id="office-overview" class="office-pane">
-    <div class="room" id="hq-room">
-      <span class="tag" style="left:18px;top:18px">HQ / FLOOR 01</span>
-      <span class="tag" style="right:18px;top:18px" id="hq-market">MARKET / —</span>
-      <div class="desk" style="left:31%;top:45%"><div class="screen"></div></div>
-      <div class="person a"></div><div class="person b"></div><div class="person"></div>
-      <span class="tag" style="left:19%;top:25%">JASUR / ICT</span>
-      <span class="tag" style="left:67%;top:22%">ALEX / DEV</span>
-      <span class="tag" style="left:42%;top:70%">MISTER WHALE</span>
-      <div id="office-log-mini" style="position:absolute;left:18px;bottom:18px;width:min(390px,calc(100% - 36px));background:rgba(255,255,255,.9);border:1px solid #ddd;border-radius:8px;padding:11px;font:10px monospace;color:#666">Waiting for HQ feed…</div>
-    </div>
-  </div>
-  <div id="office-tasks" class="office-pane" style="display:none">
-    <div class="panel" style="padding:18px">
-      <div style="display:flex;justify-content:space-between"><b>Live tasks</b><span class="mono" style="font-size:10px;color:#999">HQ / TASKS</span></div>
-      <div id="office-tasks-list" style="margin-top:15px">Loading tasks…</div>
-    </div>
-  </div>
-  <div id="office-team" class="office-pane" style="display:none">
-    <div class="cards" id="office-team-list"></div>
-  </div>
-  <div id="office-activity" class="office-pane" style="display:none">
-    <div class="panel" style="padding:18px"><b>Activity feed</b><div id="office-activity-list" class="mono" style="margin-top:14px;line-height:2;color:#777">Loading…</div></div>
-  </div>
-  <div id="office-analytics" class="office-pane" style="display:none">
-    <div class="cards">
-      <div class="card"><small>MARKET</small><h3 id="an-market">—</h3><p>Current tracked asset</p></div>
-      <div class="card"><small>AGENTS</small><h3>03 online</h3><p>Jasur · Alex · Mister Whale</p></div>
-      <div class="card"><small>MODE</small><h3>LIVE</h3><p>HQ backend feed</p></div>
-      <div class="card"><small>UPDATE</small><h3 id="an-time">—</h3><p>Last server response</p></div>
-    </div>
-  </div>
-</div>
-</div>
-</section>
-
-<section class="page" id="profile">
-<div class="sectionHead"><div><div class="eyebrow mono">05 / PROFILE</div><h2>Profile</h2></div><p>Your trading identity</p></div>
-<div class="cards">
-<div class="card"><small>USER</small><h3 id="profile-name">@trader</h3><p>Obsidian Lab member</p></div>
-<div class="card"><small>BALANCE</small><h3 id="profile-balance">$10,000.00</h3><p>Paper account</p></div>
-<div class="card"><small>RANK</small><h3 id="profile-rank">—</h3><p>Leaderboard position</p></div>
-<div class="card"><small>MODE</small><h3>PAPER</h3><p>Zero real-money risk</p></div>
-</div>
-<div class="panel" style="margin-top:14px;padding:22px">
-<h3 style="margin:0 0 16px">Statistics</h3>
-<div class="table" style="overflow:auto"><table class="table"><tr><td>Total profit</td><td id="profile-profit">$0.00</td></tr><tr><td>Trades</td><td id="profile-trades">0</td></tr><tr><td>Win rate</td><td id="profile-win">—</td></tr><tr><td>Points</td><td id="profile-points">0</td></tr></table></div>
-</div>
-</section>
-
-<section class="page" id="notifications">
-<div class="sectionHead"><div><div class="eyebrow mono">06 / NOTIFICATIONS</div><h2>Notifications</h2></div><p>System and trading activity</p></div>
-<div class="panel" id="notification-list">
-<div style="padding:20px;border-bottom:1px solid var(--line)"><b>System online</b><div style="font-size:12px;color:#777;margin-top:5px">Obsidian Lab is ready for paper trading.</div></div>
-<div style="padding:20px;border-bottom:1px solid var(--line)"><b>Paper account</b><div style="font-size:12px;color:#777;margin-top:5px">Your starting balance is $10,000.</div></div>
-</div>
-</section>
-
-<section class="page" id="settings">
-<div class="sectionHead"><div><div class="eyebrow mono">07 / SETTINGS</div><h2>Settings</h2></div><p>Account preferences</p></div>
-<div class="office panel">
-<aside class="side">
-<button class="active settings-tab" data-tab="settings-profile">Profile</button>
-<button class="settings-tab" data-tab="settings-security">Security</button>
-<button class="settings-tab" data-tab="settings-notifications">Notifications</button>
-<button class="settings-tab" data-tab="settings-integrations">Integrations</button>
-<button class="settings-tab" data-tab="settings-appearance">Appearance</button>
-</aside>
-<div class="officeview">
-<div id="settings-profile" class="settings-pane"><h3>Profile</h3><div class="field"><label>USERNAME</label><input id="settings-username" value="@trader"></div><button class="btn" onclick="saveSettings()">Save changes</button></div>
-<div id="settings-security" class="settings-pane" style="display:none"><h3>Security</h3><p style="color:#777;font-size:13px">Authentication settings are handled by the backend when connected.</p></div>
-<div id="settings-notifications" class="settings-pane" style="display:none"><h3>Notifications</h3><p style="color:#777;font-size:13px">Trade, leaderboard and system notifications.</p></div>
-<div id="settings-integrations" class="settings-pane" style="display:none"><h3>Integrations</h3><div class="cards"><div class="card"><small>TELEGRAM</small><h3>Telegram</h3><p id="tg-status">Backend configured</p></div><div class="card"><small>GOOGLE SHEETS</small><h3>Google Sheets</h3><p>Leaderboard sync</p></div></div></div>
-<div id="settings-appearance" class="settings-pane" style="display:none"><h3>Appearance</h3><p style="color:#777;font-size:13px">Obsidian warm-stone interface.</p></div>
-</div>
-</div>
-</section>
-
-<section class="page" id="login">
-<div class="auth-grid">
-<div class="auth-art"><div class="eyebrow mono">OBSIDIAN LAB</div><h2>Build.<br>Trade.<br>Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div>
-<div class="auth-form"><div class="eyebrow mono">ACCOUNT</div><h2>Welcome back</h2><p>Sign in to your account</p><div class="field"><label>EMAIL</label><input id="login-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="login-password" type="password" placeholder="••••••••"></div><button class="btn full" onclick="demoLogin()">Sign in</button><button class="btn secondary full" onclick="go('register')">Create account</button><p style="font-size:12px;color:#777;text-align:center">Forgot password? <a href="#forgot-password" style="color:#111">Reset</a></p></div>
-</div>
-</section>
-
-<section class="page" id="register">
-<div class="auth-grid"><div class="auth-art"><div class="eyebrow mono">OBSIDIAN LAB</div><h2>Create.<br>Learn.<br>Compete.</h2></div>
-<div class="auth-form"><div class="eyebrow mono">REGISTER</div><h2>Create account</h2><div class="field"><label>USERNAME</label><input id="reg-username" placeholder="@username"></div><div class="field"><label>EMAIL</label><input id="reg-email" type="email" placeholder="you@example.com"></div><div class="field"><label>PASSWORD</label><input id="reg-password" type="password"></div><div class="field"><label>CONFIRM PASSWORD</label><input id="reg-confirm" type="password"></div><button class="btn full" onclick="demoRegister()">Create account</button><button class="btn secondary full" onclick="go('login')">Sign in</button></div></div>
-</section>
-
-<section class="page" id="forgot-password">
-<div class="auth-form standalone"><div class="eyebrow mono">PASSWORD RECOVERY</div><h2>Forgot password?</h2><p style="color:#777">Enter your email to request a reset link.</p><div class="field"><label>EMAIL</label><input type="email" id="forgot-email" placeholder="you@example.com"></div><button class="btn full" onclick="requestPasswordReset()">Send reset link</button><button class="btn secondary full" onclick="go('login')">Back to sign in</button></div>
-</section>
-
-<section class="page" id="admin">
-<div class="sectionHead"><div><div class="eyebrow mono">ADMIN / SYSTEM</div><h2>Admin</h2></div><p>System control center</p></div>
-<div class="cards"><div class="card"><small>USERS</small><h3 id="admin-users">—</h3><p>Registered traders</p></div><div class="card"><small>TRADES</small><h3 id="admin-trades">—</h3><p>Paper activity</p></div><div class="card"><small>MARKETS</small><h3>8</h3><p>Tracked assets</p></div><div class="card"><small>SYSTEM</small><h3><span class="dot"></span>ONLINE</h3><p>Backend status</p></div></div>
-<div class="panel" style="margin-top:14px;padding:20px"><b>Admin sections</b><div class="actions" style="margin-top:16px"><button class="btn secondary" onclick="show('Users management')">Users</button><button class="btn secondary" onclick="go('markets')">Markets</button><button class="btn secondary" onclick="go('trade')">Trades</button><button class="btn secondary" onclick="go('leaderboard')">Leaderboard</button><button class="btn secondary" onclick="go('office')">Office</button><button class="btn secondary" onclick="show('Integration settings')">Integrations</button><button class="btn secondary" onclick="show('System logs')">Logs</button></div></div>
-</section>
-
-<section class="page" id="market-detail">
-<div class="sectionHead"><div><div class="eyebrow mono">MARKET / ASSET</div><h2 id="detail-symbol">BTC / USDT</h2></div><button class="btn" onclick="go('trade')">Trade →</button></div>
-<div class="cards"><div class="card"><small>PRICE</small><h3 id="detail-price">$—</h3><p>Live market price</p></div><div class="card"><small>24H</small><h3 class="up">+2.41%</h3><p>Market change</p></div><div class="card"><small>VOLUME</small><h3>LIVE</h3><p>Market volume</p></div><div class="card"><small>STATUS</small><h3><span class="dot"></span>LIVE</h3><p>Market data</p></div></div>
-<div class="panel chart" style="margin-top:14px;height:480px;display:block;padding:0;overflow:hidden"><iframe id="detail-frame" style="width:100%;height:100%;border:0"></iframe></div>
-</section>
-
-</main>
-<footer><span>© 2026 OBSIDIAN LAB</span><span>PAPER TRADING · ZERO REAL-MONEY RISK</span></footer>
-<div class="toast" id="toast"></div>
 <script>
-const pages=["home","markets","trade","leaderboard","office","profile","notifications","settings","login","register","forgot-password","admin","market-detail"];
-const routeMap={home:"/",markets:"/markets",trade:"/trade",leaderboard:"/leaderboard",office:"/office",profile:"/profile",notifications:"/notifications",settings:"/settings",login:"/login",register:"/register",["forgot-password"]:"/forgot-password",admin:"/admin"};
-let webSession=null;
-function pageFromPath(){
-  const p=location.pathname.replace(/\/+$/,"")||"/";
-  if(p==="/")return "home";
-  if(p.startsWith("/markets/"))return "market-detail";
-  if(p.startsWith("/profile/"))return "profile";
-  if(p==="/markets")return "markets";
-  for(const [k,v] of Object.entries(routeMap)){if(v!=="/"&&p===v)return k}
-  return "home";
+const state={user:JSON.parse(localStorage.getItem('obsidian_user')||'null'),trades:JSON.parse(localStorage.getItem('obsidian_trades')||'[]'),balance:Number(localStorage.getItem('obsidian_balance')||100000),tasks:JSON.parse(localStorage.getItem('obsidian_tasks')||'[]'),projects:JSON.parse(localStorage.getItem('obsidian_projects')||'[]'),events:JSON.parse(localStorage.getItem('obsidian_events')||'[]')};
+const assets=[
+['BTC','Bitcoin',67843.20,2.41,'92.8B'],['ETH','Ethereum',3241.10,1.18,'12.1B'],['SOL','Solana',154.32,-0.82,'4.08B'],['BNB','BNB',583.44,.56,'3.10B'],['XRP','XRP',.6121,3.12,'2.98B'],['ADA','Cardano',.4233,-1.04,'1.78B'],['DOGE','Dogecoin',.1582,1.30,'1.48B'],['AVAX','Avalanche',28.41,2.18,'1.28B']
+];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(n)<1?4:2}).format(Number(n)||0);
+function save(){localStorage.setItem('obsidian_user',JSON.stringify(state.user));localStorage.setItem('obsidian_trades',JSON.stringify(state.trades));localStorage.setItem('obsidian_balance',state.balance);localStorage.setItem('obsidian_tasks',JSON.stringify(state.tasks));localStorage.setItem('obsidian_projects',JSON.stringify(state.projects));localStorage.setItem('obsidian_events',JSON.stringify(state.events))}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove('show'),2600)}
+function go(p){location.hash='#'+p;closeModal()}
+function route(){const p=(location.hash.slice(1)||'/').split('?')[0]||'/';document.querySelectorAll('[data-route]').forEach(a=>a.classList.toggle('active',a.dataset.route===p||(a.dataset.route!=='/'&&p.startsWith(a.dataset.route))));document.getElementById('nav').classList.remove('open');render(p)}
+function shell(title,sub,body,actions=''){return `<div class="pageHead"><div><div class="eyebrow">${title==='Web Office'?'WORK / PLAN / BUILD':'OBSIDIAN LAB'}</div><h1>${title}</h1><p>${sub}</p></div>${actions}</div>${body}`}
+function stat(label,val){return `<div class="card"><div class="statVal">${esc(val)}</div><div class="statLabel">${esc(label)}</div></div>`}
+function assetRow(a){return `<a href="#/markets/${a[0]}" class="row"><span class="coin">${a[0][0]}</span><span><strong>${a[0]}</strong><small class="muted" style="display:block">${a[1]}</small></span></a>`}
+function render(p){
+const app=document.getElementById('app');
+if(p==='/'){app.innerHTML=`<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4">${[['Markets','Explore market data','◫','/markets'],['Trade','Open trading terminal','↗','/trade'],['Leaderboard','See rankings','♛','/leaderboard'],['Web Office','Open workspace','▦','/web-office']].map(x=>`<a class="card navCard" href="#${x[3]}"><div class="bigIcon">${x[2]}</div><h3>${x[0]}</h3><small class="muted">${x[1]} <span style="float:right">→</span></small></a>`).join('')}</section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>DEMO DATA</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;return}
+if(p==='/markets'){renderMarkets();return}
+if(p.startsWith('/markets/')){renderTrade(p.split('/')[2].toUpperCase());return}
+if(p==='/trade'){renderTrade('BTC');return}
+if(p==='/leaderboard'){renderLeaderboard();return}
+if(p==='/web-office'||p.startsWith('/web-office/')){renderOffice(p);return}
+if(p==='/login'||p==='/register'||p==='/forgot-password'){renderAuth(p);return}
+if(p==='/profile'||p.startsWith('/profile/')){renderProfile();return}
+if(p==='/settings'||p.startsWith('/settings/')){renderSettings(p);return}
+if(p==='/notifications'){renderNotifications();return}
+if(p==='/admin'||p.startsWith('/admin/')){renderAdmin(p);return}
+app.innerHTML=`<div class="empty"><h2>Page not found</h2><a class="btn" href="#/">BACK HOME</a></div>`;
 }
-function go(p,replace=false){
-  if(p.startsWith("market/")){const sym=p.split("/")[1]||"BTCUSDT";openMarketDetail(sym);return}
-  if(p.startsWith("/")){history[replace?"replaceState":"pushState"]({}, "", p);p=pageFromPath()}
-  else if(routeMap[p]){history[replace?"replaceState":"pushState"]({}, "", routeMap[p]);}
-  pages.forEach(x=>document.getElementById(x)?.classList.toggle("active",x===p));
-  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
-  window.scrollTo(0,0);
-  if(p==="leaderboard")loadLeaderboard();
-  if(p==="office")loadOffice();
-  if(p==="profile"||p==="market-detail")loadProfile();
-  if(p==="admin")loadAdmin();
-  if(p==="notifications")loadNotifications();
-  if(p==="settings")loadWebSettings();
-  updateAuthUI();
+function renderMarkets(){
+let q='';let cat='All';
+document.getElementById('app').innerHTML=shell('Markets','Market overview — demonstration prices',`<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Prices are synthetic demo data. No live exchange connection is active.</p>`);
+const draw=()=>{const rows=assets.filter(a=>(cat==='All'||cat==='Crypto')&&(a[0]+' '+a[1]).toLowerCase().includes(q));document.getElementById('mt').innerHTML=`<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td>${money(a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">DEMO</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{cat=b.dataset.cat;draw()})};
+document.getElementById('mq').oninput=e=>{q=e.target.value.toLowerCase();draw()};draw()
 }
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
-document.getElementById("menu").onclick=()=>{let n=document.getElementById("nav");n.style.display=n.style.display==="flex"?"none":"flex";n.style.position="absolute";n.style.right="22px";n.style.top="65px";n.style.background="#fff";n.style.padding="8px";n.style.border="1px solid #e7e7e2";n.style.borderRadius="8px";n.style.flexDirection="column"};
-window.addEventListener("popstate",()=>go(pageFromPath(),true));
-
-function renderMarkets(q=""){document.getElementById("marketRows").innerHTML=data.filter(x=>x[0].includes(q.toUpperCase())).map((x,i)=>`<tr><td><b>${x[0]}</b></td><td class="mono">${x[1]}</td><td class="${x[2][0]==='+'?'up':'down'}">${x[2]}</td><td><span class="dot"></span>OPEN</td><td><button class="btn secondary" onclick="openMarketDetail('${x[0]}')">View</button></td></tr>`).join("")}
-function filterMarkets(){renderMarkets(document.getElementById("search").value)}
-const API_BASE=location.origin;
-const userId=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe?.user?.id)?String(Telegram.WebApp.initDataUnsafe.user.id):("web-"+(localStorage.getItem("obs_user_id")||crypto.randomUUID()));
-localStorage.setItem("obs_user_id",userId);
-const myUsername=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initDataUnsafe?.user?.username)?("@"+Telegram.WebApp.initDataUnsafe.user.username):(localStorage.getItem("obs_username")||"@trader");
-let currentAsset=localStorage.getItem("obs_asset")||"BTCUSDT";
-let currentLeverage=Number(localStorage.getItem("obs_lev")||10);
-let prices={BTCUSDT:0,ETHUSDT:0};
-let balance=Number(localStorage.getItem("obs_bal_"+userId)||10000);
-let position=null;
-try{position=JSON.parse(localStorage.getItem("obs_pos_"+userId)||"null")}catch(e){position=null}
-
-function money(n){return "$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
-function setAssetUI(){
-  const a=document.getElementById("asset"); if(a)a.value=currentAsset;
-  document.getElementById("btcBtn")?.classList.toggle("secondary",currentAsset!=="BTCUSDT");
-  document.getElementById("ethBtn")?.classList.toggle("secondary",currentAsset!=="ETHUSDT");
-  const f=document.getElementById("tvFrame");
-  if(f)f.src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3A"+currentAsset+"&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-  localStorage.setItem("obs_asset",currentAsset);
+function lineChart(values){
+const w=800,h=270,p=15,min=Math.min(...values),max=Math.max(...values),range=max-min||1;
+const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/range*(h-2*p)}`).join(' ');
+return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M ${pts}" fill="none" stroke="#477743" stroke-width="3"/><path d="M ${pts} L ${w-p},${h} L ${p},${h} Z" fill="#477743" opacity=".08"/></svg>`
 }
-function switchAsset(asset){
-  currentAsset=asset;
-  setAssetUI();
-  connectPriceSocket();
-  updateTicker();
+function renderTrade(sym){
+const a=assets.find(x=>x[0]===sym)||assets[0];let side='BUY',type='MARKET';
+const history=Array.from({length:50},(_,i)=>a[2]*(1+.018*Math.sin(i*.45)+.0005*i));
+document.getElementById('app').innerHTML=shell(sym+' / USDT',a[1]+' · PAPER TRADING · DEMO QUOTES',`<div class="grid" style="grid-template-columns:180px minmax(0,1fr) 285px"><aside class="card"><h3>Markets</h3>${assets.map(assetRow).join('')}</aside><section class="card"><div class="row between"><div style="font-size:32px;font-weight:700">${money(a[2])}</div><span class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</span></div><div class="chart">${lineChart(history)}</div><div class="row between muted small"><span>Volume ${a[4]}</span><span>DEMO MARKET</span></div></section><aside class="card"><h3>Trade</h3><div class="tabs"><button class="tab active" id="buy">BUY</button><button class="tab" id="sell">SELL</button></div><div class="tabs"><button class="tab active" id="market">MARKET</button><button class="tab" id="limit">LIMIT</button></div><form id="tradeForm"><label>Amount · ${sym}</label><input id="amount" type="number" step="any" min="0" placeholder="0.00" required><label>Price · USDT</label><input id="price" type="number" step="any" value="${a[2]}" ${type==='MARKET'?'disabled':''} required><p class="row between"><span class="muted">Available</span><strong>${money(state.balance)}</strong></p><button class="btn green full" style="width:100%">PLACE PAPER ORDER</button></form><p class="small muted" style="margin-top:15px">No real money. Long-only paper simulation.</p></aside></div><div class="tabs" style="margin-top:22px"><button class="tab active">Open Orders</button><button class="tab">Order History</button><button class="tab">Positions</button><button class="tab">Overview</button></div><div class="card"><h2>Recent activity</h2>${state.trades.length?state.trades.slice(-6).reverse().map(t=>`<div class="activity row between"><span><strong>${t.side}</strong> ${t.amount} ${t.symbol}</span><span>${money(t.price)}</span></div>`).join(''): '<div class="empty">No paper trades yet.</div>'}</div>`);
+document.getElementById('buy').onclick=()=>{side='BUY';document.getElementById('buy').classList.add('active');document.getElementById('sell').classList.remove('active')};
+document.getElementById('sell').onclick=()=>{side='SELL';document.getElementById('sell').classList.add('active');document.getElementById('buy').classList.remove('active')};
+document.getElementById('market').onclick=()=>{type='MARKET';document.getElementById('price').disabled=true;document.getElementById('price').value=a[2];document.getElementById('market').classList.add('active');document.getElementById('limit').classList.remove('active')};
+document.getElementById('limit').onclick=()=>{type='LIMIT';document.getElementById('price').disabled=false;document.getElementById('limit').classList.add('active');document.getElementById('market').classList.remove('active')};
+document.getElementById('tradeForm').onsubmit=e=>{e.preventDefault();if(!state.user){go('/login?next=/trade');toast('Sign in first');return}const amount=Number(document.getElementById('amount').value),price=Number(document.getElementById('price').value||a[2]);if(amount<=0||price<=0)return toast('Enter a valid amount and price');const total=amount*price;if(side==='BUY'&&total>state.balance)return toast('Insufficient paper balance');if(side==='BUY')state.balance-=total;else state.balance+=total;state.trades.push({symbol:sym,side,amount,price,total,time:new Date().toISOString()});save();toast(side+' order filled');renderTrade(sym)}
 }
-function updateUI(){
-  const b=document.getElementById("balance"); if(b)b.textContent=money(balance);
-  const box=document.getElementById("positionBox"), status=document.getElementById("pos-status");
-  if(!box)return;
-  if(!position){box.textContent="No open paper position.";status.textContent="NO POSITION";return}
-  const live=prices[position.asset]||position.entryPrice;
-  let diff=(live-position.entryPrice)/position.entryPrice;
-  if(position.type==="SHORT")diff=-diff;
-  const pnl=position.size*diff*position.leverage;
-  status.textContent=position.type+" / "+position.asset;
-  status.style.color=pnl>=0?"#177245":"#b33a3a";
-  box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div><span style="color:#999">Entry</span><br><b>${money(position.entryPrice)}</b></div>
-    <div><span style="color:#999">Live</span><br><b>${money(live)}</b></div>
-    <div><span style="color:#999">Size</span><br><b>${money(position.size)}</b></div>
-    <div><span style="color:#999">P&L</span><br><b style="color:${pnl>=0?"#177245":"#b33a3a"}">${pnl>=0?"+":""}${money(pnl)} (${(pnl/position.size*100).toFixed(2)}%)</b></div>
-  </div>`;
+function renderLeaderboard(){
+document.getElementById('app').innerHTML=shell('Leaderboard','Top paper traders on Obsidian Lab',`<div class="tabs"><button class="tab active">ALL TIME</button><button class="tab">MONTHLY</button><button class="tab">WEEKLY</button><button class="tab">TODAY</button></div><div class="tableWrap"><table><thead><tr><th>RANK</th><th>TRADER</th><th>REALIZED PROFIT</th><th>TRADES</th><th>WIN RATE</th><th>POINTS</th></tr></thead><tbody>${[['Jasur','+$18,420','142','71.2%','12,840'],['Alex','+$12,810','118','68.4%','10,440'],['Whale','+$9,740','91','66.8%','8,920'],['Sigma','+$7,230','76','64.1%','7,540'],['Faridov','+$5,110','62','61.3%','6,220']].map((x,i)=>`<tr><td><strong>#${i+1}</strong></td><td><a href="#/profile/${i+1}" class="row"><span class="avatar">${x[0][0]}</span><strong>${x[0]}</strong></a></td><td class="pos">${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td></tr>`).join('')}</tbody></table></div>`)
 }
-let priceSocket=null;
-let priceSocketSymbol="";
-function connectPriceSocket(){
-  const sym=currentAsset.toLowerCase()+"@ticker";
-  if(priceSocket && priceSocketSymbol===sym && priceSocket.readyState<=1)return;
-  try{ if(priceSocket)priceSocket.close(); }catch(e){}
-  priceSocketSymbol=sym;
-  try{
-    priceSocket=new WebSocket("wss://stream.binance.com:9443/ws/"+sym);
-    priceSocket.onmessage=(ev)=>{
-      try{
-        const d=JSON.parse(ev.data);
-        if(d.c){prices[currentAsset]=Number(d.c); setLivePrice("● BINANCE LIVE");}
-      }catch(e){}
-    };
-    priceSocket.onopen=()=>setLivePrice("● BINANCE LIVE");
-    priceSocket.onerror=()=>{};
-  }catch(e){}
+const officeItems=[['Overview','','▦'],['Tasks','/tasks','☷'],['Projects','/projects','□'],['Team','/team','♙'],['Documents','/documents','▤'],['Calendar','/calendar','□'],['Analytics','/analytics','⌁']];
+function officeSide(active){return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" class="${active===x[1]?'active':''}">${x[2]} ${x[0]}</a>`).join('')}</aside>`}
+function renderOffice(p){
+const s=p.split('/')[2]||'';
+if(!s){document.getElementById('app').innerHTML=`<div class="workspace">${officeSide('')}<section>${shell('Web Office','Your workspace at a glance',`<div class="grid g4 stats">${stat('Active tasks',state.tasks.filter(x=>x.status!=='DONE').length)}${stat('Ongoing projects',state.projects.length)}${stat('Team members',5)}${stat('Completion rate',state.tasks.length?Math.round(state.tasks.filter(x=>x.status==='DONE').length/state.tasks.length*100)+'%':'0%')}</div><div class="officeGrid" style="margin-top:18px"><div class="card"><div class="row between"><h2>Recent Activity</h2><a href="#/web-office/tasks">View all →</a></div>${state.tasks.slice(0,5).map(t=>`<div class="activity"><strong>${esc(t.title)}</strong><small>${esc(t.status||'TODO')}</small></div>`).join('')||'<div class="empty">Create your first task.</div>'}</div><div class="card"><h2>Upcoming</h2>${state.events.slice(0,5).map(e=>`<div class="activity"><strong>${esc(e.title)}</strong><small>${esc(e.date)}</small></div>`).join('')||'<div class="empty">No upcoming events.</div>'}</div><div class="card"><h2>September 2026</h2><div class="calendar">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${i===15?'<span class="event">Team sync</span>':''}${i===17?'<span class="event">Review</span>':''}</div>`).join('')}</div></div></div><div class="grid g2" style="margin-top:18px"><div class="card"><h2>Active Projects</h2>${[['Obsidian Terminal',78],['AI Trading Assistant',45],['Web Office v1.0',90],['Mobile App',20]].map(x=>`<div class="activity"><div class="row between"><strong>${x[0]}</strong><span>${x[1]}%</span></div><div class="progress"><i style="width:${x[1]}%"></i></div></div>`).join('')}</div><div class="card"><h2>Team Members</h2>${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy'],['Faridov','Frontend Developer','Online'],['Sigma','Community Manager','Offline']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div></div>`)} </section></div>`;return}
+if(s==='tasks'||s==='projects'||s==='team'||s==='documents'||s==='calendar'||s==='analytics'){renderOfficeSection(s);return}
 }
-function setLivePrice(label){
-  const s=document.getElementById("price-status");
-  if(s){s.textContent=label;s.style.color=label.includes("LIVE")?"#177245":"#b33a3a";}
-  const p=document.getElementById("live-price");
-  if(p&&prices[currentAsset])p.textContent=money(prices[currentAsset]);
+function renderOfficeSection(s){
+let title=s[0].toUpperCase()+s.slice(1), content='';
+if(s==='tasks')content=`<div class="row between"><p class="muted">Plan and track your work.</p><button class="btn" onclick="newOffice('task')">+ NEW TASK</button></div><div class="grid g3" style="margin-top:20px">${['TODO','IN PROGRESS','DONE'].map(st=>`<div><div class="eyebrow">${st}</div>${state.tasks.filter(t=>t.status===st).map(t=>`<div class="card" style="margin-top:10px"><strong>${esc(t.title)}</strong><p class="small muted">${esc(t.description||'')}</p><span class="badge">${esc(t.priority||'MEDIUM')}</span><div class="row" style="margin-top:12px"><button class="btn light" style="padding:6px 9px" onclick="editTask('${t.id}')">EDIT</button><button class="btn light" style="padding:6px 9px" onclick="deleteTask('${t.id}')">DELETE</button></div></div>`).join('')||'<div class="empty">No tasks</div>'}</div>`).join('')}</div>`;
+if(s==='projects')content=`<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description||'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress||0}% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
+if(s==='team')content=`<div class="card">${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy'],['Faridov','Frontend Developer','Online'],['Sigma','Community Manager','Offline']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div>`;
+if(s==='documents')content=`<div class="card"><h2>Documents</h2><p class="muted">Local workspace documents.</p><button class="btn" onclick="newOffice('document')">+ NEW DOCUMENT</button><div class="empty">No documents yet.</div></div>`;
+if(s==='calendar')content=`<div class="card"><div class="row between"><h2>Calendar</h2><button class="btn" onclick="newOffice('event')">+ NEW EVENT</button></div><div class="calendar" style="margin-top:18px">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${state.events.filter(e=>Number(e.day)===i+1).map(e=>`<span class="event">${esc(e.title)}</span>`).join('')}</div>`).join('')}</div></div>`;
+if(s==='analytics')content=`<div class="grid g3 stats">${stat('Tasks completed',state.tasks.filter(t=>t.status==='DONE').length)}${stat('Projects',state.projects.length)}${stat('Paper trades',state.trades.length)}</div><div class="card" style="margin-top:18px"><h2>Trading performance</h2><div class="chart">${lineChart(Array.from({length:35},(_,i)=>i*1.5+Math.sin(i*.6)*7))}</div></div>`;
+document.getElementById('app').innerHTML=`<div class="workspace">${officeSide('/'+s)}<section>${shell(title,'Web Office workspace',content)}</section></div>`
 }
-async function updateTicker(){
-  let ok=false;
-  // Render server proxy (recommended; avoids browser CORS/network restrictions)
-  try{
-    const res=await fetch("/api/price?symbol="+encodeURIComponent(currentAsset)+"&t="+Date.now(),{cache:"no-store"});
-    const d=await res.json();
-    if(res.ok&&d.status==="success"&&Number(d.price)>0){prices[currentAsset]=Number(d.price);ok=true;}
-  }catch(e){}
-  // Direct Binance REST fallback — this preserves the old template's working behaviour.
-  if(!ok){
-    for(const host of ["https://api.binance.com","https://api1.binance.com","https://api2.binance.com","https://api3.binance.com"]){
-      try{
-        const res=await fetch(host+"/api/v3/ticker/price?symbol="+encodeURIComponent(currentAsset)+"&t="+Date.now(),{cache:"no-store"});
-        const d=await res.json();
-        if(res.ok&&Number(d.price)>0){prices[currentAsset]=Number(d.price);ok=true;break;}
-      }catch(e){}
-    }
-  }
-  if(ok){
-    setLivePrice("● BINANCE LIVE");
-  }else{
-    connectPriceSocket();
-    setLivePrice(priceSocket&&priceSocket.readyState===1?"● BINANCE LIVE":"● CONNECTING…");
-  }
-  updateUI();
-  checkStops();
+function newOffice(type){
+let title=type==='task'?'New task':type==='project'?'New project':type==='event'?'New event':'New document';
+showModal(`<h2>${title}</h2><label>Title</label><input id="omTitle"><label>Description</label><textarea id="omDesc"></textarea>${type==='task'?'<label>Status</label><select id="omStatus"><option>TODO</option><option>IN PROGRESS</option><option>DONE</option></select>':''}${type==='project'?'<label>Progress %</label><input id="omProgress" type="number" min="0" max="100" value="0">':''}${type==='event'?'<label>Day in September</label><input id="omDay" type="number" min="1" max="30" value="16">':''}<button class="btn green" style="width:100%;margin-top:20px" onclick="saveOffice('${type}')">SAVE</button>`)
 }
-function executeOrder(type){
-  const amount=Number(document.getElementById("trade-amount").value)||0;
-  if(amount<10)return show("Minimum order is $10");
-  if(amount>balance)return show("Insufficient paper balance");
-  if(!prices[currentAsset])return show("Waiting for market price…");
-  if(position)closeCurrentPosition();
-  balance-=amount;
-  currentLeverage=Number(document.getElementById("lev").value)||10;
-  localStorage.setItem("obs_lev",currentLeverage);
-  position={type,size:amount,leverage:currentLeverage,entryPrice:prices[currentAsset],asset:currentAsset,openedAt:new Date().toISOString()};
-  localStorage.setItem("obs_bal_"+userId,balance);
-  localStorage.setItem("obs_pos_"+userId,JSON.stringify(position));
-  updateUI(); syncWithSheets();
-  show(type==="LONG"?"BUY / LONG opened":"SELL / SHORT opened");
+function saveOffice(type){
+const title=document.getElementById('omTitle').value.trim();if(!title)return toast('Title required');
+if(type==='task')state.tasks.push({id:Date.now()+'',title,description:document.getElementById('omDesc').value,status:document.getElementById('omStatus').value,priority:'MEDIUM'});
+if(type==='project')state.projects.push({id:Date.now()+'',title,description:document.getElementById('omDesc').value,progress:Number(document.getElementById('omProgress').value)||0});
+if(type==='event')state.events.push({id:Date.now()+'',title,day:Number(document.getElementById('omDay').value)||16,date:'2026-09-'+String(Number(document.getElementById('omDay').value)||16).padStart(2,'0')});
+save();closeModal();toast('Saved');render(location.hash.slice(1)||'/web-office')
 }
-function closeCurrentPosition(){
-  if(!position)return show("No open position");
-  const live=prices[position.asset]||position.entryPrice;
-  let diff=(live-position.entryPrice)/position.entryPrice;
-  if(position.type==="SHORT")diff=-diff;
-  const pnl=position.size*diff*position.leverage;
-  balance+=Math.max(0,position.size+pnl);
-  position=null;
-  localStorage.setItem("obs_bal_"+userId,balance);
-  localStorage.removeItem("obs_pos_"+userId);
-  updateUI();syncWithSheets();show("Position closed");
+function editTask(id){const t=state.tasks.find(x=>x.id===id);showModal(`<h2>Edit task</h2><label>Title</label><input id="et" value="${esc(t.title)}"><label>Status</label><select id="es"><option ${t.status==='TODO'?'selected':''}>TODO</option><option ${t.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option ${t.status==='DONE'?'selected':''}>DONE</option></select><button class="btn green" style="width:100%;margin-top:20px" onclick="updateTask('${id}')">SAVE</button>`)}
+function updateTask(id){const t=state.tasks.find(x=>x.id===id);t.title=document.getElementById('et').value;t.status=document.getElementById('es').value;save();closeModal();render('/web-office/tasks')}
+function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);save();render('/web-office/tasks')}
+function deleteProject(id){state.projects=state.projects.filter(x=>x.id!==id);save();render('/web-office/projects')}
+function showModal(html){document.getElementById('modal').innerHTML=`<div class="row between"><span></span><button class="iconBtn" onclick="closeModal()">✕</button></div>${html}`;document.getElementById('modalBack').classList.add('show')}
+function closeModal(){document.getElementById('modalBack').classList.remove('show')}
+function renderAuth(p){
+const login=p==='/login',register=p==='/register';
+document.getElementById('app').innerHTML=`<section class="auth"><div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div><div class="authForm"><h1>${login?'Welcome back':'Create account'}</h1><p class="muted">${login?'Sign in to your account':'Your next chapter starts here'}</p><form id="authForm">${register?'<label>Full name</label><input id="aname" required><label>Username</label><input id="auser" required>':''}<label>Email</label><input id="aemail" type="email" required><label>Password</label><input id="apass" type="password" required><button class="btn green" style="width:100%;margin-top:20px">${login?'SIGN IN':'CREATE ACCOUNT'}</button></form><p class="notice">Demo authentication is stored locally in this single-file version. Connect your existing Telegram/Sheets backend when ready.</p><p style="margin-top:20px">${login?'No account? <a href="#/register"><strong>REGISTER</strong></a>':'Already have an account? <a href="#/login"><strong>SIGN IN</strong></a>'}</p></div></section>`;
+document.getElementById('authForm').onsubmit=e=>{e.preventDefault();const email=document.getElementById('aemail').value;state.user={name:register?document.getElementById('aname').value:email.split('@')[0],username:register?document.getElementById('auser').value:email.split('@')[0],email};save();updateAvatar();toast('Signed in');go('/profile')}
 }
-function checkStops(){ /* reserved for TP/SL extensions */ }
-async function syncWithSheets(){
-  try{
-    await fetch(API_BASE+"/api/update_balance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:userId,username:myUsername,balance:Number(balance.toFixed(2))})});
-  }catch(e){}
+function renderProfile(){
+if(!state.user){go('/login');return}
+document.getElementById('app').innerHTML=shell('Profile','Your information and paper trading statistics',`<div class="grid g2"><div class="card"><div class="row"><span class="avatar" style="width:72px;height:72px;font-size:25px">${state.user.username[0].toUpperCase()}</span><div><h2>${esc(state.user.name)}</h2><p class="muted">@${esc(state.user.username)}</p><button class="btn light" onclick="go('/settings/profile')">EDIT PROFILE</button></div></div></div><div class="grid g4">${stat('Balance',money(state.balance))}${stat('Trades',state.trades.length)}${stat('Points',state.trades.length*50)}${stat('Rank','#—')}</div></div><div class="card" style="margin-top:18px"><h2>Performance</h2><div class="chart">${lineChart(Array.from({length:30},(_,i)=>i+Math.sin(i*.5)*4))}</div></div><div class="card" style="margin-top:18px"><h2>Recent Activity</h2>${state.trades.slice(-8).reverse().map(t=>`<div class="activity row between"><span>${t.side} ${t.amount} ${t.symbol}</span><span>${money(t.price)}</span></div>`).join('')||'<div class="empty">No activity yet.</div>'}</div>`)
 }
-document.getElementById("chartLoading")?.remove();
-document.getElementById("lev").value=String(currentLeverage);
-setAssetUI();updateUI();updateTicker();setInterval(updateTicker,4000);
-function show(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
-document.getElementById("users").textContent=localStorage.getItem("obs_users")||"ACTIVE";
-let hash=location.hash.slice(1);
-if(hash.startsWith("markets/")) openMarketDetail(hash.split("/")[1]);
-else go(pages.includes(hash)?hash:"home");
-renderMarkets();
-
-
-function openMarketDetail(sym){
-  pages.forEach(x=>document.getElementById(x)?.classList.toggle("active",x==="market-detail"));
-  document.querySelectorAll("[data-page]").forEach(b=>b.classList.remove("active"));
-  const clean=(sym||"BTCUSDT").toUpperCase();
-  document.getElementById("detail-symbol").textContent=clean.replace("USDT"," / USDT");
-  document.getElementById("detail-price").textContent=prices[clean]?money(prices[clean]):"—";
-  document.getElementById("detail-frame").src="https://s.tradingview.com/widgetembed/?frameElementId=detail&symbol=BINANCE%3A"+clean+"&interval=15&theme=light&style=1&timezone=Asia%2FTashkent";
-  history.replaceState(null,"","#markets/"+clean);
-  updateTicker();
+function renderSettings(p){
+if(!state.user){go('/login');return}
+const s=p.split('/')[2]||'profile';
+const links=[['Profile','profile'],['Security','security'],['Notifications','notifications'],['Integrations','integrations'],['Appearance','appearance']];
+let content='';
+if(s==='profile')content=`<form id="sf"><label>Full name</label><input id="sn" value="${esc(state.user.name)}"><label>Username</label><input id="su" value="${esc(state.user.username)}"><button class="btn" style="margin-top:20px">SAVE CHANGES</button></form>`;
+if(s==='security')content=`<label>Current password</label><input type="password"><label>New password</label><input type="password"><button class="btn" style="margin-top:20px" onclick="toast('Security settings saved')">SAVE</button>`;
+if(s==='notifications')content=`<label><input type="checkbox" checked style="width:auto"> Email alerts</label><label><input type="checkbox" checked style="width:auto"> Trading notifications</label><button class="btn" onclick="toast('Preferences saved')">SAVE</button>`;
+if(s==='integrations')content=`<div class="grid g2">${['Telegram','Google Sheets','Google Drive','Google Calendar','Discord','Email'].map(x=>`<div class="card"><div class="row between"><strong>${x}</strong><span class="badge">NOT CONFIGURED</span></div><p class="muted small">Credentials stay server-side.</p><button class="btn light" onclick="toast('${x}: configure on server')">CONFIGURE</button></div>`).join('')}</div>`;
+if(s==='appearance')content=`<label>Theme</label><select><option>Warm Stone</option><option>Dark</option></select><label>Density</label><select><option>Comfortable</option><option>Compact</option></select><button class="btn" onclick="toast('Appearance saved')">SAVE</button>`;
+document.getElementById('app').innerHTML=`<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4>${links.map(x=>`<a href="#/settings/${x[1]}" class="${s===x[1]?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell(s[0].toUpperCase()+s.slice(1),'Your account, preferences and integrations',`<div class="card">${content}</div><button class="btn light" style="margin-top:18px" onclick="logout()">SIGN OUT</button>`)} </section></div>`;
+if(s==='profile')document.getElementById('sf').onsubmit=e=>{e.preventDefault();state.user.name=document.getElementById('sn').value;state.user.username=document.getElementById('su').value;save();updateAvatar();toast('Profile saved')}
 }
-function saveSettings(){
-  const v=document.getElementById("settings-username").value.trim();
-  if(v){myUsername=v.startsWith("@")?v:"@"+v;safeSet("obs_confirmed_username",myUsername);document.getElementById("nav-username")?.textContent=myUsername;syncWithSheets();show("Settings saved")}
-}
-function demoLogin(){show("Demo sign-in complete");go("trade")}
-function demoRegister(){
-  const v=document.getElementById("reg-username").value.trim();
-  if(v){myUsername=v.startsWith("@")?v:"@"+v;safeSet("obs_confirmed_username",myUsername);show("Account created");go("trade")}
-}
-async function loadProfile(){
-  document.getElementById("profile-name").textContent=myUsername;
-  document.getElementById("profile-balance").textContent=money(balance);
-  document.getElementById("profile-profit").textContent=money(balance-10000);
-  try{
-    const r=await fetch("/api/leaderboard?t="+Date.now(),{cache:"no-store"});const d=await r.json();
-    if(d.status==="success"){
-      const me=(d.leaders||[]).find(x=>String(x["User ID"])===String(userId)||String(x.Username)===String(myUsername));
-      if(me){document.getElementById("profile-rank").textContent="#"+(d.leaders.indexOf(me)+1);document.getElementById("profile-points").textContent=Math.max(0,Math.round(Number(me.Balance)-10000))}
-    }
-  }catch(e){}
-}
-async function loadAdmin(){
-  try{const r=await fetch("/api/leaderboard?t="+Date.now(),{cache:"no-store"});const d=await r.json();document.getElementById("admin-users").textContent=d.leaders?.length||"—";document.getElementById("admin-trades").textContent="LIVE"}catch(e){}
-}
-document.querySelectorAll(".settings-tab").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll(".settings-tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");
-  document.querySelectorAll(".settings-pane").forEach(x=>x.style.display="none");
-  document.getElementById(b.dataset.tab).style.display="block";
-}));
-
-
-// ===== SERVER ACCOUNT / AUTH =====
-async function apiJSON(url, options={}){
-  const headers=Object.assign({"Content-Type":"application/json"},options.headers||{});
-  if(webSession?.csrf)headers["X-CSRF-Token"]=webSession.csrf;
-  const r=await fetch(url,Object.assign({},options,{headers,credentials:"same-origin",cache:"no-store"}));
-  const d=await r.json().catch(()=>({}));
-  if(d.csrf)webSession=Object.assign(webSession||{}, {csrf:d.csrf});
-  if(!r.ok)throw new Error(d.message||d.error||"Request failed");
-  return d;
-}
-async function loadWebSession(){
-  try{webSession=await apiJSON("/api/session");}catch(e){webSession=null}
-  updateAuthUI();
-}
-function updateAuthUI(){
-  const links=document.getElementById("nav");if(!links)return;
-  let account=document.getElementById("accountNav");
-  if(!account){account=document.createElement("button");account.id="accountNav";account.className="links-account";links.parentElement.appendChild(account);}
-  const u=webSession?.user;
-  account.textContent=u?("@"+u.username+" · Account"):"Sign in";
-  account.onclick=()=>go(u?"profile":"login");
-}
-async function demoLogin(){
-  const email=document.getElementById("login-email")?.value.trim(),password=document.getElementById("login-password")?.value;
-  if(!email||!password)return show("Email va parolni kiriting");
-  try{webSession=await apiJSON("/api/auth/login",{method:"POST",body:JSON.stringify({email,password,remember:true})});show("Signed in");go("profile");}
-  catch(e){show(e.message);}
-}
-async function demoRegister(){
-  const username=document.getElementById("reg-username")?.value.trim(),email=document.getElementById("reg-email")?.value.trim(),password=document.getElementById("reg-password")?.value,confirm=document.getElementById("reg-confirm")?.value;
-  if(!username||!email||!password||!confirm)return show("Barcha maydonlarni to'ldiring");
-  try{await apiJSON("/api/auth/register",{method:"POST",body:JSON.stringify({username,email,password,confirm,name:username})});show("Account yaratildi");go("login");}
-  catch(e){show(e.message);}
-}
-async function logoutWeb(){try{await apiJSON("/api/auth/logout",{method:"POST",body:"{}"});}catch(e){}webSession=null;show("Signed out");go("home");}
-async function requestPasswordReset(){show("Reset email setup server SMTP talab qiladi");}
-async function loadNotifications(){
-  if(!webSession?.user)return;
-  try{
-    const d=await apiJSON("/api/notifications");const box=document.getElementById("notification-list");
-    if(box)box.innerHTML=d.items.length?d.items.map(x=>`<div style="padding:20px;border-bottom:1px solid var(--line)"><b>${String(x.title).replace(/</g,"&lt;")}</b><div style="font-size:12px;color:#777;margin-top:5px">${String(x.message).replace(/</g,"&lt;")}</div></div>`).join(""):"<div style='padding:30px;color:#888'>No notifications yet.</div>";
-  }catch(e){}
-}
-async function loadWebSettings(){
-  if(!webSession?.user)return;
-  const n=document.getElementById("settings-username");if(n)n.value="@"+webSession.user.username;
-}
-// ===== Leaderboard =====
-let leaderboardPeriod="all";
-async function loadLeaderboard(){
-  const body=document.getElementById("leaders"), status=document.getElementById("leader-status");
-  if(!body)return;
-  body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#999;padding:35px">Loading…</td></tr>';
-  try{
-    const r=await fetch("/api/leaderboard?period="+leaderboardPeriod+"&t="+Date.now(),{cache:"no-store"});
-    const d=await r.json();
-    if(!d || d.status!=="success") throw new Error(d?.message||"Leaderboard error");
-    const leaders=Array.isArray(d.leaders)?d.leaders:[];
-    if(!leaders.length){
-      body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#999;padding:40px">No leaderboard data yet.</td></tr>';
-      status.textContent="No data";
-      return;
-    }
-    body.innerHTML=leaders.map((x,i)=>{
-      const bal=Number(x.Balance||0);
-      const initial=10000;
-      const profit=bal-initial;
-      const pct=initial?(profit/initial*100):0;
-      const uid=encodeURIComponent(x["User ID"]||"");
-      const username=String(x.Username||"Trader").replace(/</g,"&lt;");
-      return `<tr onclick="openProfile('${uid}')" style="cursor:pointer">
-        <td><b>${String(i+1).padStart(2,"0")}</b></td>
-        <td><b>${username.startsWith("@")?username:"@"+username}</b></td>
-        <td class="mono">${money(bal)}</td>
-        <td class="${profit>=0?"up":"down"}">${profit>=0?"+":""}${money(profit)} <span style="font-size:10px">(${pct.toFixed(2)}%)</span></td>
-        <td>—</td><td>—</td><td>${Math.max(0,Math.round(profit))}</td>
-      </tr>`;
-    }).join("");
-    status.textContent=`${leaders.length} traders · synced from server`;
-  }catch(e){
-    body.innerHTML='<tr><td colspan="7" style="text-align:center;color:#b33a3a;padding:35px">Could not load leaderboard. <button class="btn secondary" onclick="loadLeaderboard()" style="margin-left:8px;padding:7px 10px">Retry</button></td></tr>';
-    status.textContent="Connection error";
-  }
-}
-function openProfile(uid){
-  if(!uid)return show("Profile ID unavailable");
-  location.href="/profile/"+uid;
-}
-document.querySelectorAll(".lb-filter").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll(".lb-filter").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active"); leaderboardPeriod=b.dataset.period; loadLeaderboard();
-}));
-
-// ===== $10K reset =====
-function resetPaperAccount(){
-  if(position) position=null;
-  balance=10000;
-  localStorage.setItem("obs_bal_"+userId,"10000");
-  localStorage.removeItem("obs_pos_"+userId);
-  updateUI(); syncWithSheets(); show("Paper account reset to $10,000");
-}
-function checkResetButton(){
-  const b=document.getElementById("resetBalanceBtn");
-  if(b)b.style.display=balance<=0?"block":"none";
-}
-const oldUpdateUI=updateUI;
-updateUI=function(){oldUpdateUI();checkResetButton()};
-
-// ===== Web Office live backend =====
-let officeData=null;
-function renderOffice(d){
-  officeData=d;
-  const agents=d?.agents||{};
-  const keys=Object.keys(agents);
-  const taskList=document.getElementById("office-tasks-list");
-  const team=document.getElementById("office-team-list");
-  const act=document.getElementById("office-activity-list");
-  const mini=document.getElementById("office-log-mini");
-  const time=document.getElementById("office-time");
-  const market=document.getElementById("hq-market");
-  if(time)time.textContent="Live · "+(d.timestamp||"—");
-  if(market)market.textContent="MARKET / "+(prices.BTCUSDT?money(prices.BTCUSDT):"—");
-  if(document.getElementById("an-market"))document.getElementById("an-market").textContent=prices.BTCUSDT?money(prices.BTCUSDT):"—";
-  if(document.getElementById("an-time"))document.getElementById("an-time").textContent=d.timestamp||"—";
-  if(taskList)taskList.innerHTML=keys.map(k=>{
-    const a=agents[k];
-    return `<div style="padding:13px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:15px">
-      <div><b>${a.name}</b><div style="font-size:11px;color:#888;margin-top:4px">${a.role}</div></div>
-      <div style="text-align:right;font-size:11px"><b>${a.current_task||"Working"}</b><div style="color:#999;margin-top:4px">${a.location||"HQ"}</div></div>
-    </div>`;
-  }).join("");
-  if(team)team.innerHTML=keys.map(k=>{
-    const a=agents[k];
-    return `<div class="card"><small>${(a.role||"AGENT").toUpperCase()}</small><h3>${a.name}</h3><p>${a.current_task||"Working"}<br>${a.location||"HQ"}</p></div>`;
-  }).join("");
-  const logs=Array.isArray(d.logs)?d.logs:[];
-  if(act)act.innerHTML=logs.map(x=>`<div>${String(x).replace(/</g,"&lt;")}</div>`).join("")||"No recent activity.";
-  if(mini)mini.textContent=logs[0]||"HQ feed online.";
-}
-async function loadOffice(){
-  try{
-    const r=await fetch("/api/agent_tasks?t="+Date.now(),{cache:"no-store"});
-    const d=await r.json();
-    if(d.status==="success")renderOffice(d);
-    else throw new Error();
-  }catch(e){
-    const t=document.getElementById("office-time"); if(t)t.textContent="Offline / retrying";
-  }
-}
-document.querySelectorAll(".office-tab").forEach(btn=>btn.addEventListener("click",()=>{
-  document.querySelectorAll(".office-tab").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
-  document.querySelectorAll(".office-pane").forEach(x=>x.style.display="none");
-  document.getElementById("office-"+btn.dataset.tab).style.display="block";
-  loadOffice();
-}));
-loadLeaderboard();
-loadOffice();
-setInterval(loadLeaderboard,15000);
-setInterval(loadOffice,5000);
-
-loadWebSession().finally(()=>go(pageFromPath(),true));
+function logout(){state.user=null;save();updateAvatar();go('/')}
+function renderNotifications(){if(!state.user){go('/login');return}document.getElementById('app').innerHTML=shell('Notifications','Updates from your trading account and workspace',`<div class="card">${state.trades.length?state.trades.slice(-10).reverse().map(t=>`<div class="activity"><strong>Paper trade executed</strong><small>${t.side} ${t.amount} ${t.symbol} · ${new Date(t.time).toLocaleString()}</small></div>`).join(''):'<div class="empty">You are all caught up.</div>'}</div>`)}
+function renderAdmin(p){if(!state.user){go('/login');return}const s=p.split('/')[2]||'overview';document.getElementById('app').innerHTML=`<div class="workspace"><aside class="sidebar"><h4>ADMIN CONSOLE</h4>${[['Overview',''],['Users','/users'],['Markets','/markets'],['Trades','/trades'],['Leaderboard','/leaderboard'],['Office','/office'],['Integrations','/integrations'],['Logs','/logs'],['Settings','/settings']].map(x=>`<a href="#/admin${x[1]}" class="${s===(x[1].slice(1)||'overview')?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell('Admin · '+s,'Server administration and system records',`<div class="grid g4">${stat('Users','1')}${stat('Paper trades',state.trades.length)}${stat('Volume',money(state.trades.reduce((n,t)=>n+t.total,0)))}${stat('Assets','8')}</div><div class="card" style="margin-top:18px"><h2>System status</h2><p><span class="dot"></span> Online · Demo market data · Paper trading only</p><p class="muted">Admin subpages are wired to real clickable routes in this single-file build.</p></div>`)} </section></div>`}
+function updateAvatar(){const a=document.getElementById('avatar');if(state.user){a.textContent=state.user.username[0].toUpperCase();a.href='#/profile'}else{a.textContent='↗';a.href='#/login'}}
+document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').classList.toggle('open');
+window.addEventListener('hashchange',route);window.addEventListener('load',()=>{updateAvatar();route()});
+document.getElementById('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
 </script>
 </body>
 </html>
