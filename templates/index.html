@@ -141,6 +141,52 @@ const state = {
   trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
   position: JSON.parse(localStorage.getItem('obsidian_pos') || 'null')
 };
+let paperSynced = false;
+let oldLocalPosition = state.position;
+
+async function syncPaperState() {
+  if (!state.user) return;
+  try {
+    const data = await fetchAPI('/api/paper/state?t=' + Date.now());
+    if (data.status !== 'success') return;
+
+    const serverHasPosition = !!data.position;
+
+    // Eski versiyadagi local position bo'lsa, uni serverga bir marta ko'chiramiz.
+    if (!serverHasPosition && oldLocalPosition) {
+      const migrated = await fetchAPI('/api/paper/migrate', {
+        method: 'POST',
+        body: JSON.stringify({ position: oldLocalPosition })
+      });
+      if (migrated.status === 'success') {
+        oldLocalPosition = null;
+        const again = await fetchAPI('/api/paper/state?t=' + Date.now());
+        if (again.status === 'success') {
+          state.balance = Number(again.balance || 10000);
+          state.position = again.position || null;
+          state.trades = again.trades || [];
+        }
+      }
+    } else {
+      state.balance = Number(data.balance || 10000);
+      state.position = data.position || null;
+      state.trades = data.trades || [];
+    }
+
+    localStorage.setItem('obsidian_balance', state.balance);
+    localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
+    if (state.position) localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+    else localStorage.removeItem('obsidian_pos');
+
+    paperSynced = true;
+    if (location.hash.includes('/trade') || location.hash.includes('/markets/')) {
+      const sym = (location.hash.split('/')[2] || 'BTC').toUpperCase();
+      renderTrade(sym === 'TRADE' ? 'BTC' : sym);
+    }
+  } catch(e) {}
+}
+
+
 
 async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
@@ -414,24 +460,33 @@ function renderTrade(sym) {
       if (amount < 10) return toast('Minimal savdo $10!');
       if (amount > state.balance) return toast('Balans yetarli emas!');
 
-      if (state.position) closePosition('Oldingi bitim yopildi!');
+      if (!state.user) return go('/login');
+      if (!paperSynced) return toast('Account sync qilinmoqda…');
+      if (state.position) return toast('Avval ochiq positionni yoping.');
 
       const tpVal = parseFloat(document.getElementById('trade-tp').value) || null;
       const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
       const pNow = livePrices[pair] || a[2];
 
-      state.position = {
-        symbol: sym,
-        pair: pair,
-        type: side,
-        size: amount,
-        leverage: leverage,
-        entryPrice: pNow,
-        tp: tpVal,
-        sl: slVal
-      };
+      const res = await fetchAPI('/api/paper/open', {
+        method: 'POST',
+        body: JSON.stringify({
+          pair: pair,
+          side: side,
+          amount: amount,
+          leverage: leverage,
+          entryPrice: pNow,
+          tp: tpVal,
+          sl: slVal
+        })
+      });
 
-      await syncBalance(state.balance - amount);
+      if (res.status !== 'success') return toast(res.message || 'Trade ochilmadi');
+
+      state.balance = Number(res.balance);
+      state.position = res.position;
+      localStorage.setItem('obsidian_balance', state.balance);
+      localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
       toast(side + ' bitim ochildi!');
       renderTrade(sym);
     };
@@ -442,28 +497,22 @@ window.closePosition = async function(reason = null) {
   if (!state.position) return;
   const p = state.position;
   const live = livePrices[p.pair] || p.entryPrice;
-  let diff = (live - p.entryPrice) / p.entryPrice;
-  if (p.type === 'SHORT') diff = -diff;
-  const pnl = p.size * diff * p.leverage;
 
-  const newBalance = state.balance + Math.max(0, p.size + pnl);
-  state.trades.push({
-    symbol: p.symbol,
-    side: p.type,
-    amount: p.size,
-    price: live,
-    leverage: p.leverage,
-    pnl: pnl,
-    time: new Date().toISOString()
+  const res = await fetchAPI('/api/paper/close', {
+    method: 'POST',
+    body: JSON.stringify({ livePrice: live })
   });
+  if (res.status !== 'success') return toast(res.message || 'Position yopilmadi');
 
+  state.balance = Number(res.balance);
   state.position = null;
-  await syncBalance(newBalance);
+  localStorage.setItem('obsidian_balance', state.balance);
+  localStorage.removeItem('obsidian_pos');
+
   if (reason) toast(reason);
   else toast('Bitim yopildi!');
   render(location.hash.slice(1) || '/trade');
 };
-
 async function renderLeaderboard() {
   document.getElementById('app').innerHTML = shell('Leaderboard', 'Top traders synced from Google Sheets', `
     <div class="tabs">
@@ -940,6 +989,13 @@ updateAvatar();
 route();
 setInterval(updateBinancePrices, 1000);
 checkSessionBg();
+
+setTimeout(() => {
+  syncPaperState();
+  setInterval(() => {
+    if (document.visibilityState !== 'hidden') syncPaperState();
+  }, 3000);
+}, 500);
 
 document.getElementById('modalBack')?.addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
