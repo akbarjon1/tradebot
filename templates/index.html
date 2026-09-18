@@ -466,6 +466,7 @@ let paperSynced = false;
 let oldLocalPosition = state.position;
 let closingPosition = false;
 let openingPosition = false;
+let lastPaperSignature = '';
 
 async function syncPaperState() {
   try {
@@ -514,8 +515,22 @@ async function syncPaperState() {
     else localStorage.removeItem('obsidian_pos');
     localStorage.setItem('obsidian_positions', JSON.stringify(state.positions || []));
 
+    // IMPORTANT: syncing from the second device must NOT rebuild the whole page
+    // every 3 seconds. Re-rendering the trade page recreated the TradingView iframe
+    // and looked like a browser refresh. Only rebuild when server-side positions
+    // or trade history actually changed; balance alone is updated in-place.
+    const paperSignature = JSON.stringify({
+      positions: (state.positions || []).map(p => [p.id,p.pair,p.type,p.size,p.leverage,p.entryPrice,p.tp,p.sl]),
+      trades: (state.trades || []).map(t => [t.id,t.status,t.exit_price,t.pnl,t.created_at])
+    });
+    const positionsChanged = paperSignature !== lastPaperSignature;
+    lastPaperSignature = paperSignature;
+
     paperSynced = true;
-    if (location.hash.includes('/trade') || location.hash.includes('/markets/')) {
+    const avail = document.getElementById('avail-balance');
+    if (avail) avail.textContent = money(state.balance);
+
+    if (positionsChanged && (location.hash.includes('/trade') || location.hash.includes('/markets/'))) {
       const sym = (location.hash.split('/')[2] || 'BTC').toUpperCase();
       renderTrade(sym === 'TRADE' ? 'BTC' : sym);
     }
