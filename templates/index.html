@@ -122,6 +122,24 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
     padding:0 18px;
     gap:14px;
   }
+  .menu{display:block}
+  header nav{
+    display:none;
+    position:absolute;
+    top:64px;
+    left:0;
+    right:0;
+    margin:0;
+    padding:10px 14px;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    flex-direction:column;
+    gap:2px;
+    overflow:visible;
+  }
+  header nav.open{display:flex}
+  header nav a{padding:11px 8px}
+  header nav a.active:after{display:none}
   .logo{font-size:11px;letter-spacing:1.4px}
   .logoMark{width:29px;height:29px}
   nav{
@@ -169,6 +187,15 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 }
 
 @media (max-width: 600px){
+  .grid[style*="grid-template-columns:180px"],
+  .grid[style*="minmax(150px,180px)"]{
+    grid-template-columns:1fr !important;
+  }
+  .chart{height:320px !important}
+  #active-pos-box .grid.g4{grid-template-columns:1fr 1fr !important}
+  #active-pos-box .card{padding:13px}
+  #active-pos-box .row.between{flex-wrap:wrap}
+  #active-pos-box .row.between h3{max-width:100%}
   html,body{
     width:100%;
     max-width:100%;
@@ -437,6 +464,8 @@ const state = {
 };
 let paperSynced = false;
 let oldLocalPosition = state.position;
+let closingPosition = false;
+let openingPosition = false;
 
 async function syncPaperState() {
   try {
@@ -454,7 +483,7 @@ async function syncPaperState() {
     const data = await fetchAPI('/api/paper/state?t=' + Date.now());
     if (data.status !== 'success') return;
 
-    const serverHasPosition = !!data.position;
+    const serverHasPosition = Array.isArray(data.positions) ? data.positions.length > 0 : !!data.position;
 
     // Eski versiyadagi local position bo'lsa, uni serverga bir marta ko'chiramiz.
     if (!serverHasPosition && oldLocalPosition) {
@@ -474,7 +503,7 @@ async function syncPaperState() {
       }
     } else {
       state.balance = Number(data.balance || 10000);
-      state.positions = serverPositions;
+      state.positions = data.positions || (data.position ? [data.position] : []);
       state.position = state.positions[0] || null;
       state.trades = data.trades || [];
     }
@@ -515,7 +544,8 @@ function checkSessionBg() {
     if (data && data.csrf) csrfToken = data.csrf;
     if (data && data.user) {
       state.user = data.user;
-      state.balance = Number(data.user.balance || 10000.0);
+      // Paper balance server state is the source of truth; /api/paper/state will refresh it.
+      state.balance = Number(state.balance || data.user.balance || 10000.0);
       localStorage.setItem('obsidian_user', JSON.stringify(state.user));
       localStorage.setItem('obsidian_balance', state.balance);
       updateAvatar();
@@ -544,6 +574,7 @@ function save() {
   localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
   localStorage.setItem('obsidian_balance', state.balance);
   localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+  localStorage.setItem('obsidian_positions', JSON.stringify(state.positions || []));
 }
 
 async function syncBalance(newBal) {
@@ -645,7 +676,7 @@ function renderTrade(sym) {
   const curPrice = livePrices[pair] || a[2];
 
   document.getElementById('app').innerHTML = shell(sym + ' / USDT', a[1] + ' · PAPER TRADING TERMINAL', `
-    <div class="grid" style="grid-template-columns:180px minmax(0,1fr) 300px">
+    <div class="grid" style="grid-template-columns:minmax(150px,180px) minmax(0,1fr) minmax(270px,300px)">
       <aside class="card">
         <h3>Markets</h3>
         ${assets.map(assetRow).join('')}
@@ -790,7 +821,8 @@ function renderTrade(sym) {
 
       if (!state.user) return go('/login');
       if (!paperSynced) return toast('Account sync qilinmoqda…', 1200);
-      if (state.position) return toast('Avval ochiq positionni yoping.');
+      if (openingPosition) return;
+      openingPosition = true;
 
       const tpVal = parseFloat(document.getElementById('trade-tp').value) || null;
       const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
@@ -809,7 +841,7 @@ function renderTrade(sym) {
         })
       });
 
-      if (res.status !== 'success') return toast(res.message || 'Trade ochilmadi');
+      if (res.status !== 'success') { openingPosition = false; return toast(res.message || 'Trade ochilmadi'); }
 
       state.balance = Number(res.balance);
       state.positions = [res.position, ...(state.positions || [])];
@@ -817,6 +849,7 @@ function renderTrade(sym) {
       localStorage.setItem('obsidian_balance', state.balance);
       localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
       localStorage.setItem('obsidian_positions', JSON.stringify(state.positions));
+      openingPosition = false;
       toast(side + ' bitim ochildi!');
       renderTrade(sym);
     };
@@ -854,7 +887,7 @@ window.closePosition = async function(positionId, reason = null) {
   const live = livePrices[p.pair] || p.entryPrice;
   const res = await fetchAPI('/api/paper/close', {
     method: 'POST',
-    body: JSON.stringify({ positionId: p.id, livePrice: live })
+    body: JSON.stringify({ id: p.id, livePrice: live })
   });
 
   if (res.status !== 'success') {
@@ -1208,7 +1241,7 @@ function renderAuth(p) {
     } else {
       const res = await fetchAPI('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, remember: true })
       });
       if (res && res.status === 'success') {
         state.user = res.user;
@@ -1216,6 +1249,7 @@ function renderAuth(p) {
         save();
         updateAvatar();
         toast('Xush kelibsiz!');
+        await syncPaperState();
         go('/trade');
       } else {
         toast((res && res.message) || 'Email yoki parol xato');
