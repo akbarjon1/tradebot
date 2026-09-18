@@ -145,8 +145,18 @@ let paperSynced = false;
 let oldLocalPosition = state.position;
 
 async function syncPaperState() {
-  if (!state.user) return;
   try {
+    // Sessionni serverdan qayta tekshiramiz: PC va telefon har birida
+    // alohida browser session bo'ladi, lekin account bir xil bo'lishi kerak.
+    const sessionData = await fetchAPI('/api/session?t=' + Date.now());
+    if (sessionData && sessionData.csrf) csrfToken = sessionData.csrf;
+    if (sessionData && sessionData.user) {
+      state.user = sessionData.user;
+      localStorage.setItem('obsidian_user', JSON.stringify(state.user));
+    } else {
+      return;
+    }
+
     const data = await fetchAPI('/api/paper/state?t=' + Date.now());
     if (data.status !== 'success') return;
 
@@ -183,7 +193,9 @@ async function syncPaperState() {
       const sym = (location.hash.split('/')[2] || 'BTC').toUpperCase();
       renderTrade(sym === 'TRADE' ? 'BTC' : sym);
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Paper state sync error:', e);
+  }
 }
 
 
@@ -192,7 +204,7 @@ async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
   options.headers['Content-Type'] = 'application/json';
   if (csrfToken) options.headers['X-CSRF-Token'] = csrfToken;
-  options.credentials = 'same-origin';
+  options.credentials = 'include';
   try {
     const res = await fetch(url, options);
     return await res.json();
