@@ -8,6 +8,7 @@ Kerakli environment o'zgaruvchilari (Render/Railway/server sozlamalarida):
     GROQ_API_KEY           — AI javoblar uchun (zaxira, Gemini ishlamasa).
     SPREADSHEET_ID         — Google Sheets jadval ID (savdolar/leaderboard).
     GOOGLE_CREDENTIALS_JSON— Google service-account JSON (bitta qatorda).
+    Google Sheets'dagi mavjud "Users" worksheet (A:E) accountlar uchun persistent backup sifatida ishlatiladi.
     CHANNEL_CHAT_ID        — Signal/yangiliklar chiqadigan kanal (masalan @obsidian_lab_uz).
     ADMIN_CHAT_ID          — Web-saytdagi feedback shu chatga tushadi (bo'sh bo'lsa CHANNEL_CHAT_ID).
     ADMIN_USER_IDS         — /test_signal kabi buyruqlarga ruxsat berilgan Telegram user ID'lari,
@@ -81,6 +82,25 @@ groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 # Google Sheets mijozi va avtomatik dizayn
 sheet = None
 spreadsheet = None
+users_sheet = None
+
+def ensure_users_sheet():
+    global users_sheet
+    if not spreadsheet:
+        return None
+    try:
+        users_sheet = spreadsheet.worksheet("Users")
+    except Exception:
+        try:
+            users_sheet = spreadsheet.add_worksheet(title="Users", rows=1000, cols=9)
+            users_sheet.append_row([
+                "User ID","Email","Username","Password Hash","Balance"
+            ])
+        except Exception as e:
+            print(f"⚠️ Users sheet yaratishda xatolik: {e}")
+            users_sheet = None
+            return None
+    return users_sheet
 
 def format_google_sheet(sh, sp):
     """Google Jadvalni avtomatik ravishda chiroyli professional terminal qilib bezash"""
@@ -170,6 +190,17 @@ if GOOGLE_CREDENTIALS_JSON and SPREADSHEET_ID:
         sheet = spreadsheet.sheet1
         print("✅ Google Sheets ulandi!")
         format_google_sheet(sheet, spreadsheet)
+        ensure_users_sheet()
+        if users_sheet:
+            try:
+                # Users sheet sarlavhasini mavjud bo'lmasa yaratamiz.
+                vals = users_sheet.get_all_values()
+                if not vals:
+                    users_sheet.append_row([
+                        "User ID","Email","Username","Password Hash","Balance"
+                    ])
+            except Exception as e:
+                print(f"⚠️ Users sheet tekshirishda xatolik: {e}")
     except Exception as e:
         print(f"⚠️ Google Sheets ulanishda xatolik: {e}")
 
@@ -266,12 +297,121 @@ def init_web_db():
     """)
     db_conn().commit()
 
+def _sheet_user_by_id(uid):
+    """Read one account from the EXISTING Users sheet (A:E)."""
+    if not users_sheet:
+        return None
+    try:
+        rows = users_sheet.get_all_values()
+        for row in rows[1:]:
+            if len(row) < 1:
+                continue
+            if str(row[0]).strip() != str(uid).strip():
+                continue
+            email = str(row[1]).strip().lower() if len(row) > 1 else ""
+            username = str(row[2]).strip().lstrip("@") if len(row) > 2 else ""
+            password_hash = str(row[3]).strip() if len(row) > 3 else ""
+            raw_balance = str(row[4]).strip() if len(row) > 4 else "10000"
+            try:
+                balance = float(raw_balance.replace(" ", "").replace(",", "."))
+            except Exception:
+                balance = 10000.0
+            if not email or not username or not password_hash:
+                continue
+            return {
+                "id": str(row[0]).strip(),
+                "email": email,
+                "username": username,
+                "name": username,
+                "password": password_hash,
+                "role": "USER",
+                "balance": balance,
+                "created_at": db_now(),
+                "updated_at": db_now(),
+            }
+    except Exception as e:
+        print(f"⚠️ Users sheet o'qishda xatolik: {e}")
+    return None
+
+def _sheet_user_by_email(email):
+    """Find account by email in the existing Users sheet (A:E)."""
+    if not users_sheet:
+        return None
+    wanted = str(email).strip().lower()
+    try:
+        rows = users_sheet.get_all_values()
+        for row in rows[1:]:
+            if len(row) >= 4 and str(row[1]).strip().lower() == wanted:
+                return _sheet_user_by_id(str(row[0]).strip())
+    except Exception as e:
+        print(f"⚠️ Users sheet email qidirishda xatolik: {e}")
+    return None
+
+def _save_user_to_sheet(user):
+    """Persist account into the EXISTING Users sheet without changing its 5 columns."""
+    if not users_sheet or not user:
+        return False
+    try:
+        values = users_sheet.get_all_values()
+        target = None
+        for idx, row in enumerate(values[1:], start=2):
+            if row and str(row[0]).strip() == str(user["id"]).strip():
+                target = idx
+                break
+        data = [
+            str(user["id"]),
+            str(user["email"]).lower(),
+            str(user["username"]).lstrip("@"),
+            str(user["password"]),
+            f'{float(user.get("balance",10000)):.2f}'
+        ]
+        if target:
+            users_sheet.update(f"A{target}:E{target}", [data])
+        else:
+            users_sheet.append_row(data)
+        return True
+    except Exception as e:
+        print(f"⚠️ User Sheets'ga saqlanmadi: {e}")
+        return False
+
+def _hydrate_user_from_sheet(uid):
+    user = _sheet_user_by_id(uid)
+    if not user:
+        return None
+    try:
+        db_conn().execute(
+            """INSERT OR REPLACE INTO web_users
+               (id,email,username,name,password,role,balance,created_at,updated_at)
+               VALUES(?,?,?,?,?,?,?,?,?)""",
+            (
+                user["id"], user["email"], user["username"], user["name"],
+                user["password"], user["role"], user["balance"],
+                user["created_at"], user["updated_at"]
+            )
+        )
+        db_conn().commit()
+    except Exception as e:
+        print(f"⚠️ User'ni lokal DB'ga qaytarishda xatolik: {e}")
+    return user
+
+def _sync_user_from_db(user_id):
+    try:
+        row = db_conn().execute("SELECT * FROM web_users WHERE id=?", (user_id,)).fetchone()
+        if row:
+            _save_user_to_sheet(dict(row))
+    except Exception as e:
+        print(f"⚠️ User Sheets sync xatosi: {e}")
+
 def current_web_user():
     uid = session.get("web_uid")
     if not uid:
         return None
     row = db_conn().execute("SELECT * FROM web_users WHERE id=?", (uid,)).fetchone()
-    return dict(row) if row else None
+    if row:
+        return dict(row)
+    # Render yangi instance ochsa, lokal SQLite bo'sh bo'lishi mumkin.
+    # Google Sheets'dagi Users nusxasidan accountni avtomatik tiklaymiz.
+    return _hydrate_user_from_sheet(uid)
 
 def public_web_user(user):
     if not user:
@@ -534,6 +674,9 @@ def api_register():
             (user_id,email,username,name,generate_password_hash(password),"USER",10000.0,stamp,stamp)
         )
         db_conn().commit()
+        created_user = db_conn().execute("SELECT * FROM web_users WHERE id=?", (user_id,)).fetchone()
+        if created_user:
+            _save_user_to_sheet(dict(created_user))
     except sqlite3.IntegrityError:
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
@@ -544,6 +687,14 @@ def api_login():
     email = str(d.get("email","")).strip().lower()
     password = str(d.get("password",""))
     user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+    if not user and users_sheet:
+        try:
+            hydrated = _sheet_user_by_email(email)
+            if hydrated:
+                _hydrate_user_from_sheet(hydrated["id"])
+                user = db_conn().execute("SELECT * FROM web_users WHERE id=?", (hydrated["id"],)).fetchone()
+        except Exception as e:
+            print(f"⚠️ Login Users sheet xatosi: {e}")
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"status":"error","message":"Invalid email or password"}), 401
     session.clear()
@@ -653,7 +804,9 @@ def paper_open():
         (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
     )
     c.commit()
-    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    fresh = c.execute("SELECT * FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    if fresh:
+        _save_user_to_sheet(dict(fresh))
 
     return jsonify({
         "status":"success",
@@ -722,6 +875,9 @@ def paper_migrate():
         (trade_id, user["id"], asset, side, size, entry, "OPEN", stamp)
     )
     c.commit()
+    fresh = c.execute("SELECT * FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    if fresh:
+        _save_user_to_sheet(dict(fresh))
     return jsonify({"status":"success"})
 
 
@@ -775,7 +931,9 @@ def paper_close():
     c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?", (pos["id"], user["id"]))
     c.commit()
 
-    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    fresh = c.execute("SELECT * FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    if fresh:
+        _save_user_to_sheet(dict(fresh))
     return jsonify({
         "status":"success",
         "balance":float(fresh["balance"]),
@@ -806,6 +964,7 @@ def api_settings_profile():
         return jsonify({"status":"error","message":"Valid name required"}),400
     db_conn().execute("UPDATE web_users SET name=?,updated_at=? WHERE id=?",(name,db_now(),user["id"]))
     db_conn().commit()
+    _sync_user_from_db(user["id"])
     return jsonify({"status":"success","user":public_web_user(current_web_user())})
 
 @app.route("/api/settings/security", methods=["POST"])
@@ -819,6 +978,7 @@ def api_settings_security():
         return jsonify({"status":"error","message":"New password must contain at least 10 characters"}),400
     db_conn().execute("UPDATE web_users SET password=?,updated_at=? WHERE id=?",(generate_password_hash(new),db_now(),user["id"]))
     db_conn().commit()
+    _sync_user_from_db(user["id"])
     return jsonify({"status":"success"})
 
 @app.route("/api/office/<kind>", methods=["GET","POST"])
@@ -925,6 +1085,7 @@ def update_balance():
             except sqlite3.IntegrityError:
                 pass
         db_conn().commit()
+        _sync_user_from_db(user_id)
 
         if spreadsheet:
             try:
