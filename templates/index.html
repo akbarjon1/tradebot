@@ -92,9 +92,6 @@ tr:last-child td{border-bottom:0}
 .activity strong{font-size:12px}
 .activity small{display:block;color:var(--muted);margin-top:2px}
 .progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden}.progress i{display:block;height:100%;background:var(--green)}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.day{min-height:83px;border:1px solid var(--line);padding:7px;border-radius:4px;font-size:10px}
-.event{display:block;background:rgba(184,255,61,.3);padding:3px;margin-top:5px}
 .chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
 .chart iframe{width:100%;height:100%;border:0}
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
@@ -133,35 +130,48 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <div id="toast" class="toast"></div>
 
 <script>
-const tg = window.Telegram?.WebApp;
-try { if (tg) { tg.expand(); tg.ready(); } } catch(e){}
-
-function getTelegramUID() {
-  try {
-    if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
-  } catch(e){}
-  let id = localStorage.getItem('obs_tma_uid') || ('tg_' + Math.floor(Math.random() * 899999 + 100000));
-  localStorage.setItem('obs_tma_uid', id);
-  return id;
-}
-
-function getTelegramUsername() {
-  try {
-    if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
-    if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
-  } catch(e){}
-  return localStorage.getItem('obs_tma_username') || '@trader';
-}
-
-const currentUserId = getTelegramUID();
-let currentUsername = getTelegramUsername();
-
+let csrfToken = '';
 const state = {
-  user: JSON.parse(localStorage.getItem('obsidian_user') || 'null') || { id: currentUserId, username: currentUsername, name: currentUsername },
-  trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
-  balance: Number(localStorage.getItem(`obs_bal_${currentUserId}`) || 10000),
-  position: JSON.parse(localStorage.getItem(`obs_pos_${currentUserId}`) || 'null')
+  user: null,
+  balance: 10000.0,
+  trades: [],
+  position: null
 };
+
+// API so'rov yuboruvchi yagona yordamchi
+async function fetchAPI(url, options = {}) {
+  options.headers = options.headers || {};
+  options.headers['Content-Type'] = 'application/json';
+  if (csrfToken) options.headers['X-CSRF-Token'] = csrfToken;
+  options.credentials = 'same-origin';
+  const res = await fetch(url, options);
+  return await res.json();
+}
+
+async function checkSession() {
+  try {
+    const data = await fetchAPI('/api/session');
+    if (data.csrf) csrfToken = data.csrf;
+    if (data.user) {
+      state.user = data.user;
+      state.balance = Number(data.user.balance || 10000.0);
+      loadAccountData();
+    }
+  } catch(e){}
+  updateAvatar();
+}
+
+async function loadAccountData() {
+  try {
+    const data = await fetchAPI('/api/account');
+    if (data.status === 'success') {
+      state.balance = Number(data.balance);
+      state.trades = data.trades || [];
+      const availEl = document.getElementById('avail-balance');
+      if (availEl) availEl.textContent = money(state.balance);
+    }
+  } catch(e){}
+}
 
 const livePrices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
 
@@ -179,21 +189,14 @@ const assets = [
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Number(n) < 1 ? 4 : 2 }).format(Number(n) || 0);
 
-function save() {
-  localStorage.setItem('obsidian_user', JSON.stringify(state.user));
-  localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
-  localStorage.setItem(`obs_bal_${currentUserId}`, state.balance);
-  localStorage.setItem(`obs_pos_${currentUserId}`, JSON.stringify(state.position));
-}
-
-async function syncWithSheets() {
-  try {
-    await fetch('/api/update_balance', {
+async function syncBalance(newBal) {
+  state.balance = newBal;
+  if (state.user) {
+    await fetchAPI('/api/update_balance', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: currentUserId, username: state.user.username, balance: Number(state.balance.toFixed(2)) })
+      body: JSON.stringify({ user_id: state.user.id, username: state.user.username, balance: Number(state.balance.toFixed(2)) })
     });
-  } catch (e) {}
+  }
 }
 
 function toast(t) {
@@ -257,7 +260,7 @@ function renderMarkets() {
   document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
   const draw = () => {
     const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
-    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] \vert{}\vert{} a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
     document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
   };
   document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
@@ -387,8 +390,14 @@ function renderTrade(sym) {
     document.getElementById('trade-amount').value = Math.max(10, Math.floor(state.balance * p));
   };
 
-  document.getElementById('tradeForm').onsubmit = (e) => {
+  document.getElementById('tradeForm').onsubmit = async (e) => {
     e.preventDefault();
+    if (!state.user) {
+      toast('Avval tizimga kiring!');
+      go('/login');
+      return;
+    }
+
     const amount = Number(document.getElementById('trade-amount').value);
     if (amount < 10) return toast('Minimal savdo $10!');
     if (amount > state.balance) return toast('Balans yetarli emas!');
@@ -399,7 +408,6 @@ function renderTrade(sym) {
     const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
     const pNow = livePrices[pair] || a[2];
 
-    state.balance -= amount;
     state.position = {
       symbol: sym,
       pair: pair,
@@ -411,14 +419,13 @@ function renderTrade(sym) {
       sl: slVal
     };
 
-    save();
-    syncWithSheets();
+    await syncBalance(state.balance - amount);
     toast(side + ' bitim ochildi!');
     renderTrade(sym);
   };
 }
 
-window.closePosition = function(reason = null) {
+window.closePosition = async function(reason = null) {
   if (!state.position) return;
   const p = state.position;
   const live = livePrices[p.pair] || p.entryPrice;
@@ -426,7 +433,7 @@ window.closePosition = function(reason = null) {
   if (p.type === 'SHORT') diff = -diff;
   const pnl = p.size * diff * p.leverage;
 
-  state.balance += Math.max(0, p.size + pnl);
+  const newBalance = state.balance + Math.max(0, p.size + pnl);
   state.trades.push({
     symbol: p.symbol,
     side: p.type,
@@ -438,8 +445,7 @@ window.closePosition = function(reason = null) {
   });
 
   state.position = null;
-  save();
-  syncWithSheets();
+  await syncBalance(newBalance);
   if (reason) toast(reason);
   else toast('Bitim yopildi!');
   render(location.hash.slice(1) || '/trade');
@@ -469,8 +475,7 @@ async function fetchLeaderboardData() {
   const tbody = document.getElementById('leaderboard-body');
   if (!tbody) return;
   try {
-    const res = await fetch(`/api/leaderboard?t=${Date.now()}`);
-    const data = await res.json();
+    const data = await fetchAPI(`/api/leaderboard?t=${Date.now()}`);
     if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
       tbody.innerHTML = data.leaders.map((u, i) => `
         <tr>
@@ -489,9 +494,6 @@ async function fetchLeaderboardData() {
   }
 }
 
-// ==========================================
-// 🏢 YANGILANGAN WEB OFFICE (TRADER CONTROL HUB)
-// ==========================================
 const officeItems = [
   ['Control Hub', '', '▦'],
   ['Trading Journal', '/journal', '☷'],
@@ -607,7 +609,6 @@ function renderOffice(p) {
     return;
   }
 
-  // 1. TRADING JOURNAL
   if (s === 'journal') {
     document.getElementById('app').innerHTML = `
       <div class="workspace">
@@ -640,7 +641,6 @@ function renderOffice(p) {
     return;
   }
 
-  // 2. AI RESEARCH HUB
   if (s === 'ai-hub') {
     document.getElementById('app').innerHTML = `
       <div class="workspace">
@@ -670,7 +670,6 @@ function renderOffice(p) {
     return;
   }
 
-  // 3. RISK CALCULATOR
   if (s === 'calculator') {
     document.getElementById('app').innerHTML = `
       <div class="workspace">
@@ -693,7 +692,6 @@ function renderOffice(p) {
     return;
   }
 
-  // 4. MACRO ECONOMIC CALENDAR
   if (s === 'calendar') {
     document.getElementById('app').innerHTML = `
       <div class="workspace">
@@ -754,40 +752,67 @@ function renderAuth(p) {
           ${register ? '<label>Full name</label><input id="aname" required><label>Username</label><input id="auser" required>' : ''}
           <label>Email</label><input id="aemail" type="email" required>
           <label>Password</label><input id="apass" type="password" required>
+          ${register ? '<label>Confirm Password</label><input id="aconfirm" type="password" required>' : ''}
           <button class="btn green" style="width:100%;margin-top:20px">${login ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
         </form>
         <p style="margin-top:20px">${login ? 'No account? <a href="#/register"><strong>REGISTER</strong></a>' : 'Already have an account? <a href="#/login"><strong>SIGN IN</strong></a>'}</p>
       </div>
     </section>`;
 
-  document.getElementById('authForm').onsubmit = e => {
+  document.getElementById('authForm').onsubmit = async e => {
     e.preventDefault();
-    const email = document.getElementById('aemail').value;
-    state.user = {
-      id: currentUserId,
-      name: register ? document.getElementById('aname').value : email.split('@')[0],
-      username: register ? document.getElementById('auser').value : email.split('@')[0],
-      email: email
-    };
-    save(); syncWithSheets(); updateAvatar(); toast('Signed in'); go('/profile');
+    const email = document.getElementById('aemail').value.trim();
+    const password = document.getElementById('apass').value;
+
+    if (register) {
+      const name = document.getElementById('aname').value.trim();
+      const username = document.getElementById('auser').value.trim();
+      const confirm = document.getElementById('aconfirm').value;
+      const res = await fetchAPI('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, confirm, name, username })
+      });
+      if (res.status === 'success') {
+        toast('Akkaunt yaratildi! Endi kiring.');
+        go('/login');
+      } else {
+        toast(res.message || 'Xatolik yuz berdi');
+      }
+    } else {
+      const res = await fetchAPI('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      if (res.status === 'success') {
+        state.user = res.user;
+        state.balance = Number(res.user.balance || 10000.0);
+        updateAvatar();
+        await loadAccountData();
+        toast('Xush kelibsiz!');
+        go('/trade');
+      } else {
+        toast(res.message || 'Email yoki parol xato');
+      }
+    }
   };
 }
 
 function renderProfile() {
-  document.getElementById('app').innerHTML = shell('Profile', 'Your information and paper trading statistics', `
+  if (!state.user) { go('/login'); return; }
+  document.getElementById('app').innerHTML = shell('Profile', 'Serverga ulangan akkaunt ma’lumotlari', `
     <div class="grid g2">
       <div class="card">
         <div class="row">
           <span class="avatar" style="width:72px;height:72px;font-size:25px">${(state.user.username||'T')[0].toUpperCase()}</span>
           <div>
             <h2>${esc(state.user.name)}</h2>
-            <p class="muted">@${esc(state.user.username)}</p>
-            <button class="btn light" onclick="go('/settings/profile')">EDIT PROFILE</button>
+            <p class="muted">@${esc(state.user.username)} · ${esc(state.user.email)}</p>
+            <button class="btn light" onclick="logoutUser()">SIGN OUT ✕</button>
           </div>
         </div>
       </div>
       <div class="grid g4">
-        ${stat('Balance', money(state.balance))}
+        ${stat('Server Balans', money(state.balance))}
         ${stat('Trades', state.trades.length)}
         ${stat('Points', (state.trades.length * 50))}
         ${stat('Active Position', state.position ? state.position.type : 'NONE')}
@@ -796,23 +821,19 @@ function renderProfile() {
   `);
 }
 
+async function logoutUser() {
+  await fetchAPI('/api/auth/logout', { method: 'POST' });
+  state.user = null;
+  state.balance = 10000.0;
+  state.trades = [];
+  updateAvatar();
+  toast('Tizimdan chiqildi');
+  go('/');
+}
+
 function renderSettings(p) {
   const s = p.split('/')[2] || 'profile';
-  const links = [['Profile','profile'],['Security','security'],['Notifications','notifications'],['Integrations','integrations']];
-  let content = '';
-  if (s === 'profile') content = `<form id="sf"><label>Full name</label><input id="sn" value="${esc(state.user.name)}"><label>Username</label><input id="su" value="${esc(state.user.username)}"><button class="btn" style="margin-top:20px">SAVE CHANGES</button></form>`;
-  if (s === 'security') content = `<label>Current password</label><input type="password"><label>New password</label><input type="password"><button class="btn" style="margin-top:20px" onclick="toast('Security settings saved')">SAVE</button>`;
-  if (s === 'integrations') content = `<div class="grid g2">${['Telegram','Google Sheets','Binance Live API','AI Radar'].map(x=>`<div class="card"><div class="row between"><strong>${x}</strong><span class="badge" style="background:var(--accent);color:#000">CONNECTED</span></div><p class="muted small">Connected to your backend server.</p></div>`).join('')}</div>`;
-  
-  document.getElementById('app').innerHTML = `<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4>${links.map(x=>`<a href="#/settings/${x[1]}" class="${s===x[1]?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell(s[0].toUpperCase()+s.slice(1),'Your account and integrations',`<div class="card">${content}</div>`)} </section></div>`;
-  if (s === 'profile') {
-    document.getElementById('sf').onsubmit = e => {
-      e.preventDefault();
-      state.user.name = document.getElementById('sn').value;
-      state.user.username = document.getElementById('su').value;
-      save(); syncWithSheets(); updateAvatar(); toast('Profile saved');
-    };
-  }
+  document.getElementById('app').innerHTML = `<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4><a href="#/settings/profile" class="active">Profile</a></aside><section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username \vert{}\vert{} 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section></div>`;
 }
 
 function renderNotifications() {
@@ -834,8 +855,13 @@ function renderAdmin(p) {
 
 function updateAvatar() {
   const a = document.getElementById('avatar');
-  if (state.user) { a.textContent = (state.user.username || 'T')[0].toUpperCase(); a.href = '#/profile'; }
-  else { a.textContent = '↗'; a.href = '#/login'; }
+  if (state.user) {
+    a.textContent = (state.user.username || 'T')[0].toUpperCase();
+    a.href = '#/profile';
+  } else {
+    a.textContent = '↗';
+    a.href = '#/login';
+  }
 }
 
 async function updateBinancePrices() {
@@ -889,8 +915,8 @@ async function updateBinancePrices() {
 const menuBtn = document.getElementById('menuBtn');
 if (menuBtn) menuBtn.onclick = () => document.getElementById('nav')?.classList.toggle('open');
 window.addEventListener('hashchange', route);
-window.addEventListener('load', () => { 
-  updateAvatar(); 
+window.addEventListener('load', async () => { 
+  await checkSession();
   route(); 
   setInterval(updateBinancePrices, 1000); 
 });
