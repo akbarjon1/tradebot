@@ -182,13 +182,15 @@ CORS(app)
 app.secret_key = get_env("SECRET_KEY") or hashlib.sha256(
     (TELEGRAM_BOT_TOKEN + ":obsidian-lab-session").encode()
 ).hexdigest()
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
+DATABASE = get_env("DATABASE_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=get_env("COOKIE_SECURE", "false").lower() == "true",
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=30),
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
 )
+app.permanent_session_lifetime = datetime.timedelta(days=30)
 
 def db_conn():
     if "obs_db" not in g:
@@ -547,7 +549,8 @@ def api_login():
     session.clear()
     session["web_uid"] = user["id"]
     session["csrf"] = secrets.token_hex(32)
-    session.permanent = bool(d.get("remember"))
+    # Web terminalda login 30 kun saqlanadi; page reload/renderdan keyin qayta register shart emas.
+    session.permanent = True
     return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -622,13 +625,20 @@ def paper_open():
         return jsonify({"status":"error","message":"Invalid leverage"}), 400
     if entry <= 0:
         return jsonify({"status":"error","message":"Invalid entry price"}), 400
-    if amount > float(user["balance"]):
-        return jsonify({"status":"error","message":"Insufficient balance"}), 400
-
     c = db_conn()
     stamp = db_now()
     pos_id = uuid.uuid4().hex
     trade_id = uuid.uuid4().hex
+
+    # Balance check + deduction atomically: PC va telefon bir vaqtda order yuborsa
+    # ham balans minusga ketmaydi.
+    updated = c.execute(
+        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=? AND balance>=?",
+        (amount, stamp, user["id"], amount)
+    )
+    if updated.rowcount != 1:
+        c.rollback()
+        return jsonify({"status":"error","message":"Insufficient balance"}), 400
 
     c.execute(
         """INSERT INTO web_positions
@@ -637,20 +647,17 @@ def paper_open():
         (pos_id, user["id"], asset, side, amount, leverage, entry, tp, sl, stamp)
     )
     c.execute(
-        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=?",
-        (amount, stamp, user["id"])
-    )
-    c.execute(
         """INSERT INTO web_trades
            (id,user_id,asset,side,amount,entry_price,status,created_at)
            VALUES(?,?,?,?,?,?,?,?)""",
         (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
     )
     c.commit()
+    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
 
     return jsonify({
         "status":"success",
-        "balance":float(user["balance"]) - amount,
+        "balance":float(fresh["balance"]),
         "position":{
             "id":pos_id,
             "symbol":asset.replace("USDT",""),
@@ -745,22 +752,33 @@ def paper_close():
     credit = max(0.0, float(pos["size"]) + pnl)
     stamp = db_now()
 
-    c.execute(
-        """UPDATE web_trades
-           SET exit_price=?,pnl=?,status='CLOSED'
-           WHERE user_id=? AND asset=? AND side=? AND status='OPEN'""",
-        (live, pnl, user["id"], pos["asset"], pos["side"])
-    )
+    # Aynan shu positionga tegishli OPEN trade'ni yopamiz.
+    # Bir xil symbol/side bilan bir nechta position bo'lishi mumkin.
+    trade_row = c.execute(
+        """SELECT id FROM web_trades
+           WHERE user_id=? AND asset=? AND side=? AND amount=?
+             AND entry_price=? AND status='OPEN' AND created_at=?
+           ORDER BY created_at ASC LIMIT 1""",
+        (user["id"], pos["asset"], pos["side"], float(pos["size"]),
+         float(pos["entry_price"]), pos["opened_at"])
+    ).fetchone()
+    if trade_row:
+        c.execute(
+            "UPDATE web_trades SET exit_price=?,pnl=?,status='CLOSED' WHERE id=?",
+            (live, pnl, trade_row["id"])
+        )
+
     c.execute(
         "UPDATE web_users SET balance=balance+?,updated_at=? WHERE id=?",
         (credit, stamp, user["id"])
     )
-    c.execute("DELETE FROM web_positions WHERE id=?", (pos["id"],))
+    c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?", (pos["id"], user["id"]))
     c.commit()
 
+    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
     return jsonify({
         "status":"success",
-        "balance":float(user["balance"]) + credit,
+        "balance":float(fresh["balance"]),
         "closed_id": pos["id"],
         "pnl":pnl
     })
