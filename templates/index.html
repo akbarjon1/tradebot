@@ -94,6 +94,82 @@ tr:last-child td{border-bottom:0}
 .activity small{display:block;color:var(--muted);margin-top:2px}
 .chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
 .chart iframe{width:100%;height:100%;border:0}
+
+/* Register / Login visual panel */
+.authArt{
+  position:relative;
+  overflow:hidden;
+  min-height:520px;
+  background:#151515;
+  color:#fff;
+  padding:42px;
+  border-radius:10px 0 0 10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.authArt::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%);
+  pointer-events:none;
+}
+.authArt::after{
+  content:"";
+  position:absolute;
+  width:360px;
+  height:360px;
+  right:-120px;
+  top:115px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:50%;
+  box-shadow:0 0 0 38px rgba(255,255,255,.025),0 0 0 76px rgba(255,255,255,.018);
+  pointer-events:none;
+}
+.authBrand,.authVisual,.authCopy{position:relative;z-index:2}
+.authBrand{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:1.6px;
+}
+.authBrandMark{
+  width:20px;height:20px;border:1px solid rgba(255,255,255,.8);
+  border-radius:5px;display:grid;place-items:center;font-size:10px;
+}
+.authVisual{margin-top:8px}
+.authTerminal{
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  padding:18px;
+  width:min(100%,390px);
+  backdrop-filter:blur(4px);
+}
+.authTerminalTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.authTerminalTitle{font-size:10px;letter-spacing:1.4px;color:rgba(255,255,255,.62)}
+.authLive{font-size:9px;letter-spacing:1px;color:#fff;display:flex;align-items:center;gap:6px}
+.authLive i{width:6px;height:6px;border-radius:50%;background:#fff;display:block;box-shadow:0 0 10px rgba(255,255,255,.8)}
+.authChart{height:145px;position:relative;overflow:hidden}
+.authChart svg{width:100%;height:100%;display:block}
+.authChartLine{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:authDraw 4s ease-in-out infinite alternate}
+.authChartGlow{fill:none;stroke:rgba(255,255,255,.14);stroke-width:8;filter:blur(5px)}
+.authChartGrid{stroke:rgba(255,255,255,.08);stroke-width:1}
+@keyframes authDraw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+.authStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.authStat{border-top:1px solid rgba(255,255,255,.12);padding-top:9px}
+.authStat b{display:block;font-size:11px;letter-spacing:.7px}
+.authStat span{display:block;margin-top:3px;font-size:8px;letter-spacing:1.1px;color:rgba(255,255,255,.42)}
+.authCopy h2{font-size:24px;letter-spacing:-1px;margin:0 0 9px}
+.authCopy p{margin:0;color:rgba(255,255,255,.55);font-size:12px;line-height:1.65}
+
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
 .authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
 .authForm{background:var(--card);padding:42px;border-radius:0 10px 10px 0}
@@ -105,6 +181,17 @@ tr:last-child td{border-bottom:0}
 .toast.show{display:block}
 footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:1px}
 .empty{text-align:center;padding:50px;color:var(--muted)}
+
+@media(max-width:700px){
+  .authArt{min-height:430px;padding:24px}
+  .authTerminal{width:100%;padding:14px}
+  .authChart{height:125px}
+  .authStats{gap:7px}
+  .authStat b{font-size:10px}
+  .authStat span{font-size:7px}
+  .authCopy h2{font-size:20px}
+}
+
 @media(max-width:1050px){nav{gap:17px}.g4{grid-template-columns:repeat(2,1fr)}.officeGrid{grid-template-columns:1fr 1fr}.terminal{grid-template-columns:1fr!important}.heroArt{opacity:.35;width:70%}}
 @media(max-width:720px){
  header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
@@ -1219,7 +1306,34 @@ function renderAuth(p) {
   const login = p === '/login', register = p === '/register';
   document.getElementById('app').innerHTML = `
     <section class="auth">
-      <div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div>
+      <div class="authArt">
+  <div class="authBrand"><span class="authBrandMark">◆</span> OBSIDIAN LAB</div>
+  <div class="authVisual">
+    <div class="authTerminal">
+      <div class="authTerminalTop">
+        <span class="authTerminalTitle">OBSIDIAN TERMINAL / PAPER MARKET</span>
+        <span class="authLive"><i></i>SYSTEM ONLINE</span>
+      </div>
+      <div class="authChart">
+        <svg viewBox="0 0 390 145" preserveAspectRatio="none" aria-hidden="true">
+          <path class="authChartGrid" d="M0 25H390M0 60H390M0 95H390M0 130H390"/>
+          <path class="authChartGrid" d="M55 0V145M130 0V145M205 0V145M280 0V145M355 0V145"/>
+          <path class="authChartGlow" d="M0 112 L30 106 L52 116 L78 91 L103 101 L130 72 L151 80 L176 57 L199 66 L224 39 L247 54 L270 47 L294 63 L319 32 L343 45 L366 21 L390 29"/>
+          <path class="authChartLine" d="M0 112 L30 106 L52 116 L78 91 L103 101 L130 72 L151 80 L176 57 L199 66 L224 39 L247 54 L270 47 L294 63 L319 32 L343 45 L366 21 L390 29"/>
+        </svg>
+      </div>
+      <div class="authStats">
+        <div class="authStat"><b>24/7</b><span>MARKETS</span></div>
+        <div class="authStat"><b>$10K</b><span>STARTING BALANCE</span></div>
+        <div class="authStat"><b>LIVE</b><span>MARKET DATA</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="authCopy">
+    <h2>Build. Trade. Compete.</h2>
+    <p>Better decisions.<br>Bigger opportunities.</p>
+  </div>
+</div>
       <div class="authForm">
         <h1>${login ? 'Welcome back' : 'Create account'}</h1>
         <p class="muted">${login ? 'Sign in to your account' : 'Your next chapter starts here'}</p>
