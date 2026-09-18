@@ -160,10 +160,7 @@ const state = {
   user: JSON.parse(localStorage.getItem('obsidian_user') || 'null') || { id: currentUserId, username: currentUsername, name: currentUsername },
   trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
   balance: Number(localStorage.getItem(`obs_bal_${currentUserId}`) || 10000),
-  position: JSON.parse(localStorage.getItem(`obs_pos_${currentUserId}`) || 'null'),
-  tasks: JSON.parse(localStorage.getItem('obsidian_tasks') || '[]'),
-  projects: JSON.parse(localStorage.getItem('obsidian_projects') || '[]'),
-  events: JSON.parse(localStorage.getItem('obsidian_events') || '[]')
+  position: JSON.parse(localStorage.getItem(`obs_pos_${currentUserId}`) || 'null')
 };
 
 const livePrices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
@@ -187,9 +184,6 @@ function save() {
   localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
   localStorage.setItem(`obs_bal_${currentUserId}`, state.balance);
   localStorage.setItem(`obs_pos_${currentUserId}`, JSON.stringify(state.position));
-  localStorage.setItem('obsidian_tasks', JSON.stringify(state.tasks));
-  localStorage.setItem('obsidian_projects', JSON.stringify(state.projects));
-  localStorage.setItem('obsidian_events', JSON.stringify(state.events));
 }
 
 async function syncWithSheets() {
@@ -226,7 +220,7 @@ function route() {
 }
 
 function shell(title, sub, body, actions = '') {
-  return `<div class="pageHead"><div><div class="eyebrow">${title === 'Web Office' ? 'WORK / PLAN / BUILD' : 'OBSIDIAN LAB'}</div><h1>${title}</h1><p>${sub}</p></div>${actions}</div>${body}`;
+  return `<div class="pageHead"><div><div class="eyebrow">${title.includes('Office') ? 'TRADER CONTROL HUB' : 'OBSIDIAN LAB'}</div><h1>${title}</h1><p>${sub}</p></div>${actions}</div>${body}`;
 }
 
 function stat(label, val) {
@@ -495,35 +489,116 @@ async function fetchLeaderboardData() {
   }
 }
 
-const officeItems = [['Overview','','▦'],['Tasks','/tasks','☷'],['Projects','/projects','□'],['Team','/team','♙'],['Documents','/documents','▤'],['Calendar','/calendar','□'],['Analytics','/analytics','⌁']];
+// ==========================================
+// 🏢 YANGILANGAN WEB OFFICE (TRADER CONTROL HUB)
+// ==========================================
+const officeItems = [
+  ['Control Hub', '', '▦'],
+  ['Trading Journal', '/journal', '☷'],
+  ['AI Research', '/ai-hub', '⌁'],
+  ['Risk Calculator', '/calculator', '□'],
+  ['Eco Calendar', '/calendar', '□']
+];
+
 function officeSide(active) {
   return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" class="${active===x[1]?'active':''}">${x[2]}${x[0]}</a>`).join('')}</aside>`;
 }
 
 function renderOffice(p) {
   const s = p.split('/')[2] || '';
+  const closedTrades = state.trades.filter(t => t.pnl !== undefined);
+  const totalPnL = closedTrades.reduce((acc, t) => acc + (t.pnl || 0), 0);
+  const winCount = closedTrades.filter(t => t.pnl > 0).length;
+  const winRate = closedTrades.length ? ((winCount / closedTrades.length) * 100).toFixed(1) : '0.0';
+
   if (!s) {
     document.getElementById('app').innerHTML = `
       <div class="workspace">
         ${officeSide('')}
         <section>
-          ${shell('Web Office', 'Your workspace at a glance', `
+          ${shell('Trader Control Hub', 'Professional workspace & algorithmic execution dashboard', `
             <div class="grid g4 stats">
-              ${stat('Active tasks', state.tasks.filter(x => x.status !== 'DONE').length)}${stat('Ongoing projects', state.projects.length)}
-              ${stat('Team members', 5)}${stat('Completion rate', state.tasks.length ? Math.round(state.tasks.filter(x => x.status === 'DONE').length / state.tasks.length * 100) + '%' : '0%')}
+              ${stat('Realized PnL', (totalPnL >= 0 ? '+' : '') + money(totalPnL))}${stat('Win Rate', winRate + '%')}
+              ${stat('Closed Trades', closedTrades.length)}${stat('Live Depozit', money(state.balance))}
             </div>
+
             <div class="officeGrid" style="margin-top:18px">
               <div class="card">
-                <div class="row between"><h2>Recent Activity</h2><a href="#/web-office/tasks">View all →</a></div>
-                ${state.tasks.slice(0, 5).map(t => `<div class="activity"><strong>${esc(t.title)}</strong><small>${esc(t.status || 'TODO')}</small></div>`).join('') || '<div class="empty">Create your first task.</div>'}
+                <div class="row between">
+                  <h2>Trading Journal</h2>
+                  <a href="#/web-office/journal">To'liq jurnal →</a>
+                </div>
+                ${closedTrades.length ? closedTrades.slice(-4).reverse().map(t => `
+                  <div class="activity row between">
+                    <div>
+                      <strong>${t.side} ${t.symbol} (${t.leverage||10}x)</strong>
+                      <small>${new Date(t.time).toLocaleTimeString()}</small>
+                    </div>
+                    <span class="${t.pnl >= 0 ? 'pos' : 'neg'}"><strong>${t.pnl >= 0 ? '+' : ''}${money(t.pnl)}</strong></span>
+                  </div>
+                `).join('') : '<div class="empty">Savdolar tarixi yo‘q.</div>'}
               </div>
+
               <div class="card">
-                <h2>Upcoming</h2>
-                ${state.events.slice(0, 5).map(e => `<div class="activity"><strong>${esc(e.title)}</strong><small>${esc(e.date)}</small></div>`).join('') || '<div class="empty">No upcoming events.</div>'}
+                <div class="row between">
+                  <h2>AI Radar Feeds</h2>
+                  <span class="badge" style="background:var(--accent);color:#000">LIVE</span>
+                </div>
+                <div class="activity">
+                  <strong>☕️ Jasur (ICT Setup)</strong>
+                  <small>BTC 15m FVG mitigatsiyasi kuzatilmoqda.</small>
+                </div>
+                <div class="activity">
+                  <strong>💻 Alex (Quant CISD)</strong>
+                  <small>Delivery holati: Neytral muvozanat.</small>
+                </div>
+                <div class="activity">
+                  <strong>🐋 Mister Whale (Risk)</strong>
+                  <small>Depozit risk chegarasi: 1.5% max.</small>
+                </div>
               </div>
+
               <div class="card">
-                <h2>September 2026</h2>
-                <div class="calendar">${Array.from({length:30}, (_,i) => `<div class="day"><strong>${i+1}</strong>${i===15?'<span class="event">Team sync</span>':''}${i===17?'<span class="event">Review</span>':''}</div>`).join('')}</div>
+                <h2>Macro Events</h2>
+                <div class="activity">
+                  <strong>US Core CPI (Yillik)</strong>
+                  <small>Kutilma: 3.1% | Yuqori o'zgaruvchanlik</small>
+                </div>
+                <div class="activity">
+                  <strong>FOMC Rate Decision</strong>
+                  <small>Foiz stavkasi e'loni | 21:00</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid g2" style="margin-top:18px">
+              <div class="card">
+                <div class="row between">
+                  <h2>Tezkor Risk Kalkulyatori</h2>
+                  <a href="#/web-office/calculator">Batafsil →</a>
+                </div>
+                <p class="muted small">Bir bitim uchun ruxsat etilgan maksimal riskni hisoblang:</p>
+                <div class="row" style="margin-top:10px">
+                  <button class="btn light" onclick="quickRiskCalc(1)">1% Risk ($${(state.balance * 0.01).toFixed(0)})</button>
+                  <button class="btn light" onclick="quickRiskCalc(2)">2% Risk ($${(state.balance * 0.02).toFixed(0)})</button>                   <button class="btn light" onclick="quickRiskCalc(5)">5\% Risk ($${(state.balance * 0.05).toFixed(0)})</button>
+                </div>
+                <div id="quick-risk-result" style="margin-top:12px;font-weight:700" class="pos"></div>
+              </div>
+
+              <div class="card">
+                <h2>Jamoa va AI Tahlilchilar</h2>
+                <div class="activity row between">
+                  <div class="row"><span class="avatar">J</span><span><strong>Jasur</strong><small>ICT Market Analyst</small></span></div>
+                  <span class="badge">ONLINE</span>
+                </div>
+                <div class="activity row between">
+                  <div class="row"><span class="avatar">A</span><span><strong>Alex</strong><small>Quant & Algo Dev</small></span></div>
+                  <span class="badge">ONLINE</span>
+                </div>
+                <div class="activity row between">
+                  <div class="row"><span class="avatar">W</span><span><strong>Mister Whale</strong><small>Risk Manager</small></span></div>
+                  <span class="badge">MONITORING</span>
+                </div>
               </div>
             </div>
           `)}
@@ -531,55 +606,141 @@ function renderOffice(p) {
       </div>`;
     return;
   }
-  if (['tasks','projects','team','documents','calendar','analytics'].includes(s)) {
-    renderOfficeSection(s);
+
+  // 1. TRADING JOURNAL
+  if (s === 'journal') {
+    document.getElementById('app').innerHTML = `
+      <div class="workspace">
+        ${officeSide('/journal')}
+        <section>
+          ${shell('Trading Journal', 'Barcha ochilgan va yopilgan bitimlar tarixi', `
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr><th>VAQT</th><th>AKTIV</th><th>YO‘NALISH</th><th>HAJM</th><th>KIRISH NARXI</th><th>CHIQQAN NARX</th><th>PNL ($)</th></tr>
+                </thead>
+                <tbody>
+                  ${closedTrades.length ? closedTrades.slice().reverse().map(t => `
+                    <tr>
+                      <td>${new Date(t.time).toLocaleDateString()} ${new Date(t.time).toLocaleTimeString()}</td>
+                      <td><strong>${t.symbol}</strong></td>
+                      <td><span class="badge ${t.side==='LONG'?'pos':'neg'}">${t.side} (${t.leverage||10}x)</span></td>
+                      <td>${money(t.amount)}</td>
+                      <td>${money(t.price)}</td>
+                      <td>${money(t.price)}</td>
+                      <td class="${t.pnl >= 0 ? 'pos' : 'neg'}"><strong>${t.pnl >= 0 ? '+' : ''}${money(t.pnl)}</strong></td>
+                    </tr>
+                  `).join('') : '<tr><td colspan="7" class="empty">Bitimlar jurnali bo‘sh.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </section>
+      </div>`;
+    return;
+  }
+
+  // 2. AI RESEARCH HUB
+  if (s === 'ai-hub') {
+    document.getElementById('app').innerHTML = `
+      <div class="workspace">
+        ${officeSide('/ai-hub')}
+        <section>
+          ${shell('AI Research & Signal Desk', 'AI Agentlarining bozor tahlili va signallari', `
+            <div class="grid g3">
+              <div class="card">
+                <h2>☕️ Jasur (ICT Radar)</h2>
+                <span class="badge" style="background:var(--accent);color:#000">15M LIQUIDITY</span>
+                <p class="small muted" style="margin-top:12px">Bozorda FVG (Fair Value Gap) va London sessiyasi likvidliklari skanerlanmoqda. Turtle Soup ehtimoli yuqori.</p>
+              </div>
+              <div class="card">
+                <h2>💻 Alex (Quant Core)</h2>
+                <span class="badge">ALGO ACTIVE</span>
+                <p class="small muted" style="margin-top:12px">CISD (Change in State of Delivery) algoritmi faol. Hozirgi bozor holati: Katta impulsdan keyingi konsolidatsiya.</p>
+              </div>
+              <div class="card">
+                <h2>🐋 Mister Whale (Risk)</h2>
+                <span class="badge">CAPITAL GUARD</span>
+                <p class="small muted" style="margin-top:12px">Tavsiya: Bir bitimda kapitalning 2% dan ortig'ini xavf ostiga qo'ymang. Stop-Loss bo'lmagan bitimlarni ochmang.</p>
+              </div>
+            </div>
+          `)}
+        </section>
+      </div>`;
+    return;
+  }
+
+  // 3. RISK CALCULATOR
+  if (s === 'calculator') {
+    document.getElementById('app').innerHTML = `
+      <div class="workspace">
+        ${officeSide('/calculator')}
+        <section>
+          ${shell('Risk & Position Calculator', 'Kapital xavfsizligini ta’minlash hisoblagichi', `
+            <div class="card" style="max-width:600px">
+              <label>Depozit ($)</label>
+              <input id="calc-balance" type="number" value="${state.balance.toFixed(2)}">
+              <label>Maksimal Risk (%)</label>
+              <input id="calc-risk-pct" type="number" value="2">
+              <label>Stop-Loss Masofasi (%)</label>
+              <input id="calc-sl-pct" type="number" value="1.5">
+              <button class="btn green" style="margin-top:16px;width:100%" onclick="calcPositionSize()">HISOBLASH</button>
+              <div id="calc-result" class="card" style="margin-top:16px;display:none;background:var(--bg)"></div>
+            </div>
+          `)}
+        </section>
+      </div>`;
+    return;
+  }
+
+  // 4. MACRO ECONOMIC CALENDAR
+  if (s === 'calendar') {
+    document.getElementById('app').innerHTML = `
+      <div class="workspace">
+        ${officeSide('/calendar')}
+        <section>
+          ${shell('Macro Economic Calendar', 'Bozorga bevosita ta’sir qiluvchi global voqealar', `
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr><th>SANA</th><th>VOQEA</th><th>AKTIV</th><th>MUHIMLIK</th><th>TAHLIL</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Bugun, 18:30</td><td>AQSH Ishsizlik bo'yicha da'volar</td><td>USD / BTC</td><td><span class="badge" style="background:var(--accent);color:#000">YUQORI</span></td><td>Kutilganidan past bo'lsa: Dollar oshadi, BTC tushishi mumkin.</td></tr>
+                  <tr><td>22-Sentyabr</td><td>AQSH CPI (Inflyatsiya)</td><td>USD / ALL</td><td><span class="badge red">KRITIK</span></td><td>Volatillik 100-200% ga ortishi kutilmoqda.</td></tr>
+                  <tr><td>30-Sentyabr</td><td>FOMC Stavka qarori</td><td>GLOBAL</td><td><span class="badge red">KRITIK</span></td><td>Foiz stavkasi o'zgarishi barcha bozorlarga ta'sir qiladi.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </section>
+      </div>`;
+    return;
   }
 }
 
-function renderOfficeSection(s) {
-  let title = s[0].toUpperCase() + s.slice(1), content = '';
-  if (s === 'tasks') content = `<div class="row between"><p class="muted">Plan and track your work.</p><button class="btn" onclick="newOffice('task')">+ NEW TASK</button></div><div class="grid g3" style="margin-top:20px">${['TODO','IN PROGRESS','DONE'].map(st=>`<div><div class="eyebrow">${st}</div>${state.tasks.filter(t=>t.status===st).map(t=>`<div class="card" style="margin-top:10px"><strong>${esc(t.title)}</strong><p class="small muted">${esc(t.description||'')}</p><span class="badge">${esc(t.priority||'MEDIUM')}</span><div class="row" style="margin-top:12px"><button class="btn light" style="padding:6px 9px" onclick="editTask('${t.id}')">EDIT</button><button class="btn light" style="padding:6px 9px" onclick="deleteTask('${t.id}')">DELETE</button></div></div>`).join('')||'<div class="empty">No tasks</div>'}</div>`).join('')}</div>`;
-  if (s === 'projects') content = `<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description||'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress||0}% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
-  if (s === 'team') content = `<div class="card">${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div>`;
-  if (s === 'documents') content = `<div class="card"><h2>Documents</h2><p class="muted">Workspace documents.</p><button class="btn" onclick="newOffice('document')">+ NEW DOCUMENT</button><div class="empty">No documents yet.</div></div>`;
-  if (s === 'calendar') content = `<div class="card"><div class="row between"><h2>Calendar</h2><button class="btn" onclick="newOffice('event')">+ NEW EVENT</button></div><div class="calendar" style="margin-top:18px">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${state.events.filter(e=>Number(e.day)===i+1).map(e=>`<span class="event">${esc(e.title)}</span>`).join('')}</div>`).join('')}</div></div>`;
-  if (s === 'analytics') content = `<div class="grid g3 stats">${stat('Tasks completed',state.tasks.filter(t=>t.status==='DONE').length)}${stat('Projects',state.projects.length)}${stat('Paper trades',state.trades.length)}</div>`;
-  document.getElementById('app').innerHTML = `<div class="workspace">${officeSide('/'+s)}<section>${shell(title, 'Web Office workspace', content)}</section></div>`;
-}
+window.quickRiskCalc = function(pct) {
+  const riskUSD = state.balance * (pct / 100);
+  document.getElementById('quick-risk-result').textContent = `Tavsiya etilgan maksimal zarar: $${riskUSD.toFixed(2)} (${pct}% depozit)`;
+};
 
-function newOffice(type) {
-  let title = type === 'task' ? 'New task' : type === 'project' ? 'New project' : type === 'event' ? 'New event' : 'New document';
-  showModal(`<h2>${title}</h2><label>Title</label><input id="omTitle"><label>Description</label><textarea id="omDesc"></textarea>${type==='task'?'<label>Status</label><select id="omStatus"><option>TODO</option><option>IN PROGRESS</option><option>DONE</option></select>':''}${type==='project'?'<label>Progress %</label><input id="omProgress" type="number" min="0" max="100" value="0">':''}<button class="btn green" style="width:100%;margin-top:20px" onclick="saveOffice('${type}')">SAVE</button>`);
-}
+window.calcPositionSize = function() {
+  const bal = parseFloat(document.getElementById('calc-balance').value) || 0;
+  const riskPct = parseFloat(document.getElementById('calc-risk-pct').value) || 0;
+  const slPct = parseFloat(document.getElementById('calc-sl-pct').value) || 0;
 
-function saveOffice(type) {
-  const title = document.getElementById('omTitle').value.trim();
-  if (!title) return toast('Title required');
-  if (type === 'task') state.tasks.push({ id: Date.now() + '', title, description: document.getElementById('omDesc').value, status: document.getElementById('omStatus').value, priority: 'MEDIUM' });
-  if (type === 'project') state.projects.push({ id: Date.now() + '', title, description: document.getElementById('omDesc').value, progress: Number(document.getElementById('omProgress').value) || 0 });
-  save(); closeModal(); toast('Saved'); render(location.hash.slice(1) || '/web-office');
-}
+  if (bal <= 0 || riskPct <= 0 || slPct <= 0) return toast('Barcha maydonlarni to‘ldiring!');
 
-function editTask(id) {
-  const t = state.tasks.find(x => x.id === id);
-  showModal(`<h2>Edit task</h2><label>Title</label><input id="et" value="${esc(t.title)}"><label>Status</label><select id="es"><option ${t.status==='TODO'?'selected':''}>TODO</option><option ${t.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option ${t.status==='DONE'?'selected':''}>DONE</option></select><button class="btn green" style="width:100%;margin-top:20px" onclick="updateTask('${id}')">SAVE</button>`);
-}
-
-function updateTask(id) {
-  const t = state.tasks.find(x => x.id === id);
-  t.title = document.getElementById('et').value;
-  t.status = document.getElementById('es').value;
-  save(); closeModal(); render('/web-office/tasks');
-}
-
-function deleteTask(id) { state.tasks = state.tasks.filter(x => x.id !== id); save(); render('/web-office/tasks'); }
-function deleteProject(id) { state.projects = state.projects.filter(x => x.id !== id); save(); render('/web-office/projects'); }
-
-function showModal(html) {
-  document.getElementById('modal').innerHTML = `<div class="row between"><span></span><button class="iconBtn" onclick="closeModal()">✕</button></div>${html}`;
-  document.getElementById('modalBack').classList.add('show');
-}
-function closeModal() { document.getElementById('modalBack').classList.remove('show'); }
+  const riskUSD = bal * (riskPct / 100);
+  const posSize = riskUSD / (slPct / 100);
+  const resBox = document.getElementById('calc-result');
+  resBox.style.display = 'block';
+  resBox.innerHTML = `
+    <strong>Maksimal yo‘qotish:</strong> <span class="neg">$${riskUSD.toFixed(2)}</span><br>
+    <strong>Tavsiya etilgan ochiladigan hajm:</strong> <span class="pos">$${posSize.toFixed(2)}</span><br>
+    <small class="muted">Agar narx Stop-Loss masofasiga (${slPct}%) yetsa, siz aynan $${riskUSD.toFixed(2)} yo'qotasiz.</small>
+  `;
+};
 
 function renderAuth(p) {
   const login = p === '/login', register = p === '/register';
