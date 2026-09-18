@@ -600,6 +600,7 @@ def paper_state():
 
     return jsonify({
         "status": "success",
+        "account_id": str(user["id"]),
         "balance": float(user["balance"]),
         "position": position,
         "trades": [dict(x) for x in trades]
@@ -708,11 +709,25 @@ def paper_migrate():
         return jsonify({"status":"error","message":"Invalid position"}), 400
 
     rid = uuid.uuid4().hex
+    if size > float(user["balance"]):
+        return jsonify({"status":"error","message":"Insufficient balance for migration"}), 400
+
+    stamp = db_now()
     c.execute(
         """INSERT INTO web_positions
            (user_id,asset,side,size,leverage,entry_price,tp,sl,opened_at)
            VALUES(?,?,?,?,?,?,?,?,?)""",
         (user["id"],asset,side,size,leverage,entry,tp,sl,opened)
+    )
+    c.execute(
+        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=?",
+        (size, stamp, user["id"])
+    )
+    c.execute(
+        """INSERT INTO web_trades
+           (id,user_id,asset,side,amount,entry_price,status,created_at)
+           VALUES(?,?,?,?,?,?,?,?)""",
+        (rid,user["id"],asset,side,size,entry,"OPEN",stamp)
     )
     c.commit()
     return jsonify({"status":"success"})
