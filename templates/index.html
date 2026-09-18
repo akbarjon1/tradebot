@@ -432,7 +432,8 @@ const state = {
   user: localUser,
   balance: Number(localStorage.getItem('obsidian_balance') || 10000.0),
   trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
-  position: JSON.parse(localStorage.getItem('obsidian_pos') || 'null')
+  position: JSON.parse(localStorage.getItem('obsidian_pos') || 'null'),
+  positions: JSON.parse(localStorage.getItem('obsidian_positions') || '[]')
 };
 let paperSynced = false;
 let oldLocalPosition = state.position;
@@ -466,13 +467,15 @@ async function syncPaperState() {
         const again = await fetchAPI('/api/paper/state?t=' + Date.now());
         if (again.status === 'success') {
           state.balance = Number(again.balance || 10000);
-          state.position = again.position || null;
+          state.positions = again.positions || (again.position ? [again.position] : []);
+          state.position = state.positions[0] || null;
           state.trades = again.trades || [];
         }
       }
     } else {
       state.balance = Number(data.balance || 10000);
-      state.position = data.position || null;
+      state.positions = serverPositions;
+      state.position = state.positions[0] || null;
       state.trades = data.trades || [];
     }
 
@@ -480,6 +483,7 @@ async function syncPaperState() {
     localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
     if (state.position) localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
     else localStorage.removeItem('obsidian_pos');
+    localStorage.setItem('obsidian_positions', JSON.stringify(state.positions || []));
 
     paperSynced = true;
     if (location.hash.includes('/trade') || location.hash.includes('/markets/')) {
@@ -702,19 +706,28 @@ function renderTrade(sym) {
       </aside>
     </div>
 
-    <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.position ? 'block' : 'none'}">
+    <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.positions?.length ? 'block' : 'none'}">
       <div class="row between">
-        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' + (state.position.frozen ? ' · FROZEN' : '') : ''}</span></h2>
-        <div class="row" style="gap:8px">
-          <button class="btn light" style="padding:6px 12px" onclick="toggleFreezePosition()">${state.position?.frozen ? 'UNFREEZE ▶' : 'FREEZE ❄'}</button>
-          <button class="btn red" style="padding:6px 12px" onclick="closePosition()">CLOSE POSITION ✕</button>
-        </div>
+        <h2>Active Positions <span class="badge">${state.positions?.length || 0}</span></h2>
+        <span class="muted small">Bir nechta position ochish mumkin</span>
       </div>
-      <div class="grid g4" style="margin-top:12px">
-        <div><small class="muted">Size</small><div id="pos-size-val"><strong>${state.position ? money(state.position.size) : '$0'}</strong></div></div>
-        <div><small class="muted">Entry Price</small><div id="pos-entry-val"><strong>${state.position ? money(state.position.entryPrice) : '$0'}</strong></div></div>
-        <div><small class="muted">Live PnL</small><div id="pos-pnl-val" class="pos"><strong>$0.00 (+0.00%)</strong></div></div>
-        <div><small class="muted">TP / SL</small><div id="pos-tpsl-val"><strong>— / —</strong></div></div>
+      <div id="positions-list" style="margin-top:12px">
+        ${(state.positions || []).map(p => `
+          <div class="card active-position-item" data-position-id="${esc(p.id)}" style="margin-bottom:10px;background:var(--bg)">
+            <div class="row between">
+              <h3 class="${p.type==='LONG'?'pos':'neg'}">${p.type} ${p.symbol} <span class="badge">${p.leverage}x</span></h3>
+              <div class="row">
+                <button class="btn red" style="padding:7px 10px" onclick="closePosition('${esc(p.id)}')">CLOSE ✕</button>
+              </div>
+            </div>
+            <div class="grid g4" style="margin-top:10px">
+              <div><small class="muted">Margin</small><div><strong>${money(p.size)}</strong></div></div>
+              <div><small class="muted">Entry</small><div><strong>${money(p.entryPrice)}</strong></div></div>
+              <div><small class="muted">Live PnL</small><div id="pos-pnl-${esc(p.id)}" class="pos"><strong>$0.00</strong></div></div>
+              <div><small class="muted">TP / SL</small><div><strong>${p.tp ? money(p.tp) : '—'} / ${p.sl ? money(p.sl) : '—'}</strong></div></div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     </div>
 
@@ -799,9 +812,11 @@ function renderTrade(sym) {
       if (res.status !== 'success') return toast(res.message || 'Trade ochilmadi');
 
       state.balance = Number(res.balance);
-      state.position = res.position;
+      state.positions = [res.position, ...(state.positions || [])];
+      state.position = state.positions[0];
       localStorage.setItem('obsidian_balance', state.balance);
       localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+      localStorage.setItem('obsidian_positions', JSON.stringify(state.positions));
       toast(side + ' bitim ochildi!');
       renderTrade(sym);
     };
@@ -829,26 +844,37 @@ window.toggleFreezePosition = async function() {
   render(location.hash.slice(1) || '/trade');
 };
 
-window.closePosition = async function(reason = null) {
-  if (!state.position) return;
-  const p = state.position;
-  const live = p.frozen ? Number(p.frozenPrice || p.entryPrice) : (livePrices[p.pair] || p.entryPrice);
+window.closePosition = async function(positionId, reason = null) {
+  if (closingPosition) return;
+  const positions = state.positions || [];
+  const p = positions.find(x => String(x.id) === String(positionId));
+  if (!p) return;
 
+  closingPosition = true;
+  const live = livePrices[p.pair] || p.entryPrice;
   const res = await fetchAPI('/api/paper/close', {
     method: 'POST',
-    body: JSON.stringify({ livePrice: live })
+    body: JSON.stringify({ positionId: p.id, livePrice: live })
   });
-  if (res.status !== 'success') return toast(res.message || 'Position yopilmadi');
+
+  if (res.status !== 'success') {
+    closingPosition = false;
+    return toast(res.message || 'Position yopilmadi');
+  }
 
   state.balance = Number(res.balance);
-  state.position = null;
+  state.positions = positions.filter(x => String(x.id) !== String(p.id));
+  state.position = state.positions[0] || null;
   localStorage.setItem('obsidian_balance', state.balance);
-  localStorage.removeItem('obsidian_pos');
+  localStorage.setItem('obsidian_positions', JSON.stringify(state.positions));
+  if (state.position) localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+  else localStorage.removeItem('obsidian_pos');
 
-  if (reason) toast(reason);
-  else toast('Bitim yopildi!');
-  render(location.hash.slice(1) || '/trade');
+  closingPosition = false;
+  toast(reason || 'Bitim yopildi!');
+  renderTrade((location.hash.split('/')[2] || 'BTC').toUpperCase());
 };
+
 async function renderLeaderboard() {
   document.getElementById('app').innerHTML = shell('Leaderboard', 'Top traders synced from Google Sheets', `
     <div class="tabs">
@@ -1216,7 +1242,7 @@ function renderProfile() {
         ${stat('Server Balans', money(state.balance))}
         ${stat('Trades', state.trades.length)}
         ${stat('Points', (state.trades.length * 50))}
-        ${stat('Active Position', state.position ? state.position.type : 'NONE')}
+        ${stat('Active Positions', (state.positions||[]).length)}
       </div>
     </div>
   `);
@@ -1294,27 +1320,26 @@ async function updateBinancePrices() {
     termP.textContent = money(livePrices[pair]);
   }
 
-  if (state.position) {
-    const pos = state.position;
+  (state.positions || []).forEach(pos => {
     const cur = livePrices[pos.pair] || pos.entryPrice;
     let diff = (cur - pos.entryPrice) / pos.entryPrice;
     if (pos.type === 'SHORT') diff = -diff;
     const pnl = pos.size * diff * pos.leverage;
 
-    const pnlEl = document.getElementById('pos-pnl-val');
+    const pnlEl = document.getElementById('pos-pnl-' + pos.id);
     if (pnlEl) {
       pnlEl.className = pnl >= 0 ? 'pos' : 'neg';
       pnlEl.innerHTML = `<strong>${pnl >= 0 ? '+' : ''}${money(pnl)} (${((pnl/pos.size)*100).toFixed(2)}%)</strong>`;
     }
 
     if (pos.type === 'LONG') {
-      if (pos.tp && cur >= pos.tp) closePosition(`🎯 Take-Profit! Narx: $${cur}`);
-      if (pos.sl && cur <= pos.sl) closePosition(`🛑 Stop-Loss! Narx: $${cur}`);
+      if (pos.tp && cur >= pos.tp) closePosition(pos.id, `🎯 Take-Profit! Narx: $${cur}`);
+      else if (pos.sl && cur <= pos.sl) closePosition(pos.id, `🛑 Stop-Loss! Narx: $${cur}`);
     } else {
-      if (pos.tp && cur <= pos.tp) closePosition(`🎯 Take-Profit! Narx: $${cur}`);
-      if (pos.sl && cur >= pos.sl) closePosition(`🛑 Stop-Loss! Narx: $${cur}`);
+      if (pos.tp && cur <= pos.tp) closePosition(pos.id, `🎯 Take-Profit! Narx: $${cur}`);
+      else if (pos.sl && cur >= pos.sl) closePosition(pos.id, `🛑 Stop-Loss! Narx: $${cur}`);
     }
-  }
+  });
 }
 
 const menuBtn = document.getElementById('menuBtn');
