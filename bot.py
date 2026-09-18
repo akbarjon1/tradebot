@@ -23,7 +23,6 @@ import uuid
 import datetime
 import threading
 import hashlib
-import hmac
 import sqlite3
 import secrets
 from functools import wraps
@@ -215,8 +214,7 @@ def init_web_db():
         role TEXT NOT NULL DEFAULT 'USER',
         balance REAL NOT NULL DEFAULT 10000,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        telegram_id TEXT UNIQUE
+        updated_at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS web_trades(
         id TEXT PRIMARY KEY,
@@ -266,19 +264,6 @@ def init_web_db():
     CREATE INDEX IF NOT EXISTS idx_web_notifications_user ON web_notifications(user_id, created_at);
     """)
     db_conn().commit()
-
-    # Persistent position freeze state (safe for existing SQLite databases).
-    db = db_conn()
-    for ddl in (
-        "ALTER TABLE web_users ADD COLUMN telegram_id TEXT UNIQUE",
-        "ALTER TABLE web_positions ADD COLUMN frozen INTEGER NOT NULL DEFAULT 0",
-        "ALTER TABLE web_positions ADD COLUMN frozen_price REAL"
-    ):
-        try:
-            db.execute(ddl)
-        except Exception:
-            pass
-    db.commit()
 
 def current_web_user():
     uid = session.get("web_uid")
@@ -583,88 +568,6 @@ def api_logout():
     return jsonify({"status":"success"})
 
 
-
-# ===== TELEGRAM MINI APP AUTH =====
-def verify_telegram_webapp_init_data(init_data: str):
-    """Validate Telegram WebApp initData server-side and return Telegram user data."""
-    if not init_data or not TELEGRAM_BOT_TOKEN:
-        return None
-    try:
-        from urllib.parse import parse_qsl
-        pairs = dict(parse_qsl(init_data, keep_blank_values=True))
-        received_hash = pairs.pop("hash", None)
-        if not received_hash:
-            return None
-        auth_date = int(pairs.get("auth_date", "0"))
-        if not auth_date or abs(int(time.time()) - auth_date) > 86400:
-            return None
-        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(pairs.items()))
-        secret_key = hmac.new(
-            b"WebAppData", TELEGRAM_BOT_TOKEN.encode("utf-8"), hashlib.sha256
-        ).digest()
-        calc_hash = hmac.new(
-            secret_key, data_check_string.encode("utf-8"), hashlib.sha256
-        ).hexdigest()
-        if not secrets.compare_digest(calc_hash, received_hash):
-            return None
-        raw_user = pairs.get("user")
-        if not raw_user:
-            return None
-        return json.loads(raw_user)
-    except Exception:
-        return None
-
-@app.route("/api/auth/telegram", methods=["POST"])
-def api_telegram_auth():
-    d = json_body()
-    tg_user = verify_telegram_webapp_init_data(str(d.get("initData") or ""))
-    if not tg_user or not tg_user.get("id"):
-        return jsonify({"status":"error","message":"Telegram authentication failed"}), 401
-
-    tg_id = str(tg_user["id"])
-    tg_username = re.sub(r"[^A-Za-z0-9_]", "", str(tg_user.get("username") or "").lower())
-    display_name = str(tg_user.get("first_name") or tg_user.get("username") or "Telegram Trader").strip()[:100]
-
-    c = db_conn()
-    user = c.execute("SELECT * FROM web_users WHERE telegram_id=?", (tg_id,)).fetchone()
-
-    # If this Telegram username already matches a website account, link it automatically.
-    if not user and tg_username:
-        user = c.execute("SELECT * FROM web_users WHERE lower(username)=?", (tg_username,)).fetchone()
-        if user and not user["telegram_id"]:
-            c.execute("UPDATE web_users SET telegram_id=?, updated_at=? WHERE id=?",
-                      (tg_id, db_now(), user["id"]))
-            c.commit()
-            user = c.execute("SELECT * FROM web_users WHERE id=?", (user["id"],)).fetchone()
-
-    # First-time Telegram user: create a linked account so the mini terminal works immediately.
-    if not user:
-        username = tg_username or f"tg{tg_id[-10:]}"
-        username = username[:32]
-        if len(username) < 3:
-            username = f"tg{tg_id[-10:]}"[:32]
-        base = username
-        n = 1
-        while c.execute("SELECT 1 FROM web_users WHERE lower(username)=?", (username.lower(),)).fetchone():
-            username = (base[:28] + str(n))[:32]
-            n += 1
-        email = f"telegram_{tg_id}@obsidian.local"
-        now = db_now()
-        uid = f"tg_{tg_id}"
-        pw = secrets.token_urlsafe(32)
-        c.execute("""INSERT INTO web_users
-            (id,email,username,name,password,role,balance,created_at,updated_at,telegram_id)
-            VALUES(?,?,?,?,?,?,?,?,?,?)""",
-            (uid,email,username,display_name,generate_password_hash(pw),"USER",10000,now,now,tg_id))
-        c.commit()
-        user = c.execute("SELECT * FROM web_users WHERE id=?", (uid,)).fetchone()
-
-    session.clear()
-    session["web_uid"] = user["id"]
-    session["csrf"] = secrets.token_hex(32)
-    session.permanent = True
-    return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
-
 # ===== SHARED PAPER TRADING STATE =====
 # Position/balance serverda saqlanadi. Shu sabab bir account bilan kirilgan
 # telefon va kompyuter bir xil positionni ko'radi.
@@ -692,9 +595,7 @@ def paper_state():
             "entryPrice": float(pos["entry_price"]),
             "tp": float(pos["tp"]) if pos["tp"] is not None else None,
             "sl": float(pos["sl"]) if pos["sl"] is not None else None,
-            "openedAt": pos["opened_at"],
-            "frozen": bool(pos["frozen"]) if "frozen" in pos.keys() else False,
-            "frozenPrice": float(pos["frozen_price"]) if "frozen_price" in pos.keys() and pos["frozen_price"] is not None else None
+            "openedAt": pos["opened_at"]
         }
 
     return jsonify({
@@ -831,54 +732,6 @@ def paper_migrate():
     c.commit()
     return jsonify({"status":"success"})
 
-
-
-@app.route("/api/paper/freeze", methods=["POST"])
-@require_web_auth
-def paper_freeze():
-    user = current_web_user()
-    d = json_body()
-    frozen = bool(d.get("frozen", True))
-    live_price = float(d.get("livePrice", 0) or 0)
-
-    c = db_conn()
-    pos = c.execute(
-        "SELECT * FROM web_positions WHERE user_id=?", (user["id"],)
-    ).fetchone()
-    if not pos:
-        return jsonify({"status":"error","message":"Open position topilmadi"}), 400
-
-    if frozen:
-        if live_price <= 0:
-            live_price = float(pos["entry_price"])
-        c.execute(
-            "UPDATE web_positions SET frozen=1,frozen_price=? WHERE user_id=?",
-            (live_price, user["id"])
-        )
-    else:
-        c.execute(
-            "UPDATE web_positions SET frozen=0,frozen_price=NULL WHERE user_id=?",
-            (user["id"],)
-        )
-    c.commit()
-
-    pos = c.execute(
-        "SELECT * FROM web_positions WHERE user_id=?", (user["id"],)
-    ).fetchone()
-    position = {
-        "symbol": pos["asset"].replace("USDT", ""),
-        "pair": pos["asset"],
-        "type": pos["side"],
-        "size": float(pos["size"]),
-        "leverage": int(pos["leverage"]),
-        "entryPrice": float(pos["entry_price"]),
-        "tp": float(pos["tp"]) if pos["tp"] is not None else None,
-        "sl": float(pos["sl"]) if pos["sl"] is not None else None,
-        "openedAt": pos["opened_at"],
-        "frozen": bool(pos["frozen"]),
-        "frozenPrice": float(pos["frozen_price"]) if pos["frozen_price"] is not None else None
-    }
-    return jsonify({"status":"success","position":position})
 
 @app.route("/api/paper/close", methods=["POST"])
 @require_web_auth
@@ -1306,19 +1159,38 @@ Agar bozor flat bo'lsa, likvidlik olinmagan bo'lsa yoki shartlar to'liq bo'lmasa
 # --- 6. TELEGRAM BOT HANDLERLAR ---
 @bot.message_handler(commands=['start'])
 def handle_start(message):
-    markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    tma_button = KeyboardButton(
-        text="🚀 Savdo Terminalini ochish", 
-        web_app=WebAppInfo(url="https://tradebot-xelo.onrender.com/")
+    markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    terminal_button = KeyboardButton(
+        text="🚀 Mini Savdo Terminali",
+        web_app=WebAppInfo(url="https://tradebot-xelo.onrender.com/?mode=terminal")
     )
-    markup.add(tma_button)
+    office_button = KeyboardButton(
+        text="🎮 Obsidian HQ Office",
+        web_app=WebAppInfo(url="https://tradebot-xelo.onrender.com/?mode=office")
+    )
+    markup.add(terminal_button, office_button)
 
     bot.reply_to(
-        message, 
-        "⚡️ *Obsidian Lab Paper-Trading platformasiga xush kelibsiz!*\n\n"
-        "Virtual $10,000 balans bilan savdo qilish uchun quyidagi tugmani bosing:\n\n"
-        "🛠 _Adminlar uchun test buyrug'i:_ `/test_signal`",
+        message,
+        "⚡️ *OBSIDIAN LAB*\n\n"
+        "🚀 Mini Terminal — savdo qilish\n"
+        "🎮 HQ Office — ofisga kirish\n\n"
+        "Virtual balans bilan ishlang.",
         reply_markup=markup,
+        parse_mode="Markdown"
+    )
+
+@bot.message_handler(commands=['office'])
+def handle_office(message):
+    bot.send_message(
+        message.chat.id,
+        "🎮 *OBSIDIAN HQ Office* ochish uchun tugmani bosing.",
+        reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(
+            KeyboardButton(
+                text="🎮 HQ Office ochish",
+                web_app=WebAppInfo(url="https://tradebot-xelo.onrender.com/?mode=office")
+            )
+        ),
         parse_mode="Markdown"
     )
 
