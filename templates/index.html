@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>OBSIDIAN LAB — Build. Trade. Compete.</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -12,29 +12,31 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit}
 a{text-decoration:none;color:inherit}
 button,a{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+
 header{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:50;background:rgba(231,227,218,.96);backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:1.8px;white-space:nowrap}
 .logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;font-size:18px}
 nav{display:flex;gap:29px;margin:auto}
-nav a{font-size:12px;padding:26px 0;position:relative;color:#333}
+nav a{font-size:12px;padding:26px 0;position:relative;color:#333;white-space:nowrap}
 nav a:hover{opacity:.55}
 nav a.active{font-weight:700}
 nav a.active:after{content:"";position:absolute;bottom:13px;left:0;right:0;height:2px;background:var(--ink)}
 .headRight{display:flex;align-items:center;gap:12px}
-.iconBtn{border:0;background:transparent;padding:8px}
+.iconBtn{border:0;background:transparent;padding:8px;display:grid;place-items:center}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--dark);color:#fff;font-weight:700}
 .menu{display:none}
+
 main{max-width:1450px;margin:auto;padding:42px 4.5% 65px;min-height:calc(100vh - 130px)}
 .hero{min-height:485px;display:flex;align-items:center;position:relative;overflow:hidden}
 .heroText{max-width:650px;z-index:3}
 .eyebrow{font-size:10px;letter-spacing:2px;font-weight:700}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;box-shadow:0 0 0 3px rgba(184,255,61,.12)}
-.hero h1{font-size:clamp(46px,6vw,78px);line-height:1.02;letter-spacing:-4px;margin:22px 0}
+.hero h1{font-size:clamp(40px,6vw,78px);line-height:1.02;letter-spacing:-3px;margin:22px 0}
 .hero p{max-width:450px;line-height:1.85;color:var(--muted);font-size:14px}
 .heroArt{position:absolute;right:-3%;bottom:-80px;width:54%;height:600px;opacity:.98;background:
 linear-gradient(140deg,transparent 0 28%,#343632 28% 31%,transparent 31% 34%,#1a1b19 34% 39%,transparent 39%),
@@ -42,11 +44,13 @@ linear-gradient(35deg,#121311 0 20%,#383a35 20% 33%,#171916 33% 48%,#51534d 48% 
 clip-path:polygon(13% 100%,25% 67%,35% 60%,40% 40%,50% 32%,55% 16%,63% 7%,70% 13%,74% 32%,83% 41%,86% 68%,94% 78%,100% 100%);
 }
 .caption{position:absolute;right:12%;top:48%;z-index:4;color:#eee;letter-spacing:2px;font-size:10px;border-left:2px solid var(--accent);padding-left:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;padding:12px 19px;font-size:11px;font-weight:700;transition:.18s}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;padding:12px 19px;font-size:11px;font-weight:700;transition:.18s;text-align:center}
 .btn:hover{transform:translateY(-1px);opacity:.87}
 .btn.light{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn.green{background:var(--accent);color:var(--ink);border-color:var(--accent)}
 .btn.red{background:var(--red);color:#fff;border-color:var(--red)}
+
 .grid{display:grid;gap:18px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
@@ -67,343 +71,99 @@ clip-path:polygon(13% 100%,25% 67%,35% 60%,40% 40%,50% 32%,55% 16%,63% 7%,70% 13
 .search{max-width:330px}
 input,select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:11px 12px}
 label{font-size:10px;color:var(--muted);display:block;margin:13px 0 5px}
+
 table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:15px 17px;border-bottom:1px solid var(--line);font-size:11px}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-size:11px;white-space:nowrap}
 th{color:var(--muted);font-weight:500;font-size:10px}
 tr:last-child td{border-bottom:0}
-.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.tableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:9px;background:var(--card)}
 .coin{width:30px;height:30px;border-radius:50%;background:var(--dark);color:var(--accent);display:inline-grid;place-items:center;font-weight:700;margin-right:9px}
 .row{display:flex;align-items:center;gap:10px}
 .between{justify-content:space-between}
 .pos{color:var(--green)}.neg{color:var(--red)}
-.badge{font-size:9px;border:1px solid var(--line);padding:4px 7px;border-radius:4px}
-.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:16px 0}
-.tab{border:0;background:#d2cec455;padding:8px 13px;border-radius:5px;font-size:10px}
+.badge{font-size:9px;border:1px solid var(--line);padding:4px 7px;border-radius:4px;white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+.tab{border:0;background:#d2cec455;padding:8px 13px;border-radius:5px;font-size:11px;font-weight:600}
 .tab.active{background:var(--dark);color:#fff}
+
 .workspace{display:grid;grid-template-columns:185px 1fr;gap:30px}
 .sidebar{border-right:1px solid var(--line);padding-right:20px}
 .sidebar h4{font-size:10px;letter-spacing:1.8px;margin:8px 0 15px}
 .sidebar a{display:flex;gap:11px;padding:11px 12px;border-radius:5px;font-size:11px;margin-bottom:4px}
 .sidebar a.active{background:#d3d0c7;font-weight:700}
-.stats .card{padding:20px}.statVal{font-size:27px;font-weight:700;letter-spacing:-1px}.statLabel{font-size:10px;color:var(--muted)}
+.stats .card{padding:20px}.statVal{font-size:26px;font-weight:700;letter-spacing:-1px}.statLabel{font-size:10px;color:var(--muted)}
 .officeGrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
 .activity{padding:12px 0;border-bottom:1px solid var(--line)}
 .activity:last-child{border:0}
 .activity strong{font-size:12px}
 .activity small{display:block;color:var(--muted);margin-top:2px}
-.chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
-.chart iframe{width:100%;height:100%;border:0}
+.progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden}.progress i{display:block;height:100%;background:var(--green)}
+
+.tradeGrid{display:grid;grid-template-columns:180px minmax(0,1fr) 310px;gap:18px}
+.tv-chart{height:420px;position:relative;overflow:hidden;border-radius:8px}
+.tv-chart iframe{width:100%;height:100%;border:0}
+
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
 .authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
 .authForm{background:var(--card);padding:42px;border-radius:0 10px 10px 0}
 .authForm h1{font-size:31px;margin:0 0 7px}
 .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:100;padding:20px}
 .modalBack.show{display:grid}
-.modal{background:var(--card);width:min(600px,100%);max-height:90vh;overflow:auto;border-radius:11px;border:1px solid var(--line);padding:25px}
-.toast{position:fixed;right:20px;bottom:20px;background:var(--dark);color:#fff;padding:14px 20px;border-radius:7px;display:none;z-index:200}
+.modal{background:var(--card);width:min(600px,100%);max-height:90vh;overflow-y:auto;border-radius:11px;border:1px solid var(--line);padding:22px}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--dark);color:#fff;padding:14px 20px;border-radius:7px;display:none;z-index:200;font-size:12px}
 .toast.show{display:block}
 footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:1px}
-.empty{text-align:center;padding:50px;color:var(--muted)}
-@media(max-width:1050px){nav{gap:17px}.g4{grid-template-columns:repeat(2,1fr)}.officeGrid{grid-template-columns:1fr 1fr}.terminal{grid-template-columns:1fr!important}.heroArt{opacity:.35;width:70%}}
-@media(max-width:720px){
- header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
- main{padding:25px 17px 45px}.hero{min-height:510px;align-items:flex-start}.hero h1{font-size:43px;letter-spacing:-2px}.heroArt{bottom:-10px;width:90%;height:340px}.caption{display:none}.g4,.g3,.g2,.officeGrid,.auth{grid-template-columns:1fr}.status{gap:22px;flex-wrap:wrap}.pageHead{align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:0 0 8px;display:flex;overflow:auto}.sidebar h4{display:none}.sidebar a{white-space:nowrap}.auth{margin:0}.authArt{min-height:170px;border-radius:10px 10px 0 0;padding:25px}.authForm{border-radius:0 0 10px 10px;padding:26px}footer{gap:12px;flex-direction:column}
+.empty{text-align:center;padding:40px;color:var(--muted)}
+
+/* ===== MOBIL MOSLASHUVCHANLIK (MOBILE-FIRST) ===== */
+@media(max-width:1050px){
+ nav{gap:18px}
+ .g4{grid-template-columns:repeat(2,1fr)}
+ .officeGrid{grid-template-columns:1fr 1fr}
+ .tradeGrid{grid-template-columns:1fr}
+ .heroArt{opacity:.35;width:70%}
 }
+@media(max-width:768px){
+ header{height:60px;padding:0 16px;gap:8px}
+ .logo{font-size:11px;letter-spacing:1.2px}
+ .logoMark{width:27px;height:27px;font-size:15px}
+ .menu{display:block}
+ .headRight{margin-left:auto;gap:8px}
+ nav{display:none;position:absolute;top:60px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:6px;box-shadow:0 12px 24px rgba(0,0,0,.08)}
+ nav.open{display:flex}
+ nav a{padding:10px 0;font-size:14px}
+ nav a.active:after{display:none}
 
-/* =========================================================
-   OBSIDIAN LAB — MOBILE / TABLET RESPONSIVE
-   Desktop layout stays unchanged; mobile gets its own clean
-   compact layout so nothing is squeezed or tilted.
-   ========================================================= */
-@media (max-width: 900px){
-  header{
-    height:64px;
-    padding:0 18px;
-    gap:14px;
-  }
-  .logo{font-size:11px;letter-spacing:1.4px}
-  .logoMark{width:29px;height:29px}
-  nav{
-    gap:18px;
-    overflow-x:auto;
-    scrollbar-width:none;
-    margin-left:auto;
-    margin-right:0;
-  }
-  nav::-webkit-scrollbar{display:none}
-  nav a{
-    font-size:11px;
-    white-space:nowrap;
-    padding:23px 0;
-  }
-  .headRight{gap:5px}
-  main{
-    width:100%;
-    max-width:none;
-    padding:28px 18px 50px;
-    overflow:hidden;
-  }
-  .hero{
-    min-height:430px;
-  }
-  .heroArt{
-    right:-18%;
-    width:82%;
-    opacity:.48;
-  }
-  .heroText{max-width:100%}
-  .hero h1{
-    font-size:clamp(42px,10vw,64px);
-    letter-spacing:-3px;
-  }
-  .grid.g4,
-  .grid.g3,
-  .grid.g2{
-    grid-template-columns:1fr 1fr !important;
-  }
-  .tableWrap{
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-  }
+ main{padding:20px 14px 40px}
+ .hero{min-height:380px;align-items:flex-start}
+ .hero h1{font-size:36px;letter-spacing:-1.5px;margin:14px 0}
+ .hero p{font-size:13px;line-height:1.6}
+ .heroArt{bottom:-10px;width:90%;height:260px;opacity:.25}
+ .caption{display:none}
+
+ .g4,.g3,.g2,.officeGrid,.auth{grid-template-columns:1fr}
+ .tradeGrid{grid-template-columns:1fr;gap:14px}
+ .tradeGrid aside:first-child{display:none}
+ .tv-chart{height:320px}
+ .status{gap:16px;flex-direction:column;padding:20px 0}
+ .pageHead{align-items:flex-start;flex-direction:column;gap:12px;margin-bottom:20px}
+ .pageHead h1{font-size:28px}
+
+ .workspace{grid-template-columns:1fr;gap:16px}
+ .sidebar{border-right:0;border-bottom:1px solid var(--line);padding:0 0 10px;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .sidebar h4{display:none}
+ .sidebar a{white-space:nowrap;margin-bottom:0;padding:8px 12px}
+
+ .auth{margin:0}
+ .authArt{min-height:140px;border-radius:10px 10px 0 0;padding:22px}
+ .authForm{border-radius:0 0 10px 10px;padding:22px}
+ footer{gap:10px;flex-direction:column;text-align:center}
+ .modal{padding:18px}
 }
-
-@media (max-width: 600px){
-  html,body{
-    width:100%;
-    max-width:100%;
-    overflow-x:hidden;
-  }
-  body{
-    font-size:13px;
-  }
-  header{
-    position:sticky;
-    top:0;
-    height:58px;
-    padding:0 12px;
-    gap:9px;
-  }
-  .logo{
-    flex:0 0 auto;
-    gap:7px;
-    font-size:9px;
-    letter-spacing:1px;
-  }
-  .logoMark{
-    width:27px;
-    height:27px;
-    border-radius:6px;
-    font-size:15px;
-  }
-  nav{
-    flex:1 1 auto;
-    min-width:0;
-    gap:15px;
-  }
-  nav a{
-    font-size:10px;
-    padding:20px 0;
-  }
-  .headRight{
-    flex:0 0 auto;
-  }
-  .headRight .iconBtn{
-    padding:5px;
-  }
-  .avatar{
-    width:30px;
-    height:30px;
-    font-size:11px;
-  }
-
-  main{
-    padding:22px 13px 38px;
-    min-height:calc(100vh - 100px);
-  }
-
-  .hero{
-    min-height:560px;
-    display:block;
-    padding-top:42px;
-  }
-  .heroText{
-    position:relative;
-    z-index:5;
-    max-width:100%;
-  }
-  .eyebrow{
-    font-size:9px;
-    letter-spacing:1.6px;
-  }
-  .hero h1{
-    font-size:clamp(42px,14vw,62px);
-    line-height:.98;
-    letter-spacing:-3px;
-    margin:18px 0;
-  }
-  .hero p{
-    max-width:330px;
-    font-size:13px;
-    line-height:1.7;
-  }
-  .heroArt{
-    right:-27%;
-    bottom:-25px;
-    width:105%;
-    height:420px;
-    opacity:.28;
-  }
-  .caption{
-    right:7%;
-    top:auto;
-    bottom:75px;
-    font-size:8px;
-  }
-
-  /* Cards and grids become one clean column. */
-  .grid.g4,
-  .grid.g3,
-  .grid.g2,
-  .g4,.g3,.g2{
-    grid-template-columns:1fr !important;
-  }
-  .card{
-    width:100%;
-    min-width:0;
-    padding:16px;
-    border-radius:8px;
-  }
-  .card h2{
-    font-size:16px;
-  }
-
-  /* Trade page: chart first, controls below; no squeezed desktop columns. */
-  .tradeLayout,
-  .tradeGrid,
-  .marketLayout,
-  .officeLayout,
-  .contentGrid{
-    display:flex !important;
-    flex-direction:column !important;
-    width:100% !important;
-    min-width:0 !important;
-  }
-  .tradeLayout > *,
-  .tradeGrid > *,
-  .marketLayout > *,
-  .officeLayout > *,
-  .contentGrid > *{
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
-  }
-
-  /* Forms */
-  form{
-    width:100%;
-    min-width:0;
-  }
-  input,select,textarea{
-    width:100%;
-    max-width:100%;
-    min-height:42px;
-  }
-  .row{
-    min-width:0;
-    flex-wrap:wrap;
-  }
-  .row.between{
-    gap:10px;
-  }
-  .row > *{
-    min-width:0;
-  }
-  .btn{
-    min-height:42px;
-    padding:11px 14px;
-  }
-
-  /* Position action buttons stack instead of overflowing. */
-  #active-pos-box .row.between{
-    align-items:flex-start;
-  }
-  #active-pos-box .row.between > .row{
-    width:100%;
-  }
-  #active-pos-box .row.between > .row .btn{
-    flex:1 1 140px;
-  }
-
-  /* Tables are intentionally scrollable, never squeezed. */
-  .tableWrap{
-    width:100%;
-    max-width:100%;
-    overflow-x:auto;
-    border-radius:8px;
-  }
-  table{
-    min-width:620px;
-  }
-
-  /* Charts/iframes/media */
-  iframe,canvas,video{
-    max-width:100%;
-  }
-  .chart,
-  .chartBox{
-    width:100% !important;
-    min-width:0 !important;
-    overflow:hidden;
-  }
-
-  /* Modals fit inside phone viewport. */
-  .modalBack{
-    padding:12px;
-  }
-  .modal{
-    width:min(100%,520px) !important;
-    max-width:100% !important;
-    max-height:90vh;
-    overflow:auto;
-    margin:0;
-    border-radius:10px;
-  }
-
-  footer{
-    padding:18px 13px !important;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-}
-
-@media (max-width: 380px){
-  header{
-    padding:0 9px;
-  }
-  nav{
-    gap:11px;
-  }
-  nav a{
-    font-size:9px;
-  }
-  main{
-    padding-left:10px;
-    padding-right:10px;
-  }
-  .hero{
-    min-height:530px;
-  }
-  .hero h1{
-    font-size:40px;
-  }
-  .btn{
-    width:100%;
-  }
-}
-
 </style>
 </head>
 <body>
+
 <header>
 <a class="logo" href="#/" onclick="go('/')"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
 <nav id="nav">
@@ -416,10 +176,12 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <div class="headRight">
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
 <a id="avatar" class="avatar" href="#/login" onclick="go('/login')">↗</a>
-<button class="iconBtn menu" id="menuBtn">☰</button>
+<button class="iconBtn menu" id="menuBtn" aria-label="Toggle menu">☰</button>
 </div>
 </header>
+
 <main id="app"></main>
+
 <footer><span>OBSIDIAN LAB © 2026 — A HIGHER STANDARD</span><span>PAPER TRADING · DEMO MARKET DATA</span></footer>
 <div id="modalBack" class="modalBack"><div id="modal" class="modal"></div></div>
 <div id="toast" class="toast"></div>
@@ -438,8 +200,6 @@ let oldLocalPosition = state.position;
 
 async function syncPaperState() {
   try {
-    // Sessionni serverdan qayta tekshiramiz: PC va telefon har birida
-    // alohida browser session bo'ladi, lekin account bir xil bo'lishi kerak.
     const sessionData = await fetchAPI('/api/session?t=' + Date.now());
     if (sessionData && sessionData.csrf) csrfToken = sessionData.csrf;
     if (sessionData && sessionData.user) {
@@ -454,7 +214,6 @@ async function syncPaperState() {
 
     const serverHasPosition = !!data.position;
 
-    // Eski versiyadagi local position bo'lsa, uni serverga bir marta ko'chiramiz.
     if (!serverHasPosition && oldLocalPosition) {
       const migrated = await fetchAPI('/api/paper/migrate', {
         method: 'POST',
@@ -481,16 +240,9 @@ async function syncPaperState() {
     else localStorage.removeItem('obsidian_pos');
 
     paperSynced = true;
-    if (location.hash.includes('/trade') || location.hash.includes('/markets/')) {
-      const sym = (location.hash.split('/')[2] || 'BTC').toUpperCase();
-      renderTrade(sym === 'TRADE' ? 'BTC' : sym);
-    }
-  } catch(e) {
-    console.warn('Paper state sync error:', e);
-  }
+    updateUIRealtime();
+  } catch(e) {}
 }
-
-
 
 async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
@@ -533,24 +285,6 @@ const assets = [
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Number(n) < 1 ? 4 : 2 }).format(Number(n) || 0);
-
-function save() {
-  localStorage.setItem('obsidian_user', JSON.stringify(state.user));
-  localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
-  localStorage.setItem('obsidian_balance', state.balance);
-  localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
-}
-
-async function syncBalance(newBal) {
-  state.balance = newBal;
-  save();
-  if (state.user) {
-    fetchAPI('/api/update_balance', {
-      method: 'POST',
-      body: JSON.stringify({ user_id: state.user.id, username: state.user.username, balance: Number(state.balance.toFixed(2)) })
-    }).catch(()=>{});
-  }
-}
 
 function toast(t) {
   const x = document.getElementById('toast');
@@ -597,7 +331,31 @@ function render(p) {
   if (!app) return;
   
   if (p === '/' || p === '') {
-    app.innerHTML = `<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register" onclick="go('/register')">GET STARTED →</a><a class="btn light" href="#/markets" onclick="go('/markets')">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4"><a class="card navCard" href="#/markets" onclick="go('/markets')"><div class="bigIcon">◫</div><h3>Markets</h3><small class="muted">Explore market data <span style="float:right">→</span></small></a><a class="card navCard" href="#/trade" onclick="go('/trade')"><div class="bigIcon">↗</div><h3>Trade</h3><small class="muted">Open trading terminal <span style="float:right">→</span></small></a><a class="card navCard" href="#/leaderboard" onclick="go('/leaderboard')"><div class="bigIcon">♛</div><h3>Leaderboard</h3><small class="muted">See rankings <span style="float:right">→</span></small></a><a class="card navCard" href="#/web-office" onclick="go('/web-office')"><div class="bigIcon">▦</div><h3>Web Office</h3><small class="muted">Open workspace <span style="float:right">→</span></small></a></section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;
+    app.innerHTML = `
+      <section class="hero">
+        <div class="heroText">
+          <span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span>
+          <h1>Build. Trade. Compete.</h1>
+          <p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p>
+          <div class="row" style="margin-top:27px;flex-wrap:wrap">
+            <a class="btn" href="#/register" onclick="go('/register')">GET STARTED →</a>
+            <a class="btn light" href="#/markets" onclick="go('/markets')">EXPLORE MARKETS</a>
+          </div>
+        </div>
+        <div class="heroArt"></div>
+        <div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div>
+      </section>
+      <section class="grid g4">
+        <a class="card navCard" href="#/markets" onclick="go('/markets')"><div class="bigIcon">◫</div><h3>Markets</h3><small class="muted">Explore market data <span style="float:right">→</span></small></a>
+        <a class="card navCard" href="#/trade" onclick="go('/trade')"><div class="bigIcon">↗</div><h3>Trade</h3><small class="muted">Open trading terminal <span style="float:right">→</span></small></a>
+        <a class="card navCard" href="#/leaderboard" onclick="go('/leaderboard')"><div class="bigIcon">♛</div><h3>Leaderboard</h3><small class="muted">See rankings <span style="float:right">→</span></small></a>
+        <a class="card navCard" href="#/web-office" onclick="go('/web-office')"><div class="bigIcon">▦</div><h3>Web Office</h3><small class="muted">Open workspace <span style="float:right">→</span></small></a>
+      </section>
+      <div class="status">
+        <div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div>
+        <div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div>
+        <div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div>
+      </div>`;
     return;
   }
   if (p === '/markets') { renderMarkets(); return; }
@@ -615,10 +373,16 @@ function render(p) {
 
 function renderMarkets() {
   let q = ''; let cat = 'All';
-  document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
+  document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `
+    <div class="row between" style="flex-wrap:wrap;gap:12px">
+      <input id="mq" class="search" placeholder="Search assets, pairs…">
+      <div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div>
+    </div>
+    <div id="mt"></div>
+    <p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
   const draw = () => {
     const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
-    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}" onclick="go('/markets/${a[0]}')">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}" onclick="go('/markets/${a[0]}')">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
     document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
   };
   document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
@@ -633,7 +397,7 @@ function renderTrade(sym) {
   const curPrice = livePrices[pair] || a[2];
 
   document.getElementById('app').innerHTML = shell(sym + ' / USDT', a[1] + ' · PAPER TRADING TERMINAL', `
-    <div class="grid" style="grid-template-columns:180px minmax(0,1fr) 300px">
+    <div class="tradeGrid">
       <aside class="card">
         <h3>Markets</h3>
         ${assets.map(assetRow).join('')}
@@ -641,23 +405,23 @@ function renderTrade(sym) {
 
       <section class="card">
         <div class="row between">
-          <div id="terminal-price" style="font-size:32px;font-weight:700">${money(curPrice)}</div>
+          <div id="terminal-price" style="font-size:30px;font-weight:700">${money(curPrice)}</div>
           <span class="badge" style="background:var(--accent);color:#000">LIVE FEED</span>
         </div>
-        <div class="chart" style="margin-top:14px">
+        <div class="tv-chart" style="margin-top:14px">
           <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3A${pair}&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
         </div>
         <div class="row between muted small" style="margin-top:12px">
           <span>Asset: ${sym}/USDT</span>
-          <span>Binance Feed (15m Candles)</span>
+          <span>Binance Feed (15m)</span>
         </div>
       </section>
 
       <aside class="card">
         <h3>Trade</h3>
         <div class="tabs">
-          <button class="tab active" id="btn-side-long">LONG 🟢</button>
-          <button class="tab" id="btn-side-short">SHORT 🔴</button>
+          <button class="tab active" id="btn-side-long" style="flex:1">LONG 🟢</button>
+          <button class="tab" id="btn-side-short" style="flex:1">SHORT 🔴</button>
         </div>
         
         <div style="margin-bottom:12px">
@@ -672,10 +436,10 @@ function renderTrade(sym) {
           <input id="trade-amount" type="number" step="any" min="10" value="1000" required>
           
           <div class="row between" style="margin:8px 0">
-            <button type="button" class="tab" onclick="setPercent(0.1)">10%</button>
-            <button type="button" class="tab" onclick="setPercent(0.25)">25%</button>
-            <button type="button" class="tab" onclick="setPercent(0.5)">50%</button>
-            <button type="button" class="tab" onclick="setPercent(1)">MAX</button>
+            <button type="button" class="tab" style="flex:1" onclick="setPercent(0.1)">10%</button>
+            <button type="button" class="tab" style="flex:1" onclick="setPercent(0.25)">25%</button>
+            <button type="button" class="tab" style="flex:1" onclick="setPercent(0.5)">50%</button>
+            <button type="button" class="tab" style="flex:1" onclick="setPercent(1)">MAX</button>
           </div>
 
           <label>Take Profit (USDT) - Ixtiyoriy</label>
@@ -689,18 +453,15 @@ function renderTrade(sym) {
             <strong id="avail-balance">${money(state.balance)}</strong>
           </p>
 
-          <button id="exec-btn" class="btn green" style="width:100%;margin-top:12px">OPEN LONG</button>
+          <button id="exec-btn" class="btn green" style="width:100%;margin-top:12px;padding:14px">OPEN LONG</button>
         </form>
       </aside>
     </div>
 
     <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.position ? 'block' : 'none'}">
-      <div class="row between">
-        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' + (state.position.frozen ? ' · FROZEN' : '') : ''}</span></h2>
-        <div class="row" style="gap:8px">
-          <button class="btn light" style="padding:6px 12px" onclick="toggleFreezePosition()">${state.position?.frozen ? 'UNFREEZE ▶' : 'FREEZE ❄'}</button>
-          <button class="btn red" style="padding:6px 12px" onclick="closePosition()">CLOSE POSITION ✕</button>
-        </div>
+      <div class="row between" style="flex-wrap:wrap;gap:10px">
+        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' : ''}</span></h2>
+        <button class="btn red" style="padding:8px 14px" onclick="closePosition()">CLOSE POSITION ✕</button>
       </div>
       <div class="grid g4" style="margin-top:12px">
         <div><small class="muted">Size</small><div id="pos-size-val"><strong>${state.position ? money(state.position.size) : '$0'}</strong></div></div>
@@ -715,8 +476,8 @@ function renderTrade(sym) {
       <div id="recent-trades-list">
         ${state.trades.length ? state.trades.slice(-6).reverse().map(t => `
           <div class="activity row between">
-            <span><strong>${t.side}</strong>${t.amount} ${t.symbol} (${t.leverage||10}x)</span>
-            <span class="${(t.pnl||0)>=0?'pos':'neg'}">${money(t.price)} | PnL:${money(t.pnl||0)}</span>
+            <span><strong>${t.side}</strong> ${t.amount}${t.asset || t.symbol}</span>
+            <span class="${(t.pnl\vert{}\vert{}0)>=0?'pos':'neg'}">${t.pnl !== undefined ? money(t.pnl) : 'OPEN'}</span>
           </div>
         `).join('') : '<div class="empty">No paper trades yet.</div>'}
       </div>
@@ -749,8 +510,8 @@ function renderTrade(sym) {
       document.querySelectorAll('[data-lev]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       leverage = Number(btn.dataset.lev);
-      const levDisplay = document.getElementById('lev-display');
-      if (levDisplay) levDisplay.textContent = leverage + 'x';
+      const disp = document.getElementById('lev-display');
+      if (disp) disp.textContent = leverage + 'x';
     };
   });
 
@@ -800,31 +561,10 @@ function renderTrade(sym) {
   }
 }
 
-window.toggleFreezePosition = async function() {
-  if (!state.position) return;
-
-  const frozen = !Boolean(state.position.frozen);
-  const livePrice = livePrices[state.position.pair] || state.position.entryPrice;
-
-  const res = await fetchAPI('/api/paper/freeze', {
-    method: 'POST',
-    body: JSON.stringify({ frozen, livePrice })
-  });
-
-  if (res.status !== 'success') {
-    return toast(res.message || 'Freeze ishlamadi');
-  }
-
-  state.position = res.position;
-  localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
-  toast(frozen ? 'Position FROZEN ❄' : 'Position UNFROZEN ▶');
-  render(location.hash.slice(1) || '/trade');
-};
-
 window.closePosition = async function(reason = null) {
   if (!state.position) return;
   const p = state.position;
-  const live = p.frozen ? Number(p.frozenPrice || p.entryPrice) : (livePrices[p.pair] || p.entryPrice);
+  const live = livePrices[p.pair] || p.entryPrice;
 
   const res = await fetchAPI('/api/paper/close', {
     method: 'POST',
@@ -841,6 +581,7 @@ window.closePosition = async function(reason = null) {
   else toast('Bitim yopildi!');
   render(location.hash.slice(1) || '/trade');
 };
+
 async function renderLeaderboard() {
   document.getElementById('app').innerHTML = shell('Leaderboard', 'Top traders synced from Google Sheets', `
     <div class="tabs">
@@ -923,8 +664,8 @@ function renderOffice(p) {
                 ${closedTrades.length ? closedTrades.slice(-4).reverse().map(t => `
                   <div class="activity row between">
                     <div>
-                      <strong>${t.side} ${t.symbol} (${t.leverage||10}x)</strong>
-                      <small>${new Date(t.time).toLocaleTimeString()}</small>
+                      <strong>${t.side} ${t.asset || t.symbol}</strong>
+                      <small>${new Date(t.created_at || Date.now()).toLocaleTimeString()}</small>
                     </div>
                     <span class="${t.pnl >= 0 ? 'pos' : 'neg'}"><strong>${t.pnl >= 0 ? '+' : ''}${money(t.pnl)}</strong></span>
                   </div>
@@ -970,9 +711,9 @@ function renderOffice(p) {
                   <a href="#/web-office/calculator" onclick="go('/web-office/calculator')">Batafsil →</a>
                 </div>
                 <p class="muted small">Bir bitim uchun ruxsat etilgan maksimal riskni hisoblang:</p>
-                <div class="row" style="margin-top:10px">
-                  <button class="btn light" onclick="quickRiskCalc(1)">1% Risk ($${(state.balance * 0.01).toFixed(0)})</button>
-                  <button class="btn light" onclick="quickRiskCalc(2)">2% Risk ($${(state.balance * 0.02).toFixed(0)})</button>                   <button class="btn light" onclick="quickRiskCalc(5)">5% Risk ($${(state.balance * 0.05).toFixed(0)})</button>
+                <div class="row" style="margin-top:10px;flex-wrap:wrap">
+                  <button class="btn light" onclick="quickRiskCalc(1)">1% ($${(state.balance * 0.01).toFixed(0)})</button>
+                  <button class="btn light" onclick="quickRiskCalc(2)">2% ($${(state.balance * 0.02).toFixed(0)})</button>                   <button class="btn light" onclick="quickRiskCalc(5)">5\% ($${(state.balance * 0.05).toFixed(0)})</button>
                 </div>
                 <div id="quick-risk-result" style="margin-top:12px;font-weight:700" class="pos"></div>
               </div>
@@ -980,16 +721,16 @@ function renderOffice(p) {
               <div class="card">
                 <h2>Jamoa va AI Tahlilchilar</h2>
                 <div class="activity row between">
-                  <div class="row"><span class="avatar">J</span><span><strong>Jasur</strong><small>ICT Market Analyst</small></span></div>
+                  <div class="row"><span class="avatar">J</span><span><strong>Jasur</strong><small>ICT Analyst</small></span></div>
                   <span class="badge">ONLINE</span>
                 </div>
                 <div class="activity row between">
-                  <div class="row"><span class="avatar">A</span><span><strong>Alex</strong><small>Quant & Algo Dev</small></span></div>
+                  <div class="row"><span class="avatar">A</span><span><strong>Alex</strong><small>Quant Dev</small></span></div>
                   <span class="badge">ONLINE</span>
                 </div>
                 <div class="activity row between">
-                  <div class="row"><span class="avatar">W</span><span><strong>Mister Whale</strong><small>Risk Manager</small></span></div>
-                  <span class="badge">MONITORING</span>
+                  <div class="row"><span class="avatar">W</span><span><strong>Mister Whale</strong><small>Risk Mgr</small></span></div>
+                  <span class="badge">MONITOR</span>
                 </div>
               </div>
             </div>
@@ -1013,12 +754,12 @@ function renderOffice(p) {
                 <tbody>
                   ${closedTrades.length ? closedTrades.slice().reverse().map(t => `
                     <tr>
-                      <td>${new Date(t.time).toLocaleDateString()} ${new Date(t.time).toLocaleTimeString()}</td>
-                      <td><strong>${t.symbol}</strong></td>
-                      <td><span class="badge ${t.side==='LONG'?'pos':'neg'}">${t.side} (${t.leverage||10}x)</span></td>
+                      <td>${new Date(t.created_at || Date.now()).toLocaleDateString()} ${new Date(t.created_at || Date.now()).toLocaleTimeString()}</td>
+                      <td><strong>${t.asset || t.symbol}</strong></td>
+                      <td><span class="badge ${t.side==='LONG'?'pos':'neg'}">${t.side}</span></td>
                       <td>${money(t.amount)}</td>
-                      <td>${money(t.price)}</td>
-                      <td>${money(t.price)}</td>
+                      <td>${money(t.entry_price || t.price)}</td>
+                      <td>${money(t.exit_price || t.price)}</td>
                       <td class="${t.pnl >= 0 ? 'pos' : 'neg'}"><strong>${t.pnl >= 0 ? '+' : ''}${money(t.pnl)}</strong></td>
                     </tr>
                   `).join('') : '<tr><td colspan="7" class="empty">Bitimlar jurnali bo‘sh.</td></tr>'}
@@ -1094,7 +835,7 @@ function renderOffice(p) {
                   <tr><th>SANA</th><th>VOQEA</th><th>AKTIV</th><th>MUHIMLIK</th><th>TAHLIL</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>Bugun, 18:30</td><td>AQSH Ishsizlik bo'yicha da'volar</td><td>USD / BTC</td><td><span class="badge" style="background:var(--accent);color:#000">YUQORI</span></td><td>Kutilganidan past bo'lsa: Dollar oshadi, BTC tushishi mumkin.</td></tr>
+                  <tr><td>Bugun, 18:30</td><td>AQSH Ishsizlik da'volari</td><td>USD / BTC</td><td><span class="badge" style="background:var(--accent);color:#000">YUQORI</span></td><td>Kutilganidan past bo'lsa: Dollar oshadi.</td></tr>
                   <tr><td>22-Sentyabr</td><td>AQSH CPI (Inflyatsiya)</td><td>USD / ALL</td><td><span class="badge red">KRITIK</span></td><td>Volatillik 100-200% ga ortishi kutilmoqda.</td></tr>
                   <tr><td>30-Sentyabr</td><td>FOMC Stavka qarori</td><td>GLOBAL</td><td><span class="badge red">KRITIK</span></td><td>Foiz stavkasi o'zgarishi barcha bozorlarga ta'sir qiladi.</td></tr>
                 </tbody>
@@ -1127,7 +868,7 @@ window.calcPositionSize = function() {
     resBox.style.display = 'block';
     resBox.innerHTML = `
       <strong>Maksimal yo‘qotish:</strong> <span class="neg">$${riskUSD.toFixed(2)}</span><br>
-      <strong>Tavsiya etilgan ochiladigan hajm:</strong> <span class="pos">$${posSize.toFixed(2)}</span><br>
+      <strong>Tavsiya etilgan hajm:</strong> <span class="pos">$${posSize.toFixed(2)}</span><br>
       <small class="muted">Agar narx Stop-Loss masofasiga (${slPct}%) yetsa, siz aynan $${riskUSD.toFixed(2)} yo'qotasiz.</small>
     `;
   }
@@ -1137,7 +878,10 @@ function renderAuth(p) {
   const login = p === '/login', register = p === '/register';
   document.getElementById('app').innerHTML = `
     <section class="auth">
-      <div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div>
+      <div class="authArt">
+        <div class="logo">◈ OBSIDIAN LAB</div>
+        <div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div>
+      </div>
       <div class="authForm">
         <h1>${login ? 'Welcome back' : 'Create account'}</h1>
         <p class="muted">${login ? 'Sign in to your account' : 'Your next chapter starts here'}</p>
@@ -1179,8 +923,10 @@ function renderAuth(p) {
       if (res && res.status === 'success') {
         state.user = res.user;
         state.balance = Number(res.user.balance || 10000.0);
-        save();
+        localStorage.setItem('obsidian_user', JSON.stringify(state.user));
+        localStorage.setItem('obsidian_balance', state.balance);
         updateAvatar();
+        syncPaperState();
         toast('Xush kelibsiz!');
         go('/trade');
       } else {
@@ -1200,7 +946,7 @@ function renderProfile() {
           <div>
             <h2>${esc(state.user.name)}</h2>
             <p class="muted">@${esc(state.user.username)} · ${esc(state.user.email)}</p>
-            <button class="btn light" onclick="logoutUser()">SIGN OUT ✕</button>
+            <button class="btn light" style="margin-top:8px" onclick="logoutUser()">SIGN OUT ✕</button>
           </div>
         </div>
       </div>
@@ -1219,7 +965,8 @@ async function logoutUser() {
   state.user = null;
   state.balance = 10000.0;
   state.trades = [];
-  save();
+  state.position = null;
+  localStorage.clear();
   updateAvatar();
   toast('Tizimdan chiqildi');
   go('/');
@@ -1227,7 +974,11 @@ async function logoutUser() {
 
 function renderSettings(p) {
   const s = p.split('/')[2] || 'profile';
-  document.getElementById('app').innerHTML = `<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4><a href="#/settings/profile" class="active">Profile</a></aside><section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username || 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section></div>`;
+  document.getElementById('app').innerHTML = `
+    <div class="workspace">
+      <aside class="sidebar"><h4>SETTINGS</h4><a href="#/settings/profile" class="active">Profile</a></aside>
+      <section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username \vert{}\vert{} 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section>
+    </div>`;
 }
 
 function renderNotifications() {
@@ -1236,7 +987,7 @@ function renderNotifications() {
       ${state.trades.length ? state.trades.slice(-10).reverse().map(t => `
         <div class="activity">
           <strong>Bitim qayd etildi</strong>
-          <small>${t.side}${t.amount} ${t.symbol} ·${new Date(t.time).toLocaleString()}</small>
+          <small>${t.side}${t.amount} ${t.asset \vert{}\vert{} t.symbol} ·${new Date(t.created_at || Date.now()).toLocaleString()}</small>
         </div>
       `).join('') : '<div class="empty">Xabarlar yo‘q.</div>'}
     </div>
@@ -1244,7 +995,10 @@ function renderNotifications() {
 }
 
 function renderAdmin(p) {
-  document.getElementById('app').innerHTML = `<div class="workspace"><section>${shell('Admin', 'System records', `<div class="grid g4">${stat('Paper trades', state.trades.length)}${stat('Balance', money(state.balance))}</div>`)}</section></div>`;
+  document.getElementById('app').innerHTML = `
+    <div class="workspace">
+      <section>${shell('Admin', 'System records', `<div class="grid g4">${stat('Paper trades', state.trades.length)}${stat('Balance', money(state.balance))}</div>`)}</section>
+    </div>`;
 }
 
 function updateAvatar() {
@@ -1258,6 +1012,42 @@ function updateAvatar() {
     a.textContent = '↗';
     a.href = '#/login';
     a.onclick = () => go('/login');
+  }
+}
+
+function updateUIRealtime() {
+  const balEl = document.getElementById('avail-balance');
+  if (balEl) balEl.textContent = money(state.balance);
+
+  const posBox = document.getElementById('active-pos-box');
+  if (posBox) {
+    if (state.position) {
+      posBox.style.display = 'block';
+      const pos = state.position;
+      const cur = livePrices[pos.pair] || pos.entryPrice;
+      let diff = (cur - pos.entryPrice) / pos.entryPrice;
+      if (pos.type === 'SHORT') diff = -diff;
+      const pnl = pos.size * diff * pos.leverage;
+
+      const pnlEl = document.getElementById('pos-pnl-val');
+      if (pnlEl) {
+        pnlEl.className = pnl >= 0 ? 'pos' : 'neg';
+        pnlEl.innerHTML = `<strong>${pnl >= 0 ? '+' : ''}${money(pnl)} (${((pnl/pos.size)*100).toFixed(2)}%)</strong>`;
+      }
+      const szEl = document.getElementById('pos-size-val');
+      if (szEl) szEl.innerHTML = `<strong>${money(pos.size)}</strong>`;
+      const enEl = document.getElementById('pos-entry-val');
+      if (enEl) enEl.innerHTML = `<strong>${money(pos.entryPrice)}</strong>`;
+      const tpslEl = document.getElementById('pos-tpsl-val');
+      if (tpslEl) tpslEl.innerHTML = `<strong>${pos.tp ? money(pos.tp) : '—'} / ${pos.sl ? money(pos.sl) : '—'}</strong>`;
+      const headEl = document.getElementById('pos-header');
+      if (headEl) {
+        headEl.className = pos.type === 'LONG' ? 'pos' : 'neg';
+        headEl.textContent = `${pos.type} (${pos.leverage}x)`;
+      }
+    } else {
+      posBox.style.display = 'none';
+    }
   }
 }
 
@@ -1286,19 +1076,11 @@ async function updateBinancePrices() {
     termP.textContent = money(livePrices[pair]);
   }
 
+  updateUIRealtime();
+
   if (state.position) {
     const pos = state.position;
     const cur = livePrices[pos.pair] || pos.entryPrice;
-    let diff = (cur - pos.entryPrice) / pos.entryPrice;
-    if (pos.type === 'SHORT') diff = -diff;
-    const pnl = pos.size * diff * pos.leverage;
-
-    const pnlEl = document.getElementById('pos-pnl-val');
-    if (pnlEl) {
-      pnlEl.className = pnl >= 0 ? 'pos' : 'neg';
-      pnlEl.innerHTML = `<strong>${pnl >= 0 ? '+' : ''}${money(pnl)} (${((pnl/pos.size)*100).toFixed(2)}%)</strong>`;
-    }
-
     if (pos.type === 'LONG') {
       if (pos.tp && cur >= pos.tp) closePosition(`🎯 Take-Profit! Narx: $${cur}`);
       if (pos.sl && cur <= pos.sl) closePosition(`🛑 Stop-Loss! Narx: $${cur}`);
@@ -1327,19 +1109,5 @@ setTimeout(() => {
 
 document.getElementById('modalBack')?.addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
-
-<script>
-(function(){
-  function mobileLayoutFix(){
-    document.documentElement.style.setProperty('--vw-safe', Math.min(window.innerWidth, 1000) + 'px');
-  }
-  mobileLayoutFix();
-  window.addEventListener('resize', mobileLayoutFix, {passive:true});
-  window.addEventListener('orientationchange', function(){
-    setTimeout(mobileLayoutFix, 150);
-  }, {passive:true});
-})();
-</script>
-
 </body>
 </html>
