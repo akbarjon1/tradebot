@@ -247,6 +247,18 @@ def init_web_db():
         created_at TEXT NOT NULL,
         FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS web_positions(
+        user_id TEXT PRIMARY KEY,
+        asset TEXT NOT NULL,
+        side TEXT NOT NULL,
+        size REAL NOT NULL,
+        leverage INTEGER NOT NULL DEFAULT 10,
+        entry_price REAL NOT NULL,
+        tp REAL,
+        sl REAL,
+        opened_at TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
     CREATE INDEX IF NOT EXISTS idx_web_trades_user ON web_trades(user_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_web_office_user_kind ON web_office(user_id, kind);
     CREATE INDEX IF NOT EXISTS idx_web_notifications_user ON web_notifications(user_id, created_at);
@@ -554,6 +566,199 @@ def api_login():
 def api_logout():
     session.clear()
     return jsonify({"status":"success"})
+
+
+# ===== SHARED PAPER TRADING STATE =====
+# Position/balance serverda saqlanadi. Shu sabab bir account bilan kirilgan
+# telefon va kompyuter bir xil positionni ko'radi.
+@app.route("/api/paper/state", methods=["GET"])
+@require_web_auth
+def paper_state():
+    user = current_web_user()
+    c = db_conn()
+    pos = c.execute(
+        "SELECT * FROM web_positions WHERE user_id=?", (user["id"],)
+    ).fetchone()
+    trades = c.execute(
+        "SELECT * FROM web_trades WHERE user_id=? ORDER BY created_at DESC LIMIT 100",
+        (user["id"],)
+    ).fetchall()
+
+    position = None
+    if pos:
+        position = {
+            "symbol": pos["asset"].replace("USDT", ""),
+            "pair": pos["asset"],
+            "type": pos["side"],
+            "size": float(pos["size"]),
+            "leverage": int(pos["leverage"]),
+            "entryPrice": float(pos["entry_price"]),
+            "tp": float(pos["tp"]) if pos["tp"] is not None else None,
+            "sl": float(pos["sl"]) if pos["sl"] is not None else None,
+            "openedAt": pos["opened_at"]
+        }
+
+    return jsonify({
+        "status": "success",
+        "balance": float(user["balance"]),
+        "position": position,
+        "trades": [dict(x) for x in trades]
+    })
+
+
+@app.route("/api/paper/open", methods=["POST"])
+@require_web_auth
+def paper_open():
+    user = current_web_user()
+    d = json_body()
+
+    asset = str(d.get("pair") or d.get("asset") or "BTCUSDT").upper().strip()
+    side = str(d.get("side") or d.get("type") or "LONG").upper().strip()
+    amount = float(d.get("amount", 0) or 0)
+    leverage = int(d.get("leverage", 10) or 10)
+    entry = float(d.get("entryPrice", 0) or 0)
+    tp = d.get("tp")
+    sl = d.get("sl")
+    tp = float(tp) if tp not in (None, "", False) else None
+    sl = float(sl) if sl not in (None, "", False) else None
+
+    if side not in {"LONG", "SHORT"}:
+        return jsonify({"status":"error","message":"Invalid side"}), 400
+    if not re.fullmatch(r"[A-Z0-9]{3,20}", asset):
+        return jsonify({"status":"error","message":"Invalid asset"}), 400
+    if amount < 10:
+        return jsonify({"status":"error","message":"Minimum order is $10"}), 400
+    if leverage not in {1, 5, 10, 20}:
+        return jsonify({"status":"error","message":"Invalid leverage"}), 400
+    if entry <= 0:
+        return jsonify({"status":"error","message":"Invalid entry price"}), 400
+    if amount > float(user["balance"]):
+        return jsonify({"status":"error","message":"Insufficient balance"}), 400
+
+    c = db_conn()
+    if c.execute("SELECT 1 FROM web_positions WHERE user_id=?", (user["id"],)).fetchone():
+        return jsonify({"status":"error","message":"Already have an open position"}), 409
+
+    stamp = db_now()
+    trade_id = uuid.uuid4().hex
+
+    c.execute(
+        """INSERT INTO web_positions
+           (user_id,asset,side,size,leverage,entry_price,tp,sl,opened_at)
+           VALUES(?,?,?,?,?,?,?,?,?)""",
+        (user["id"], asset, side, amount, leverage, entry, tp, sl, stamp)
+    )
+    c.execute(
+        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=?",
+        (amount, stamp, user["id"])
+    )
+    c.execute(
+        """INSERT INTO web_trades
+           (id,user_id,asset,side,amount,entry_price,status,created_at)
+           VALUES(?,?,?,?,?,?,?,?)""",
+        (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
+    )
+    c.commit()
+
+    return jsonify({
+        "status":"success",
+        "balance":float(user["balance"]) - amount,
+        "position":{
+            "symbol":asset.replace("USDT",""),
+            "pair":asset,
+            "type":side,
+            "size":amount,
+            "leverage":leverage,
+            "entryPrice":entry,
+            "tp":tp,
+            "sl":sl,
+            "openedAt":stamp
+        }
+    }), 201
+
+
+@app.route("/api/paper/migrate", methods=["POST"])
+@require_web_auth
+def paper_migrate():
+    # Old version positionni localStorage'dan serverga bir marta ko'chiradi.
+    user = current_web_user()
+    d = json_body()
+    p = d.get("position")
+    if not isinstance(p, dict):
+        return jsonify({"status":"error","message":"Position required"}), 400
+
+    c = db_conn()
+    if c.execute("SELECT 1 FROM web_positions WHERE user_id=?", (user["id"],)).fetchone():
+        return jsonify({"status":"success"})
+
+    try:
+        asset = str(p.get("pair") or p.get("symbol","BTC") + "USDT").upper()
+        side = str(p.get("type","LONG")).upper()
+        size = float(p.get("size",0))
+        leverage = int(p.get("leverage",10))
+        entry = float(p.get("entryPrice",0))
+        tp = p.get("tp")
+        sl = p.get("sl")
+        tp = float(tp) if tp not in (None,"",False) else None
+        sl = float(sl) if sl not in (None,"",False) else None
+        opened = str(p.get("openedAt") or db_now())
+        if side not in {"LONG","SHORT"} or size <= 0 or entry <= 0:
+            raise ValueError
+    except Exception:
+        return jsonify({"status":"error","message":"Invalid position"}), 400
+
+    rid = uuid.uuid4().hex
+    c.execute(
+        """INSERT INTO web_positions
+           (user_id,asset,side,size,leverage,entry_price,tp,sl,opened_at)
+           VALUES(?,?,?,?,?,?,?,?,?)""",
+        (user["id"],asset,side,size,leverage,entry,tp,sl,opened)
+    )
+    c.commit()
+    return jsonify({"status":"success"})
+
+
+@app.route("/api/paper/close", methods=["POST"])
+@require_web_auth
+def paper_close():
+    user = current_web_user()
+    d = json_body()
+    live = float(d.get("livePrice", 0) or 0)
+    if live <= 0:
+        return jsonify({"status":"error","message":"Invalid live price"}), 400
+
+    c = db_conn()
+    pos = c.execute(
+        "SELECT * FROM web_positions WHERE user_id=?", (user["id"],)
+    ).fetchone()
+    if not pos:
+        return jsonify({"status":"error","message":"No open position"}), 404
+
+    diff = (live - float(pos["entry_price"])) / float(pos["entry_price"])
+    if pos["side"] == "SHORT":
+        diff = -diff
+    pnl = float(pos["size"]) * diff * int(pos["leverage"])
+    credit = max(0.0, float(pos["size"]) + pnl)
+    stamp = db_now()
+
+    c.execute(
+        """UPDATE web_trades
+           SET exit_price=?,pnl=?,status='CLOSED'
+           WHERE user_id=? AND asset=? AND side=? AND status='OPEN'""",
+        (live, pnl, user["id"], pos["asset"], pos["side"])
+    )
+    c.execute(
+        "UPDATE web_users SET balance=balance+?,updated_at=? WHERE id=?",
+        (credit, stamp, user["id"])
+    )
+    c.execute("DELETE FROM web_positions WHERE user_id=?", (user["id"],))
+    c.commit()
+
+    return jsonify({
+        "status":"success",
+        "balance":float(user["balance"]) + credit,
+        "pnl":pnl
+    })
 
 @app.route("/api/account", methods=["GET"])
 @require_web_auth
