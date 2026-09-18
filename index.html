@@ -53,20 +53,6 @@
 .hq-monitor-btn{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(15,23,42,.94);border:1px solid rgba(56,189,248,.55);color:#67e8f9;border-radius:8px;padding:5px 8px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 </style>
 
-<style id="telegram-mini-terminal">
-  body.telegram-mini { max-width: 520px; margin: 0 auto; padding-bottom: 10px; }
-  body.telegram-mini header { position: sticky; top: 0; padding: 9px 12px; }
-  body.telegram-mini header .hq-only { display:none !important; }
-  body.telegram-mini main { max-width: 500px; padding: 10px 10px 14px; gap: 10px; }
-  body.telegram-mini main > div { border-radius: 14px; padding: 12px; }
-  body.telegram-mini #tradingview-frame { min-height: 190px; }
-  body.telegram-mini #top-traders-list { max-height: 120px; }
-</style>
-<style>
-body.telegram-office { max-width:100%; margin:0; }
-body.telegram-office main { max-width:1100px; margin:0 auto; }
-body.telegram-office header .hq-only { display:flex !important; }
-</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
@@ -84,7 +70,7 @@ body.telegram-office header .hq-only { display:flex !important; }
     </div>
 
     <div class="flex items-center gap-2">
-      <button onclick="openLoungeModal()" class="hq-only flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
+      <button onclick="openLoungeModal()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
         <span>🎮</span> HQ Office
       </button>
 <button onclick="editMyUsername()" class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition">
@@ -372,126 +358,17 @@ body.telegram-office header .hq-only { display:flex !important; }
     let currentLeverage = 10;
     const prices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
     let position = null;
-let telegramAuthenticated = false;
-let paperSyncBusy = false;
-let paperSyncTimer = null;
 
-async function authenticateTelegram() {
-  if (!tg?.initData) return false;
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/telegram`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      credentials: 'include',
-      body: JSON.stringify({initData: tg.initData})
-    });
-    const data = await res.json();
-    if (!res.ok || data.status !== 'success') return false;
-    telegramAuthenticated = true;
-    if (data.user?.username) myUsername = '@' + String(data.user.username).replace(/^@/,'');
-    return true;
-  } catch (e) {
-    console.warn('Telegram auth error:', e);
-    return false;
-  }
-}
-
-function getTelegramMode() {
-  try { return new URLSearchParams(location.search).get('mode') || 'terminal'; }
-  catch(e) { return 'terminal'; }
-}
-
-function applyTelegramMiniMode() {
-  if (!tg) return;
-  const mode = getTelegramMode();
-  if (mode === 'office') {
-    document.body.classList.add('telegram-office');
-    const sub = document.querySelector('header span.text-\\[10px\\]');
-    if (sub) sub.innerText = 'HQ Office';
-    return;
-  }
-  document.body.classList.add('telegram-mini');
-  const sub = document.querySelector('header span.text-\\[10px\\]');
-  if (sub) sub.innerText = 'Telegram Terminal';
-}
-
-async function syncPaperState() {
-  if (paperSyncBusy || (tg?.initData && !telegramAuthenticated)) return;
-  paperSyncBusy = true;
-  try {
-    const res = await fetch(`${API_BASE}/api/paper/state?t=${Date.now()}`, {
-      credentials:'include', cache:'no-store'
-    });
-    const data = await res.json();
-    if (res.ok && data.status === 'success') {
-      balance = Number(data.balance ?? balance);
-      const p = data.position;
-      position = p ? {
-        type:p.side, size:Number(p.size), leverage:Number(p.leverage || 10),
-        entryPrice:Number(p.entry_price), asset:p.asset,
-        tp:p.tp == null ? null : Number(p.tp),
-        sl:p.sl == null ? null : Number(p.sl)
-      } : null;
-      safeSet(`obs_bal_${userId}`, balance);
-      if (position) safeSet(`obs_pos_${userId}`, JSON.stringify(position));
-      else { try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {} }
-      updateUI();
-    }
-  } catch(e) {
-    console.warn('Paper state sync error:', e);
-  } finally {
-    paperSyncBusy = false;
-  }
-}
-
-async function serverOpenPosition(type, amount, curPrice, tp, sl) {
-  const res = await fetch(`${API_BASE}/api/paper/open`, {
-    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
-    body:JSON.stringify({asset:currentAsset,side:type,amount,leverage:currentLeverage,entryPrice:curPrice,tp,sl})
-  });
-  const data = await res.json();
-  if (!res.ok || data.status !== 'success') throw new Error(data.message || 'Trade ochilmadi');
-  return data;
-}
-
-async function serverClosePosition() {
-  const asset = position?.asset || currentAsset;
-  const res = await fetch(`${API_BASE}/api/paper/close`, {
-    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
-    body:JSON.stringify({asset,side:position?.type,price:Number(prices[asset] || 0)})
-  });
-  const data = await res.json();
-  if (!res.ok || data.status !== 'success') throw new Error(data.message || 'Trade yopilmadi');
-  return data;
-}
-
-
-    async function init() {
-      applyTelegramMiniMode();
-      await authenticateTelegram();
-      if (getTelegramMode() === 'office') {
-        setTimeout(() => { if (typeof openLoungeModal === 'function') openLoungeModal(); }, 300);
-      }
-
-      if (telegramAuthenticated || !tg?.initData) {
-        await syncPaperState();
-      } else {
-        const savedBal = safeGet(`obs_bal_${userId}`);
-        if (savedBal !== null && !isNaN(parseFloat(savedBal))) balance = parseFloat(savedBal);
-        const savedPos = safeGet(`obs_pos_${userId}`);
-        if (savedPos) { try { position = JSON.parse(savedPos); } catch(e) { position = null; } }
-      }
-
+    function init() {
+      const savedBal = safeGet(`obs_bal_${userId}`);
+      if (savedBal !== null && !isNaN(parseFloat(savedBal))) balance = parseFloat(savedBal);
+      const savedPos = safeGet(`obs_pos_${userId}`);
+      if (savedPos) { try { position = JSON.parse(savedPos); } catch(e) { position = null; } }
       document.getElementById('nav-username').innerText = myUsername;
       if (player) player.name = myUsername;
       updateUI();
       fetchLeaderboard();
       setPercent(0.1);
-
-      if (telegramAuthenticated) {
-        clearInterval(paperSyncTimer);
-        paperSyncTimer = setInterval(syncPaperState, 2500);
-      }
     }
 
     function updateUI() {
@@ -568,7 +445,7 @@ async function serverClosePosition() {
       }
     }
 
-    async function executeOrder(type) {
+    function executeOrder(type) {
       const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
       if (amount < 10) return alert("Minimal savdo $10!");
       if (amount > balance) return alert("Mablag' yetarli emas!");
@@ -576,54 +453,48 @@ async function serverClosePosition() {
       const tpRaw = parseFloat(document.getElementById('trade-tp').value);
       const slRaw = parseFloat(document.getElementById('trade-sl').value);
       const curPrice = prices[currentAsset];
-      const tp = !isNaN(tpRaw) ? tpRaw : null;
-      const sl = !isNaN(slRaw) ? slRaw : null;
 
-      try {
-        if (position) await closeCurrentPosition();
-        if (!telegramAuthenticated && tg?.initData)
-          return alert("Telegram akkauntini ulashda xatolik. Terminalni qayta oching.");
+      if (position) closeCurrentPosition();
 
-        const data = await serverOpenPosition(type, amount, curPrice, tp, sl);
-        const p = data.position;
-        balance = Number(data.balance ?? (balance - amount));
-        position = p ? {
-          type:p.side, size:Number(p.size), leverage:Number(p.leverage || currentLeverage),
-          entryPrice:Number(p.entry_price), asset:p.asset,
-          tp:p.tp == null ? null : Number(p.tp), sl:p.sl == null ? null : Number(p.sl)
-        } : null;
+      balance -= amount;
+      position = {
+        type: type, size: amount, leverage: currentLeverage,
+        entryPrice: curPrice, asset: currentAsset,
+        tp: !isNaN(tpRaw) ? tpRaw : null, sl: !isNaN(slRaw) ? slRaw : null
+      };
 
-        document.getElementById('trade-tp').value = '';
-        document.getElementById('trade-sl').value = '';
-        safeSet(`obs_bal_${userId}`, balance);
-        if (position) safeSet(`obs_pos_${userId}`, JSON.stringify(position));
-        updateUI();
-        fetchLeaderboard();
-      } catch(e) {
-        alert(e.message || "Savdoni ochib bo'lmadi");
-        await syncPaperState();
-      }
+      document.getElementById('trade-tp').value = '';
+      document.getElementById('trade-sl').value = '';
+      safeSet(`obs_bal_${userId}`, balance);
+      safeSet(`obs_pos_${userId}`, JSON.stringify(position));
+      updateUI();
+      syncWithSheets();
     }
 
-    async function closeCurrentPosition(reason = null) {
+    function closeCurrentPosition(reason = null) {
       if (!position) return;
-      try {
-        const data = await serverClosePosition();
-        balance = Number(data.balance ?? balance);
-        position = null;
-        try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
-        safeSet(`obs_bal_${userId}`, balance);
-        updateUI();
-        fetchLeaderboard();
-        if (reason) alert(reason);
-      } catch(e) {
-        await syncPaperState();
-        if (reason) alert(e.message || "Bitimni yopib bo'lmadi");
-      }
+      const live = prices[position.asset || currentAsset];
+      let diff = (live - position.entryPrice) / position.entryPrice;
+      if (position.type === 'SHORT') diff = -diff;
+      const pnlUSD = position.size * diff * position.leverage;
+      balance += Math.max(0, position.size + pnlUSD);
+      position = null;
+      safeSet(`obs_bal_${userId}`, balance);
+      try { localStorage.removeItem(`obs_pos_${userId}`); } catch(e) {}
+      updateUI();
+      syncWithSheets();
+      if (reason) alert(reason);
     }
 
     async function syncWithSheets() {
-      try { await fetchLeaderboard(); } catch(e) {}
+      try {
+        await fetch(`${API_BASE}/api/update_balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, username: myUsername, balance: Number(balance.toFixed(2)) })
+        });
+        fetchLeaderboard();
+      } catch (e) {}
     }
 
     async function fetchLeaderboard() {
@@ -2059,9 +1930,6 @@ async function serverClosePosition() {
     });
 
     init();
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && telegramAuthenticated) syncPaperState();
-    });
     renderMissions();
     updateHqHud();
     updateHQClock();
