@@ -62,6 +62,11 @@
   body.telegram-mini #tradingview-frame { min-height: 190px; }
   body.telegram-mini #top-traders-list { max-height: 120px; }
 </style>
+<style>
+body.telegram-office { max-width:100%; margin:0; }
+body.telegram-office main { max-width:1100px; margin:0 auto; }
+body.telegram-office header .hq-only { display:flex !important; }
+</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white pb-6">
 
@@ -391,8 +396,20 @@ async function authenticateTelegram() {
   }
 }
 
+function getTelegramMode() {
+  try { return new URLSearchParams(location.search).get('mode') || 'terminal'; }
+  catch(e) { return 'terminal'; }
+}
+
 function applyTelegramMiniMode() {
   if (!tg) return;
+  const mode = getTelegramMode();
+  if (mode === 'office') {
+    document.body.classList.add('telegram-office');
+    const sub = document.querySelector('header span.text-\\[10px\\]');
+    if (sub) sub.innerText = 'HQ Office';
+    return;
+  }
   document.body.classList.add('telegram-mini');
   const sub = document.querySelector('header span.text-\\[10px\\]');
   if (sub) sub.innerText = 'Telegram Terminal';
@@ -452,6 +469,9 @@ async function serverClosePosition() {
     async function init() {
       applyTelegramMiniMode();
       await authenticateTelegram();
+      if (getTelegramMode() === 'office') {
+        setTimeout(() => { if (typeof openLoungeModal === 'function') openLoungeModal(); }, 300);
+      }
 
       if (telegramAuthenticated || !tg?.initData) {
         await syncPaperState();
