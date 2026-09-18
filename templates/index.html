@@ -12,7 +12,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:14px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px}
 button,input,select,textarea{font:inherit}
 a{text-decoration:none;color:inherit}
 button,a{cursor:pointer}
@@ -95,7 +95,7 @@ tr:last-child td{border-bottom:0}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .day{min-height:83px;border:1px solid var(--line);padding:7px;border-radius:4px;font-size:10px}
 .event{display:block;background:rgba(184,255,61,.3);padding:3px;margin-top:5px}
-.chart{height:380px;position:relative;overflow:hidden;border-radius:8px}
+.chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
 .chart iframe{width:100%;height:100%;border:0}
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
 .authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
@@ -134,17 +134,22 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 
 <script>
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.expand(); tg.ready(); }
+try { if (tg) { tg.expand(); tg.ready(); } } catch(e){}
 
 function getTelegramUID() {
-  if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
+  try {
+    if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
+  } catch(e){}
   let id = localStorage.getItem('obs_tma_uid') || ('tg_' + Math.floor(Math.random() * 899999 + 100000));
   localStorage.setItem('obs_tma_uid', id);
   return id;
 }
+
 function getTelegramUsername() {
-  if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
-  if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
+  try {
+    if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
+    if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
+  } catch(e){}
   return localStorage.getItem('obs_tma_username') || '@trader';
 }
 
@@ -206,10 +211,17 @@ function toast(t) {
 }
 
 function go(p) { location.hash = '#' + p; closeModal(); }
+
 function route() {
-  const p = (location.hash.slice(1) || '/').split('?')[0] || '/';
-  document.querySelectorAll('[data-route]').forEach(a => a.classList.toggle('active', a.dataset.route === p || (a.dataset.route !== '/' && p.startsWith(a.dataset.route))));
-  document.getElementById('nav').classList.remove('open');
+  let raw = location.hash.slice(1) || '/';
+  if (!raw.startsWith('/')) raw = '/' + raw;
+  const p = raw.split('?')[0] || '/';
+  
+  document.querySelectorAll('[data-route]').forEach(a => {
+    a.classList.toggle('active', a.dataset.route === p || (a.dataset.route !== '/' && p.startsWith(a.dataset.route)));
+  });
+  const nav = document.getElementById('nav');
+  if (nav) nav.classList.remove('open');
   render(p);
 }
 
@@ -227,7 +239,9 @@ function assetRow(a) {
 
 function render(p) {
   const app = document.getElementById('app');
-  if (p === '/') {
+  if (!app) return;
+  
+  if (p === '/' || p === '') {
     app.innerHTML = `<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4">${[['Markets','Explore market data','◫','/markets'],['Trade','Open trading terminal','↗','/trade'],['Leaderboard','See rankings','♛','/leaderboard'],['Web Office','Open workspace','▦','/web-office']].map(x=>`<a class="card navCard" href="#${x[3]}"><div class="bigIcon">${x[2]}</div><h3>${x[0]}</h3><small class="muted">${x[1]} <span style="float:right">→</span></small></a>`).join('')}</section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;
     return;
   }
@@ -249,7 +263,7 @@ function renderMarkets() {
   document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
   const draw = () => {
     const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
-    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] \vert{}\vert{} a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
     document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
   };
   document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
@@ -325,7 +339,6 @@ function renderTrade(sym) {
       </aside>
     </div>
 
-    <!-- ACTIVE POSITION CARD -->
     <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.position ? 'block' : 'none'}">
       <div class="row between">
         <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' : ''}</span></h2>
@@ -526,7 +539,7 @@ function renderOffice(p) {
 function renderOfficeSection(s) {
   let title = s[0].toUpperCase() + s.slice(1), content = '';
   if (s === 'tasks') content = `<div class="row between"><p class="muted">Plan and track your work.</p><button class="btn" onclick="newOffice('task')">+ NEW TASK</button></div><div class="grid g3" style="margin-top:20px">${['TODO','IN PROGRESS','DONE'].map(st=>`<div><div class="eyebrow">${st}</div>${state.tasks.filter(t=>t.status===st).map(t=>`<div class="card" style="margin-top:10px"><strong>${esc(t.title)}</strong><p class="small muted">${esc(t.description||'')}</p><span class="badge">${esc(t.priority||'MEDIUM')}</span><div class="row" style="margin-top:12px"><button class="btn light" style="padding:6px 9px" onclick="editTask('${t.id}')">EDIT</button><button class="btn light" style="padding:6px 9px" onclick="deleteTask('${t.id}')">DELETE</button></div></div>`).join('')||'<div class="empty">No tasks</div>'}</div>`).join('')}</div>`;
-  if (s === 'projects') content = `<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description\vert{}\vert{}'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress\vert{}\vert{}0}\% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
+  if (s === 'projects') content = `<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description||'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress||0}% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
   if (s === 'team') content = `<div class="card">${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div>`;
   if (s === 'documents') content = `<div class="card"><h2>Documents</h2><p class="muted">Workspace documents.</p><button class="btn" onclick="newOffice('document')">+ NEW DOCUMENT</button><div class="empty">No documents yet.</div></div>`;
   if (s === 'calendar') content = `<div class="card"><div class="row between"><h2>Calendar</h2><button class="btn" onclick="newOffice('event')">+ NEW EVENT</button></div><div class="calendar" style="margin-top:18px">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${state.events.filter(e=>Number(e.day)===i+1).map(e=>`<span class="event">${esc(e.title)}</span>`).join('')}</div>`).join('')}</div></div>`;
@@ -689,7 +702,6 @@ async function updateBinancePrices() {
     termP.textContent = money(livePrices[pair]);
   }
 
-  // Ochiq pozitsiya bo'lsa PnL va TP/SL tekshirish
   if (state.position) {
     const pos = state.position;
     const cur = livePrices[pos.pair] || pos.entryPrice;
@@ -713,10 +725,15 @@ async function updateBinancePrices() {
   }
 }
 
-document.getElementById('menuBtn').onclick = () => document.getElementById('nav').classList.toggle('open');
+const menuBtn = document.getElementById('menuBtn');
+if (menuBtn) menuBtn.onclick = () => document.getElementById('nav')?.classList.toggle('open');
 window.addEventListener('hashchange', route);
-window.addEventListener('load', () => { updateAvatar(); route(); setInterval(updateBinancePrices, 1000); });
-document.getElementById('modalBack').addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
+window.addEventListener('load', () => { 
+  updateAvatar(); 
+  route(); 
+  setInterval(updateBinancePrices, 1000); 
+});
+document.getElementById('modalBack')?.addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
 </body>
 </html>
