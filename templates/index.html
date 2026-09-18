@@ -91,7 +91,6 @@ tr:last-child td{border-bottom:0}
 .activity:last-child{border:0}
 .activity strong{font-size:12px}
 .activity small{display:block;color:var(--muted);margin-top:2px}
-.progress{height:5px;background:var(--line);border-radius:5px;overflow:hidden}.progress i{display:block;height:100%;background:var(--green)}
 .chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
 .chart iframe{width:100%;height:100%;border:0}
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
@@ -124,53 +123,49 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <button class="iconBtn menu" id="menuBtn">☰</button>
 </div>
 </header>
-<main id="app"></main>
+<main id="app">
+  <!-- Bir zumda ochiladigan bosh sahifa (oq ekranni oldini oladi) -->
+  <section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4"><a class="card navCard" href="#/markets"><div class="bigIcon">◫</div><h3>Markets</h3><small class="muted">Explore market data <span style="float:right">→</span></small></a><a class="card navCard" href="#/trade"><div class="bigIcon">↗</div><h3>Trade</h3><small class="muted">Open trading terminal <span style="float:right">→</span></small></a><a class="card navCard" href="#/leaderboard"><div class="bigIcon">♛</div><h3>Leaderboard</h3><small class="muted">See rankings <span style="float:right">→</span></small></a><a class="card navCard" href="#/web-office"><div class="bigIcon">▦</div><h3>Web Office</h3><small class="muted">Open workspace <span style="float:right">→</span></small></a></section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>
+</main>
 <footer><span>OBSIDIAN LAB © 2026 — A HIGHER STANDARD</span><span>PAPER TRADING · DEMO MARKET DATA</span></footer>
 <div id="modalBack" class="modalBack"><div id="modal" class="modal"></div></div>
 <div id="toast" class="toast"></div>
 
 <script>
 let csrfToken = '';
+const localUser = JSON.parse(localStorage.getItem('obsidian_user') || 'null');
 const state = {
-  user: null,
-  balance: 10000.0,
-  trades: [],
-  position: null
+  user: localUser,
+  balance: Number(localStorage.getItem('obsidian_balance') || 10000.0),
+  trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
+  position: JSON.parse(localStorage.getItem('obsidian_pos') || 'null')
 };
 
-// API so'rov yuboruvchi yagona yordamchi
 async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
   options.headers['Content-Type'] = 'application/json';
   if (csrfToken) options.headers['X-CSRF-Token'] = csrfToken;
   options.credentials = 'same-origin';
-  const res = await fetch(url, options);
-  return await res.json();
+  try {
+    const res = await fetch(url, options);
+    return await res.json();
+  } catch(e) {
+    return { status: 'error', message: e.message };
+  }
 }
 
-async function checkSession() {
-  try {
-    const data = await fetchAPI('/api/session');
-    if (data.csrf) csrfToken = data.csrf;
-    if (data.user) {
+// Orqa fonda sessiyani tekshirish
+function checkSessionBg() {
+  fetchAPI('/api/session').then(data => {
+    if (data && data.csrf) csrfToken = data.csrf;
+    if (data && data.user) {
       state.user = data.user;
       state.balance = Number(data.user.balance || 10000.0);
-      loadAccountData();
+      localStorage.setItem('obsidian_user', JSON.stringify(state.user));
+      localStorage.setItem('obsidian_balance', state.balance);
+      updateAvatar();
     }
-  } catch(e){}
-  updateAvatar();
-}
-
-async function loadAccountData() {
-  try {
-    const data = await fetchAPI('/api/account');
-    if (data.status === 'success') {
-      state.balance = Number(data.balance);
-      state.trades = data.trades || [];
-      const availEl = document.getElementById('avail-balance');
-      if (availEl) availEl.textContent = money(state.balance);
-    }
-  } catch(e){}
+  }).catch(()=>{});
 }
 
 const livePrices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
@@ -189,18 +184,27 @@ const assets = [
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Number(n) < 1 ? 4 : 2 }).format(Number(n) || 0);
 
+function save() {
+  localStorage.setItem('obsidian_user', JSON.stringify(state.user));
+  localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
+  localStorage.setItem('obsidian_balance', state.balance);
+  localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+}
+
 async function syncBalance(newBal) {
   state.balance = newBal;
+  save();
   if (state.user) {
-    await fetchAPI('/api/update_balance', {
+    fetchAPI('/api/update_balance', {
       method: 'POST',
       body: JSON.stringify({ user_id: state.user.id, username: state.user.username, balance: Number(state.balance.toFixed(2)) })
-    });
+    }).catch(()=>{});
   }
 }
 
 function toast(t) {
   const x = document.getElementById('toast');
+  if (!x) return;
   x.textContent = t;
   x.classList.add('show');
   clearTimeout(window.tt);
@@ -260,7 +264,7 @@ function renderMarkets() {
   document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
   const draw = () => {
     const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
-    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] \vert{}\vert{} a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
     document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
   };
   document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
@@ -392,12 +396,6 @@ function renderTrade(sym) {
 
   document.getElementById('tradeForm').onsubmit = async (e) => {
     e.preventDefault();
-    if (!state.user) {
-      toast('Avval tizimga kiring!');
-      go('/login');
-      return;
-    }
-
     const amount = Number(document.getElementById('trade-amount').value);
     if (amount < 10) return toast('Minimal savdo $10!');
     if (amount > state.balance) return toast('Balans yetarli emas!');
@@ -476,7 +474,7 @@ async function fetchLeaderboardData() {
   if (!tbody) return;
   try {
     const data = await fetchAPI(`/api/leaderboard?t=${Date.now()}`);
-    if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
+    if (data && data.status === 'success' && data.leaders && data.leaders.length > 0) {
       tbody.innerHTML = data.leaders.map((u, i) => `
         <tr>
           <td><strong>#${i + 1}</strong></td>
@@ -772,26 +770,26 @@ function renderAuth(p) {
         method: 'POST',
         body: JSON.stringify({ email, password, confirm, name, username })
       });
-      if (res.status === 'success') {
+      if (res && res.status === 'success') {
         toast('Akkaunt yaratildi! Endi kiring.');
         go('/login');
       } else {
-        toast(res.message || 'Xatolik yuz berdi');
+        toast((res && res.message) || 'Xatolik yuz berdi');
       }
     } else {
       const res = await fetchAPI('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
-      if (res.status === 'success') {
+      if (res && res.status === 'success') {
         state.user = res.user;
         state.balance = Number(res.user.balance || 10000.0);
+        save();
         updateAvatar();
-        await loadAccountData();
         toast('Xush kelibsiz!');
         go('/trade');
       } else {
-        toast(res.message || 'Email yoki parol xato');
+        toast((res && res.message) || 'Email yoki parol xato');
       }
     }
   };
@@ -822,10 +820,11 @@ function renderProfile() {
 }
 
 async function logoutUser() {
-  await fetchAPI('/api/auth/logout', { method: 'POST' });
+  fetchAPI('/api/auth/logout', { method: 'POST' }).catch(()=>{});
   state.user = null;
   state.balance = 10000.0;
   state.trades = [];
+  save();
   updateAvatar();
   toast('Tizimdan chiqildi');
   go('/');
@@ -855,6 +854,7 @@ function renderAdmin(p) {
 
 function updateAvatar() {
   const a = document.getElementById('avatar');
+  if (!a) return;
   if (state.user) {
     a.textContent = (state.user.username || 'T')[0].toUpperCase();
     a.href = '#/profile';
@@ -912,14 +912,17 @@ async function updateBinancePrices() {
   }
 }
 
+// DARHOL ISHGA TUSHISH
 const menuBtn = document.getElementById('menuBtn');
 if (menuBtn) menuBtn.onclick = () => document.getElementById('nav')?.classList.toggle('open');
 window.addEventListener('hashchange', route);
-window.addEventListener('load', async () => { 
-  await checkSession();
-  route(); 
-  setInterval(updateBinancePrices, 1000); 
-});
+
+// Kutmasdan darhol yuklash
+updateAvatar();
+route();
+setInterval(updateBinancePrices, 1000);
+checkSessionBg();
+
 document.getElementById('modalBack')?.addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
 </body>
