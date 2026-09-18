@@ -113,20 +113,21 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 </head>
 <body>
 <header>
-<a class="logo" href="#/"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
+<a class="logo" href="#/" onclick="go('/')"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
 <nav id="nav">
-<a data-route="/" href="#/">Home</a><a data-route="/markets" href="#/markets">Markets</a><a data-route="/trade" href="#/trade">Trade</a><a data-route="/leaderboard" href="#/leaderboard">Leaderboard</a><a data-route="/web-office" href="#/web-office">Web Office</a>
+<a data-route="/" href="#/" onclick="go('/')">Home</a>
+<a data-route="/markets" href="#/markets" onclick="go('/markets')">Markets</a>
+<a data-route="/trade" href="#/trade" onclick="go('/trade')">Trade</a>
+<a data-route="/leaderboard" href="#/leaderboard" onclick="go('/leaderboard')">Leaderboard</a>
+<a data-route="/web-office" href="#/web-office" onclick="go('/web-office')">Web Office</a>
 </nav>
 <div class="headRight">
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
-<a id="avatar" class="avatar" href="#/login">↗</a>
+<a id="avatar" class="avatar" href="#/login" onclick="go('/login')">↗</a>
 <button class="iconBtn menu" id="menuBtn">☰</button>
 </div>
 </header>
-<main id="app">
-  <!-- Bir zumda ochiladigan bosh sahifa (oq ekranni oldini oladi) -->
-  <section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4"><a class="card navCard" href="#/markets"><div class="bigIcon">◫</div><h3>Markets</h3><small class="muted">Explore market data <span style="float:right">→</span></small></a><a class="card navCard" href="#/trade"><div class="bigIcon">↗</div><h3>Trade</h3><small class="muted">Open trading terminal <span style="float:right">→</span></small></a><a class="card navCard" href="#/leaderboard"><div class="bigIcon">♛</div><h3>Leaderboard</h3><small class="muted">See rankings <span style="float:right">→</span></small></a><a class="card navCard" href="#/web-office"><div class="bigIcon">▦</div><h3>Web Office</h3><small class="muted">Open workspace <span style="float:right">→</span></small></a></section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>
-</main>
+<main id="app"></main>
 <footer><span>OBSIDIAN LAB © 2026 — A HIGHER STANDARD</span><span>PAPER TRADING · DEMO MARKET DATA</span></footer>
 <div id="modalBack" class="modalBack"><div id="modal" class="modal"></div></div>
 <div id="toast" class="toast"></div>
@@ -154,7 +155,6 @@ async function fetchAPI(url, options = {}) {
   }
 }
 
-// Orqa fonda sessiyani tekshirish
 function checkSessionBg() {
   fetchAPI('/api/session').then(data => {
     if (data && data.csrf) csrfToken = data.csrf;
@@ -211,7 +211,11 @@ function toast(t) {
   window.tt = setTimeout(() => x.classList.remove('show'), 2600);
 }
 
-function go(p) { location.hash = '#' + p; closeModal(); }
+function go(p) {
+  location.hash = '#' + p;
+  closeModal();
+  route();
+}
 
 function route() {
   let raw = location.hash.slice(1) || '/';
@@ -235,7 +239,7 @@ function stat(label, val) {
 }
 
 function assetRow(a) {
-  return `<a href="#/markets/${a[0]}" class="row"><span class="coin">${a[0][0]}</span><span><strong>${a[0]}</strong><small class="muted" style="display:block">${a[1]}</small></span></a>`;
+  return `<a href="#/markets/${a[0]}" onclick="go('/markets/${a[0]}')" class="row"><span class="coin">${a[0][0]}</span><span><strong>${a[0]}</strong><small class="muted" style="display:block">${a[1]}</small></span></a>`;
 }
 
 function render(p) {
@@ -243,7 +247,7 @@ function render(p) {
   if (!app) return;
   
   if (p === '/' || p === '') {
-    app.innerHTML = `<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4">${[['Markets','Explore market data','◫','/markets'],['Trade','Open trading terminal','↗','/trade'],['Leaderboard','See rankings','♛','/leaderboard'],['Web Office','Open workspace','▦','/web-office']].map(x=>`<a class="card navCard" href="#${x[3]}"><div class="bigIcon">${x[2]}</div><h3>${x[0]}</h3><small class="muted">${x[1]} <span style="float:right">→</span></small></a>`).join('')}</section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;
+    app.innerHTML = `<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register" onclick="go('/register')">GET STARTED →</a><a class="btn light" href="#/markets" onclick="go('/markets')">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4"><a class="card navCard" href="#/markets" onclick="go('/markets')"><div class="bigIcon">◫</div><h3>Markets</h3><small class="muted">Explore market data <span style="float:right">→</span></small></a><a class="card navCard" href="#/trade" onclick="go('/trade')"><div class="bigIcon">↗</div><h3>Trade</h3><small class="muted">Open trading terminal <span style="float:right">→</span></small></a><a class="card navCard" href="#/leaderboard" onclick="go('/leaderboard')"><div class="bigIcon">♛</div><h3>Leaderboard</h3><small class="muted">See rankings <span style="float:right">→</span></small></a><a class="card navCard" href="#/web-office" onclick="go('/web-office')"><div class="bigIcon">▦</div><h3>Web Office</h3><small class="muted">Open workspace <span style="float:right">→</span></small></a></section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;
     return;
   }
   if (p === '/markets') { renderMarkets(); return; }
@@ -256,7 +260,7 @@ function render(p) {
   if (p === '/settings' || p.startsWith('/settings/')) { renderSettings(p); return; }
   if (p === '/notifications') { renderNotifications(); return; }
   if (p === '/admin' || p.startsWith('/admin/')) { renderAdmin(p); return; }
-  app.innerHTML = `<div class="empty"><h2>Page not found</h2><a class="btn" href="#/">BACK HOME</a></div>`;
+  app.innerHTML = `<div class="empty"><h2>Page not found</h2><a class="btn" href="#/" onclick="go('/')">BACK HOME</a></div>`;
 }
 
 function renderMarkets() {
@@ -264,7 +268,7 @@ function renderMarkets() {
   document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
   const draw = () => {
     const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
-    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] || a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}\%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}" onclick="go('/markets/${a[0]}')">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
     document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
   };
   document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
@@ -366,61 +370,72 @@ function renderTrade(sym) {
     </div>
   `);
 
-  document.getElementById('btn-side-long').onclick = () => {
-    side = 'LONG';
-    document.getElementById('btn-side-long').classList.add('active');
-    document.getElementById('btn-side-short').classList.remove('active');
-    const b = document.getElementById('exec-btn');
-    b.className = 'btn green'; b.textContent = 'OPEN LONG';
-  };
-  document.getElementById('btn-side-short').onclick = () => {
-    side = 'SHORT';
-    document.getElementById('btn-side-short').classList.add('active');
-    document.getElementById('btn-side-long').classList.remove('active');
-    const b = document.getElementById('exec-btn');
-    b.className = 'btn red'; b.textContent = 'OPEN SHORT';
-  };
+  const btnLong = document.getElementById('btn-side-long');
+  const btnShort = document.getElementById('btn-side-short');
+  if (btnLong) {
+    btnLong.onclick = () => {
+      side = 'LONG';
+      btnLong.classList.add('active');
+      btnShort.classList.remove('active');
+      const b = document.getElementById('exec-btn');
+      b.className = 'btn green'; b.textContent = 'OPEN LONG';
+    };
+  }
+  if (btnShort) {
+    btnShort.onclick = () => {
+      side = 'SHORT';
+      btnShort.classList.add('active');
+      btnLong.classList.remove('active');
+      const b = document.getElementById('exec-btn');
+      b.className = 'btn red'; b.textContent = 'OPEN SHORT';
+    };
+  }
 
   document.querySelectorAll('[data-lev]').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('[data-lev]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       leverage = Number(btn.dataset.lev);
-      document.getElementById('lev-display').textContent = leverage + 'x';
+      const levDisplay = document.getElementById('lev-display');
+      if (levDisplay) levDisplay.textContent = leverage + 'x';
     };
   });
 
   window.setPercent = (p) => {
-    document.getElementById('trade-amount').value = Math.max(10, Math.floor(state.balance * p));
+    const el = document.getElementById('trade-amount');
+    if (el) el.value = Math.max(10, Math.floor(state.balance * p));
   };
 
-  document.getElementById('tradeForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const amount = Number(document.getElementById('trade-amount').value);
-    if (amount < 10) return toast('Minimal savdo $10!');
-    if (amount > state.balance) return toast('Balans yetarli emas!');
+  const tradeForm = document.getElementById('tradeForm');
+  if (tradeForm) {
+    tradeForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const amount = Number(document.getElementById('trade-amount').value);
+      if (amount < 10) return toast('Minimal savdo $10!');
+      if (amount > state.balance) return toast('Balans yetarli emas!');
 
-    if (state.position) closePosition('Oldingi bitim yopildi!');
+      if (state.position) closePosition('Oldingi bitim yopildi!');
 
-    const tpVal = parseFloat(document.getElementById('trade-tp').value) || null;
-    const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
-    const pNow = livePrices[pair] || a[2];
+      const tpVal = parseFloat(document.getElementById('trade-tp').value) || null;
+      const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
+      const pNow = livePrices[pair] || a[2];
 
-    state.position = {
-      symbol: sym,
-      pair: pair,
-      type: side,
-      size: amount,
-      leverage: leverage,
-      entryPrice: pNow,
-      tp: tpVal,
-      sl: slVal
+      state.position = {
+        symbol: sym,
+        pair: pair,
+        type: side,
+        size: amount,
+        leverage: leverage,
+        entryPrice: pNow,
+        tp: tpVal,
+        sl: slVal
+      };
+
+      await syncBalance(state.balance - amount);
+      toast(side + ' bitim ochildi!');
+      renderTrade(sym);
     };
-
-    await syncBalance(state.balance - amount);
-    toast(side + ' bitim ochildi!');
-    renderTrade(sym);
-  };
+  }
 }
 
 window.closePosition = async function(reason = null) {
@@ -501,7 +516,7 @@ const officeItems = [
 ];
 
 function officeSide(active) {
-  return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" class="${active===x[1]?'active':''}">${x[2]}${x[0]}</a>`).join('')}</aside>`;
+  return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" onclick="go('/web-office${x[1]}')" class="${active===x[1]?'active':''}">${x[2]}${x[0]}</a>`).join('')}</aside>`;
 }
 
 function renderOffice(p) {
@@ -526,7 +541,7 @@ function renderOffice(p) {
               <div class="card">
                 <div class="row between">
                   <h2>Trading Journal</h2>
-                  <a href="#/web-office/journal">To'liq jurnal →</a>
+                  <a href="#/web-office/journal" onclick="go('/web-office/journal')">To'liq jurnal →</a>
                 </div>
                 ${closedTrades.length ? closedTrades.slice(-4).reverse().map(t => `
                   <div class="activity row between">
@@ -575,7 +590,7 @@ function renderOffice(p) {
               <div class="card">
                 <div class="row between">
                   <h2>Tezkor Risk Kalkulyatori</h2>
-                  <a href="#/web-office/calculator">Batafsil →</a>
+                  <a href="#/web-office/calculator" onclick="go('/web-office/calculator')">Batafsil →</a>
                 </div>
                 <p class="muted small">Bir bitim uchun ruxsat etilgan maksimal riskni hisoblang:</p>
                 <div class="row" style="margin-top:10px">
@@ -717,7 +732,8 @@ function renderOffice(p) {
 
 window.quickRiskCalc = function(pct) {
   const riskUSD = state.balance * (pct / 100);
-  document.getElementById('quick-risk-result').textContent = `Tavsiya etilgan maksimal zarar: $${riskUSD.toFixed(2)} (${pct}% depozit)`;
+  const res = document.getElementById('quick-risk-result');
+  if (res) res.textContent = `Tavsiya etilgan maksimal zarar: $${riskUSD.toFixed(2)} (${pct}% depozit)`;
 };
 
 window.calcPositionSize = function() {
@@ -730,12 +746,14 @@ window.calcPositionSize = function() {
   const riskUSD = bal * (riskPct / 100);
   const posSize = riskUSD / (slPct / 100);
   const resBox = document.getElementById('calc-result');
-  resBox.style.display = 'block';
-  resBox.innerHTML = `
-    <strong>Maksimal yo‘qotish:</strong> <span class="neg">$${riskUSD.toFixed(2)}</span><br>
-    <strong>Tavsiya etilgan ochiladigan hajm:</strong> <span class="pos">$${posSize.toFixed(2)}</span><br>
-    <small class="muted">Agar narx Stop-Loss masofasiga (${slPct}%) yetsa, siz aynan $${riskUSD.toFixed(2)} yo'qotasiz.</small>
-  `;
+  if (resBox) {
+    resBox.style.display = 'block';
+    resBox.innerHTML = `
+      <strong>Maksimal yo‘qotish:</strong> <span class="neg">$${riskUSD.toFixed(2)}</span><br>
+      <strong>Tavsiya etilgan ochiladigan hajm:</strong> <span class="pos">$${posSize.toFixed(2)}</span><br>
+      <small class="muted">Agar narx Stop-Loss masofasiga (${slPct}%) yetsa, siz aynan $${riskUSD.toFixed(2)} yo'qotasiz.</small>
+    `;
+  }
 };
 
 function renderAuth(p) {
@@ -753,7 +771,7 @@ function renderAuth(p) {
           ${register ? '<label>Confirm Password</label><input id="aconfirm" type="password" required>' : ''}
           <button class="btn green" style="width:100%;margin-top:20px">${login ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
         </form>
-        <p style="margin-top:20px">${login ? 'No account? <a href="#/register"><strong>REGISTER</strong></a>' : 'Already have an account? <a href="#/login"><strong>SIGN IN</strong></a>'}</p>
+        <p style="margin-top:20px">${login ? 'No account? <a href="#/register" onclick="go(\'/register\')"><strong>REGISTER</strong></a>' : 'Already have an account? <a href="#/login" onclick="go(\'/login\')"><strong>SIGN IN</strong></a>'}</p>
       </div>
     </section>`;
 
@@ -858,9 +876,11 @@ function updateAvatar() {
   if (state.user) {
     a.textContent = (state.user.username || 'T')[0].toUpperCase();
     a.href = '#/profile';
+    a.onclick = () => go('/profile');
   } else {
     a.textContent = '↗';
     a.href = '#/login';
+    a.onclick = () => go('/login');
   }
 }
 
@@ -912,12 +932,10 @@ async function updateBinancePrices() {
   }
 }
 
-// DARHOL ISHGA TUSHISH
 const menuBtn = document.getElementById('menuBtn');
 if (menuBtn) menuBtn.onclick = () => document.getElementById('nav')?.classList.toggle('open');
 window.addEventListener('hashchange', route);
 
-// Kutmasdan darhol yuklash
 updateAvatar();
 route();
 setInterval(updateBinancePrices, 1000);
