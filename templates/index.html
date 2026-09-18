@@ -109,6 +109,298 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
  header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
  main{padding:25px 17px 45px}.hero{min-height:510px;align-items:flex-start}.hero h1{font-size:43px;letter-spacing:-2px}.heroArt{bottom:-10px;width:90%;height:340px}.caption{display:none}.g4,.g3,.g2,.officeGrid,.auth{grid-template-columns:1fr}.status{gap:22px;flex-wrap:wrap}.pageHead{align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:0 0 8px;display:flex;overflow:auto}.sidebar h4{display:none}.sidebar a{white-space:nowrap}.auth{margin:0}.authArt{min-height:170px;border-radius:10px 10px 0 0;padding:25px}.authForm{border-radius:0 0 10px 10px;padding:26px}footer{gap:12px;flex-direction:column}
 }
+
+/* =========================================================
+   OBSIDIAN LAB — MOBILE / TABLET RESPONSIVE
+   Desktop layout stays unchanged; mobile gets its own clean
+   compact layout so nothing is squeezed or tilted.
+   ========================================================= */
+@media (max-width: 900px){
+  header{
+    height:64px;
+    padding:0 18px;
+    gap:14px;
+  }
+  .logo{font-size:11px;letter-spacing:1.4px}
+  .logoMark{width:29px;height:29px}
+  nav{
+    gap:18px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    margin-left:auto;
+    margin-right:0;
+  }
+  nav::-webkit-scrollbar{display:none}
+  nav a{
+    font-size:11px;
+    white-space:nowrap;
+    padding:23px 0;
+  }
+  .headRight{gap:5px}
+  main{
+    width:100%;
+    max-width:none;
+    padding:28px 18px 50px;
+    overflow:hidden;
+  }
+  .hero{
+    min-height:430px;
+  }
+  .heroArt{
+    right:-18%;
+    width:82%;
+    opacity:.48;
+  }
+  .heroText{max-width:100%}
+  .hero h1{
+    font-size:clamp(42px,10vw,64px);
+    letter-spacing:-3px;
+  }
+  .grid.g4,
+  .grid.g3,
+  .grid.g2{
+    grid-template-columns:1fr 1fr !important;
+  }
+  .tableWrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+}
+
+@media (max-width: 600px){
+  html,body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  body{
+    font-size:13px;
+  }
+  header{
+    position:sticky;
+    top:0;
+    height:58px;
+    padding:0 12px;
+    gap:9px;
+  }
+  .logo{
+    flex:0 0 auto;
+    gap:7px;
+    font-size:9px;
+    letter-spacing:1px;
+  }
+  .logoMark{
+    width:27px;
+    height:27px;
+    border-radius:6px;
+    font-size:15px;
+  }
+  nav{
+    flex:1 1 auto;
+    min-width:0;
+    gap:15px;
+  }
+  nav a{
+    font-size:10px;
+    padding:20px 0;
+  }
+  .headRight{
+    flex:0 0 auto;
+  }
+  .headRight .iconBtn{
+    padding:5px;
+  }
+  .avatar{
+    width:30px;
+    height:30px;
+    font-size:11px;
+  }
+
+  main{
+    padding:22px 13px 38px;
+    min-height:calc(100vh - 100px);
+  }
+
+  .hero{
+    min-height:560px;
+    display:block;
+    padding-top:42px;
+  }
+  .heroText{
+    position:relative;
+    z-index:5;
+    max-width:100%;
+  }
+  .eyebrow{
+    font-size:9px;
+    letter-spacing:1.6px;
+  }
+  .hero h1{
+    font-size:clamp(42px,14vw,62px);
+    line-height:.98;
+    letter-spacing:-3px;
+    margin:18px 0;
+  }
+  .hero p{
+    max-width:330px;
+    font-size:13px;
+    line-height:1.7;
+  }
+  .heroArt{
+    right:-27%;
+    bottom:-25px;
+    width:105%;
+    height:420px;
+    opacity:.28;
+  }
+  .caption{
+    right:7%;
+    top:auto;
+    bottom:75px;
+    font-size:8px;
+  }
+
+  /* Cards and grids become one clean column. */
+  .grid.g4,
+  .grid.g3,
+  .grid.g2,
+  .g4,.g3,.g2{
+    grid-template-columns:1fr !important;
+  }
+  .card{
+    width:100%;
+    min-width:0;
+    padding:16px;
+    border-radius:8px;
+  }
+  .card h2{
+    font-size:16px;
+  }
+
+  /* Trade page: chart first, controls below; no squeezed desktop columns. */
+  .tradeLayout,
+  .tradeGrid,
+  .marketLayout,
+  .officeLayout,
+  .contentGrid{
+    display:flex !important;
+    flex-direction:column !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+  .tradeLayout > *,
+  .tradeGrid > *,
+  .marketLayout > *,
+  .officeLayout > *,
+  .contentGrid > *{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+
+  /* Forms */
+  form{
+    width:100%;
+    min-width:0;
+  }
+  input,select,textarea{
+    width:100%;
+    max-width:100%;
+    min-height:42px;
+  }
+  .row{
+    min-width:0;
+    flex-wrap:wrap;
+  }
+  .row.between{
+    gap:10px;
+  }
+  .row > *{
+    min-width:0;
+  }
+  .btn{
+    min-height:42px;
+    padding:11px 14px;
+  }
+
+  /* Position action buttons stack instead of overflowing. */
+  #active-pos-box .row.between{
+    align-items:flex-start;
+  }
+  #active-pos-box .row.between > .row{
+    width:100%;
+  }
+  #active-pos-box .row.between > .row .btn{
+    flex:1 1 140px;
+  }
+
+  /* Tables are intentionally scrollable, never squeezed. */
+  .tableWrap{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    border-radius:8px;
+  }
+  table{
+    min-width:620px;
+  }
+
+  /* Charts/iframes/media */
+  iframe,canvas,video{
+    max-width:100%;
+  }
+  .chart,
+  .chartBox{
+    width:100% !important;
+    min-width:0 !important;
+    overflow:hidden;
+  }
+
+  /* Modals fit inside phone viewport. */
+  .modalBack{
+    padding:12px;
+  }
+  .modal{
+    width:min(100%,520px) !important;
+    max-width:100% !important;
+    max-height:90vh;
+    overflow:auto;
+    margin:0;
+    border-radius:10px;
+  }
+
+  footer{
+    padding:18px 13px !important;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+}
+
+@media (max-width: 380px){
+  header{
+    padding:0 9px;
+  }
+  nav{
+    gap:11px;
+  }
+  nav a{
+    font-size:9px;
+  }
+  main{
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .hero{
+    min-height:530px;
+  }
+  .hero h1{
+    font-size:40px;
+  }
+  .btn{
+    width:100%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -404,8 +696,11 @@ function renderTrade(sym) {
 
     <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.position ? 'block' : 'none'}">
       <div class="row between">
-        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' : ''}</span></h2>
-        <button class="btn red" style="padding:6px 12px" onclick="closePosition()">CLOSE POSITION ✕</button>
+        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' + (state.position.frozen ? ' · FROZEN' : '') : ''}</span></h2>
+        <div class="row" style="gap:8px">
+          <button class="btn light" style="padding:6px 12px" onclick="toggleFreezePosition()">${state.position?.frozen ? 'UNFREEZE ▶' : 'FREEZE ❄'}</button>
+          <button class="btn red" style="padding:6px 12px" onclick="closePosition()">CLOSE POSITION ✕</button>
+        </div>
       </div>
       <div class="grid g4" style="margin-top:12px">
         <div><small class="muted">Size</small><div id="pos-size-val"><strong>${state.position ? money(state.position.size) : '$0'}</strong></div></div>
@@ -505,10 +800,31 @@ function renderTrade(sym) {
   }
 }
 
+window.toggleFreezePosition = async function() {
+  if (!state.position) return;
+
+  const frozen = !Boolean(state.position.frozen);
+  const livePrice = livePrices[state.position.pair] || state.position.entryPrice;
+
+  const res = await fetchAPI('/api/paper/freeze', {
+    method: 'POST',
+    body: JSON.stringify({ frozen, livePrice })
+  });
+
+  if (res.status !== 'success') {
+    return toast(res.message || 'Freeze ishlamadi');
+  }
+
+  state.position = res.position;
+  localStorage.setItem('obsidian_pos', JSON.stringify(state.position));
+  toast(frozen ? 'Position FROZEN ❄' : 'Position UNFROZEN ▶');
+  render(location.hash.slice(1) || '/trade');
+};
+
 window.closePosition = async function(reason = null) {
   if (!state.position) return;
   const p = state.position;
-  const live = livePrices[p.pair] || p.entryPrice;
+  const live = p.frozen ? Number(p.frozenPrice || p.entryPrice) : (livePrices[p.pair] || p.entryPrice);
 
   const res = await fetchAPI('/api/paper/close', {
     method: 'POST',
@@ -1011,5 +1327,19 @@ setTimeout(() => {
 
 document.getElementById('modalBack')?.addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
+
+<script>
+(function(){
+  function mobileLayoutFix(){
+    document.documentElement.style.setProperty('--vw-safe', Math.min(window.innerWidth, 1000) + 'px');
+  }
+  mobileLayoutFix();
+  window.addEventListener('resize', mobileLayoutFix, {passive:true});
+  window.addEventListener('orientationchange', function(){
+    setTimeout(mobileLayoutFix, 150);
+  }, {passive:true});
+})();
+</script>
+
 </body>
 </html>
