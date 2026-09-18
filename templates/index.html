@@ -477,7 +477,7 @@ function renderTrade(sym) {
         ${state.trades.length ? state.trades.slice(-6).reverse().map(t => `
           <div class="activity row between">
             <span><strong>${t.side}</strong> ${t.amount}${t.asset || t.symbol}</span>
-            <span class="${(t.pnl\vert{}\vert{}0)>=0?'pos':'neg'}">${t.pnl !== undefined ? money(t.pnl) : 'OPEN'}</span>
+            <span class="${(t.pnl||0)>=0?'pos':'neg'}">${t.pnl !== undefined ? money(t.pnl) : 'OPEN'}</span>
           </div>
         `).join('') : '<div class="empty">No paper trades yet.</div>'}
       </div>
@@ -977,7 +977,7 @@ function renderSettings(p) {
   document.getElementById('app').innerHTML = `
     <div class="workspace">
       <aside class="sidebar"><h4>SETTINGS</h4><a href="#/settings/profile" class="active">Profile</a></aside>
-      <section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username \vert{}\vert{} 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section>
+      <section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username || 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section>
     </div>`;
 }
 
@@ -987,7 +987,7 @@ function renderNotifications() {
       ${state.trades.length ? state.trades.slice(-10).reverse().map(t => `
         <div class="activity">
           <strong>Bitim qayd etildi</strong>
-          <small>${t.side}${t.amount} ${t.asset \vert{}\vert{} t.symbol} ·${new Date(t.created_at || Date.now()).toLocaleString()}</small>
+          <small>${t.side}${t.amount} ${t.asset || t.symbol} ·${new Date(t.created_at || Date.now()).toLocaleString()}</small>
         </div>
       `).join('') : '<div class="empty">Xabarlar yo‘q.</div>'}
     </div>
