@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OBSIDIAN LAB — Build. Trade. Compete.</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
  --bg:#e7e3da;--card:#f1eee7;--ink:#151515;--muted:#77756e;--line:#d1cdc3;
@@ -45,6 +46,7 @@ clip-path:polygon(13% 100%,25% 67%,35% 60%,40% 40%,50% 32%,55% 16%,63% 7%,70% 13
 .btn:hover{transform:translateY(-1px);opacity:.87}
 .btn.light{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn.green{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.btn.red{background:var(--red);color:#fff;border-color:var(--red)}
 .grid{display:grid;gap:18px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
@@ -93,8 +95,8 @@ tr:last-child td{border-bottom:0}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .day{min-height:83px;border:1px solid var(--line);padding:7px;border-radius:4px;font-size:10px}
 .event{display:block;background:rgba(184,255,61,.3);padding:3px;margin-top:5px}
-.chart{height:300px;position:relative;overflow:hidden}
-.chart svg{width:100%;height:100%}
+.chart{height:380px;position:relative;overflow:hidden;border-radius:8px}
+.chart iframe{width:100%;height:100%;border:0}
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
 .authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
 .authForm{background:var(--card);padding:42px;border-radius:0 10px 10px 0}
@@ -106,7 +108,6 @@ tr:last-child td{border-bottom:0}
 .toast.show{display:block}
 footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:1px}
 .empty{text-align:center;padding:50px;color:var(--muted)}
-.hide{display:none!important}
 @media(max-width:1050px){nav{gap:17px}.g4{grid-template-columns:repeat(2,1fr)}.officeGrid{grid-template-columns:1fr 1fr}.terminal{grid-template-columns:1fr!important}.heroArt{opacity:.35;width:70%}}
 @media(max-width:720px){
  header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
@@ -132,121 +133,590 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <div id="toast" class="toast"></div>
 
 <script>
-const state={user:JSON.parse(localStorage.getItem('obsidian_user')||'null'),trades:JSON.parse(localStorage.getItem('obsidian_trades')||'[]'),balance:Number(localStorage.getItem('obsidian_balance')||100000),tasks:JSON.parse(localStorage.getItem('obsidian_tasks')||'[]'),projects:JSON.parse(localStorage.getItem('obsidian_projects')||'[]'),events:JSON.parse(localStorage.getItem('obsidian_events')||'[]')};
-const assets=[
-['BTC','Bitcoin',67843.20,2.41,'92.8B'],['ETH','Ethereum',3241.10,1.18,'12.1B'],['SOL','Solana',154.32,-0.82,'4.08B'],['BNB','BNB',583.44,.56,'3.10B'],['XRP','XRP',.6121,3.12,'2.98B'],['ADA','Cardano',.4233,-1.04,'1.78B'],['DOGE','Dogecoin',.1582,1.30,'1.48B'],['AVAX','Avalanche',28.41,2.18,'1.28B']
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.expand(); tg.ready(); }
+
+function getTelegramUID() {
+  if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
+  let id = localStorage.getItem('obs_tma_uid') || ('tg_' + Math.floor(Math.random() * 899999 + 100000));
+  localStorage.setItem('obs_tma_uid', id);
+  return id;
+}
+function getTelegramUsername() {
+  if (tg?.initDataUnsafe?.user?.username) return '@' + tg.initDataUnsafe.user.username;
+  if (tg?.initDataUnsafe?.user?.first_name) return tg.initDataUnsafe.user.first_name;
+  return localStorage.getItem('obs_tma_username') || '@trader';
+}
+
+const currentUserId = getTelegramUID();
+let currentUsername = getTelegramUsername();
+
+const state = {
+  user: JSON.parse(localStorage.getItem('obsidian_user') || 'null') || { id: currentUserId, username: currentUsername, name: currentUsername },
+  trades: JSON.parse(localStorage.getItem('obsidian_trades') || '[]'),
+  balance: Number(localStorage.getItem(`obs_bal_${currentUserId}`) || 10000),
+  position: JSON.parse(localStorage.getItem(`obs_pos_${currentUserId}`) || 'null'),
+  tasks: JSON.parse(localStorage.getItem('obsidian_tasks') || '[]'),
+  projects: JSON.parse(localStorage.getItem('obsidian_projects') || '[]'),
+  events: JSON.parse(localStorage.getItem('obsidian_events') || '[]')
+};
+
+const livePrices = { BTCUSDT: 78100.0, ETHUSDT: 2500.0 };
+
+const assets = [
+  ['BTC', 'Bitcoin', 78100.0, 2.41, '92.8B'],
+  ['ETH', 'Ethereum', 2500.0, 1.18, '12.1B'],
+  ['SOL', 'Solana', 154.32, -0.82, '4.08B'],
+  ['BNB', 'BNB', 583.44, 0.56, '3.10B'],
+  ['XRP', 'XRP', 0.6121, 3.12, '2.98B'],
+  ['ADA', 'Cardano', 0.4233, -1.04, '1.78B'],
+  ['DOGE', 'Dogecoin', 0.1582, 1.30, '1.48B'],
+  ['AVAX', 'Avalanche', 28.41, 2.18, '1.28B']
 ];
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Number(n)<1?4:2}).format(Number(n)||0);
-function save(){localStorage.setItem('obsidian_user',JSON.stringify(state.user));localStorage.setItem('obsidian_trades',JSON.stringify(state.trades));localStorage.setItem('obsidian_balance',state.balance);localStorage.setItem('obsidian_tasks',JSON.stringify(state.tasks));localStorage.setItem('obsidian_projects',JSON.stringify(state.projects));localStorage.setItem('obsidian_events',JSON.stringify(state.events))}
-function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove('show'),2600)}
-function go(p){location.hash='#'+p;closeModal()}
-function route(){const p=(location.hash.slice(1)||'/').split('?')[0]||'/';document.querySelectorAll('[data-route]').forEach(a=>a.classList.toggle('active',a.dataset.route===p||(a.dataset.route!=='/'&&p.startsWith(a.dataset.route))));document.getElementById('nav').classList.remove('open');render(p)}
-function shell(title,sub,body,actions=''){return `<div class="pageHead"><div><div class="eyebrow">${title==='Web Office'?'WORK / PLAN / BUILD':'OBSIDIAN LAB'}</div><h1>${title}</h1><p>${sub}</p></div>${actions}</div>${body}`}
-function stat(label,val){return `<div class="card"><div class="statVal">${esc(val)}</div><div class="statLabel">${esc(label)}</div></div>`}
-function assetRow(a){return `<a href="#/markets/${a[0]}" class="row"><span class="coin">${a[0][0]}</span><span><strong>${a[0]}</strong><small class="muted" style="display:block">${a[1]}</small></span></a>`}
-function render(p){
-const app=document.getElementById('app');
-if(p==='/'){app.innerHTML=`<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4">${[['Markets','Explore market data','◫','/markets'],['Trade','Open trading terminal','↗','/trade'],['Leaderboard','See rankings','♛','/leaderboard'],['Web Office','Open workspace','▦','/web-office']].map(x=>`<a class="card navCard" href="#${x[3]}"><div class="bigIcon">${x[2]}</div><h3>${x[0]}</h3><small class="muted">${x[1]} <span style="float:right">→</span></small></a>`).join('')}</section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>DEMO DATA</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;return}
-if(p==='/markets'){renderMarkets();return}
-if(p.startsWith('/markets/')){renderTrade(p.split('/')[2].toUpperCase());return}
-if(p==='/trade'){renderTrade('BTC');return}
-if(p==='/leaderboard'){renderLeaderboard();return}
-if(p==='/web-office'||p.startsWith('/web-office/')){renderOffice(p);return}
-if(p==='/login'||p==='/register'||p==='/forgot-password'){renderAuth(p);return}
-if(p==='/profile'||p.startsWith('/profile/')){renderProfile();return}
-if(p==='/settings'||p.startsWith('/settings/')){renderSettings(p);return}
-if(p==='/notifications'){renderNotifications();return}
-if(p==='/admin'||p.startsWith('/admin/')){renderAdmin(p);return}
-app.innerHTML=`<div class="empty"><h2>Page not found</h2><a class="btn" href="#/">BACK HOME</a></div>`;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Number(n) < 1 ? 4 : 2 }).format(Number(n) || 0);
+
+function save() {
+  localStorage.setItem('obsidian_user', JSON.stringify(state.user));
+  localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
+  localStorage.setItem(`obs_bal_${currentUserId}`, state.balance);
+  localStorage.setItem(`obs_pos_${currentUserId}`, JSON.stringify(state.position));
+  localStorage.setItem('obsidian_tasks', JSON.stringify(state.tasks));
+  localStorage.setItem('obsidian_projects', JSON.stringify(state.projects));
+  localStorage.setItem('obsidian_events', JSON.stringify(state.events));
 }
-function renderMarkets(){
-let q='';let cat='All';
-document.getElementById('app').innerHTML=shell('Markets','Market overview — demonstration prices',`<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Prices are synthetic demo data. No live exchange connection is active.</p>`);
-const draw=()=>{const rows=assets.filter(a=>(cat==='All'||cat==='Crypto')&&(a[0]+' '+a[1]).toLowerCase().includes(q));document.getElementById('mt').innerHTML=`<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td>${money(a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">DEMO</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{cat=b.dataset.cat;draw()})};
-document.getElementById('mq').oninput=e=>{q=e.target.value.toLowerCase();draw()};draw()
+
+async function syncWithSheets() {
+  try {
+    await fetch('/api/update_balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: currentUserId, username: state.user.username, balance: Number(state.balance.toFixed(2)) })
+    });
+  } catch (e) {}
 }
-function lineChart(values){
-const w=800,h=270,p=15,min=Math.min(...values),max=Math.max(...values),range=max-min||1;
-const pts=values.map((v,i)=>`${p+i*(w-2*p)/(values.length-1)},${h-p-(v-min)/range*(h-2*p)}`).join(' ');
-return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M ${pts}" fill="none" stroke="#477743" stroke-width="3"/><path d="M ${pts} L ${w-p},${h} L ${p},${h} Z" fill="#477743" opacity=".08"/></svg>`
+
+function toast(t) {
+  const x = document.getElementById('toast');
+  x.textContent = t;
+  x.classList.add('show');
+  clearTimeout(window.tt);
+  window.tt = setTimeout(() => x.classList.remove('show'), 2600);
 }
-function renderTrade(sym){
-const a=assets.find(x=>x[0]===sym)||assets[0];let side='BUY',type='MARKET';
-const history=Array.from({length:50},(_,i)=>a[2]*(1+.018*Math.sin(i*.45)+.0005*i));
-document.getElementById('app').innerHTML=shell(sym+' / USDT',a[1]+' · PAPER TRADING · DEMO QUOTES',`<div class="grid" style="grid-template-columns:180px minmax(0,1fr) 285px"><aside class="card"><h3>Markets</h3>${assets.map(assetRow).join('')}</aside><section class="card"><div class="row between"><div style="font-size:32px;font-weight:700">${money(a[2])}</div><span class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</span></div><div class="chart">${lineChart(history)}</div><div class="row between muted small"><span>Volume ${a[4]}</span><span>DEMO MARKET</span></div></section><aside class="card"><h3>Trade</h3><div class="tabs"><button class="tab active" id="buy">BUY</button><button class="tab" id="sell">SELL</button></div><div class="tabs"><button class="tab active" id="market">MARKET</button><button class="tab" id="limit">LIMIT</button></div><form id="tradeForm"><label>Amount · ${sym}</label><input id="amount" type="number" step="any" min="0" placeholder="0.00" required><label>Price · USDT</label><input id="price" type="number" step="any" value="${a[2]}" ${type==='MARKET'?'disabled':''} required><p class="row between"><span class="muted">Available</span><strong>${money(state.balance)}</strong></p><button class="btn green full" style="width:100%">PLACE PAPER ORDER</button></form><p class="small muted" style="margin-top:15px">No real money. Long-only paper simulation.</p></aside></div><div class="tabs" style="margin-top:22px"><button class="tab active">Open Orders</button><button class="tab">Order History</button><button class="tab">Positions</button><button class="tab">Overview</button></div><div class="card"><h2>Recent activity</h2>${state.trades.length?state.trades.slice(-6).reverse().map(t=>`<div class="activity row between"><span><strong>${t.side}</strong> ${t.amount} ${t.symbol}</span><span>${money(t.price)}</span></div>`).join(''): '<div class="empty">No paper trades yet.</div>'}</div>`);
-document.getElementById('buy').onclick=()=>{side='BUY';document.getElementById('buy').classList.add('active');document.getElementById('sell').classList.remove('active')};
-document.getElementById('sell').onclick=()=>{side='SELL';document.getElementById('sell').classList.add('active');document.getElementById('buy').classList.remove('active')};
-document.getElementById('market').onclick=()=>{type='MARKET';document.getElementById('price').disabled=true;document.getElementById('price').value=a[2];document.getElementById('market').classList.add('active');document.getElementById('limit').classList.remove('active')};
-document.getElementById('limit').onclick=()=>{type='LIMIT';document.getElementById('price').disabled=false;document.getElementById('limit').classList.add('active');document.getElementById('market').classList.remove('active')};
-document.getElementById('tradeForm').onsubmit=e=>{e.preventDefault();if(!state.user){go('/login?next=/trade');toast('Sign in first');return}const amount=Number(document.getElementById('amount').value),price=Number(document.getElementById('price').value||a[2]);if(amount<=0||price<=0)return toast('Enter a valid amount and price');const total=amount*price;if(side==='BUY'&&total>state.balance)return toast('Insufficient paper balance');if(side==='BUY')state.balance-=total;else state.balance+=total;state.trades.push({symbol:sym,side,amount,price,total,time:new Date().toISOString()});save();toast(side+' order filled');renderTrade(sym)}
+
+function go(p) { location.hash = '#' + p; closeModal(); }
+function route() {
+  const p = (location.hash.slice(1) || '/').split('?')[0] || '/';
+  document.querySelectorAll('[data-route]').forEach(a => a.classList.toggle('active', a.dataset.route === p || (a.dataset.route !== '/' && p.startsWith(a.dataset.route))));
+  document.getElementById('nav').classList.remove('open');
+  render(p);
 }
-function renderLeaderboard(){
-document.getElementById('app').innerHTML=shell('Leaderboard','Top paper traders on Obsidian Lab',`<div class="tabs"><button class="tab active">ALL TIME</button><button class="tab">MONTHLY</button><button class="tab">WEEKLY</button><button class="tab">TODAY</button></div><div class="tableWrap"><table><thead><tr><th>RANK</th><th>TRADER</th><th>REALIZED PROFIT</th><th>TRADES</th><th>WIN RATE</th><th>POINTS</th></tr></thead><tbody>${[['Jasur','+$18,420','142','71.2%','12,840'],['Alex','+$12,810','118','68.4%','10,440'],['Whale','+$9,740','91','66.8%','8,920'],['Sigma','+$7,230','76','64.1%','7,540'],['Faridov','+$5,110','62','61.3%','6,220']].map((x,i)=>`<tr><td><strong>#${i+1}</strong></td><td><a href="#/profile/${i+1}" class="row"><span class="avatar">${x[0][0]}</span><strong>${x[0]}</strong></a></td><td class="pos">${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td></tr>`).join('')}</tbody></table></div>`)
+
+function shell(title, sub, body, actions = '') {
+  return `<div class="pageHead"><div><div class="eyebrow">${title === 'Web Office' ? 'WORK / PLAN / BUILD' : 'OBSIDIAN LAB'}</div><h1>${title}</h1><p>${sub}</p></div>${actions}</div>${body}`;
 }
-const officeItems=[['Overview','','▦'],['Tasks','/tasks','☷'],['Projects','/projects','□'],['Team','/team','♙'],['Documents','/documents','▤'],['Calendar','/calendar','□'],['Analytics','/analytics','⌁']];
-function officeSide(active){return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" class="${active===x[1]?'active':''}">${x[2]} ${x[0]}</a>`).join('')}</aside>`}
-function renderOffice(p){
-const s=p.split('/')[2]||'';
-if(!s){document.getElementById('app').innerHTML=`<div class="workspace">${officeSide('')}<section>${shell('Web Office','Your workspace at a glance',`<div class="grid g4 stats">${stat('Active tasks',state.tasks.filter(x=>x.status!=='DONE').length)}${stat('Ongoing projects',state.projects.length)}${stat('Team members',5)}${stat('Completion rate',state.tasks.length?Math.round(state.tasks.filter(x=>x.status==='DONE').length/state.tasks.length*100)+'%':'0%')}</div><div class="officeGrid" style="margin-top:18px"><div class="card"><div class="row between"><h2>Recent Activity</h2><a href="#/web-office/tasks">View all →</a></div>${state.tasks.slice(0,5).map(t=>`<div class="activity"><strong>${esc(t.title)}</strong><small>${esc(t.status||'TODO')}</small></div>`).join('')||'<div class="empty">Create your first task.</div>'}</div><div class="card"><h2>Upcoming</h2>${state.events.slice(0,5).map(e=>`<div class="activity"><strong>${esc(e.title)}</strong><small>${esc(e.date)}</small></div>`).join('')||'<div class="empty">No upcoming events.</div>'}</div><div class="card"><h2>September 2026</h2><div class="calendar">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${i===15?'<span class="event">Team sync</span>':''}${i===17?'<span class="event">Review</span>':''}</div>`).join('')}</div></div></div><div class="grid g2" style="margin-top:18px"><div class="card"><h2>Active Projects</h2>${[['Obsidian Terminal',78],['AI Trading Assistant',45],['Web Office v1.0',90],['Mobile App',20]].map(x=>`<div class="activity"><div class="row between"><strong>${x[0]}</strong><span>${x[1]}%</span></div><div class="progress"><i style="width:${x[1]}%"></i></div></div>`).join('')}</div><div class="card"><h2>Team Members</h2>${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy'],['Faridov','Frontend Developer','Online'],['Sigma','Community Manager','Offline']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div></div>`)} </section></div>`;return}
-if(s==='tasks'||s==='projects'||s==='team'||s==='documents'||s==='calendar'||s==='analytics'){renderOfficeSection(s);return}
+
+function stat(label, val) {
+  return `<div class="card"><div class="statVal">${esc(val)}</div><div class="statLabel">${esc(label)}</div></div>`;
 }
-function renderOfficeSection(s){
-let title=s[0].toUpperCase()+s.slice(1), content='';
-if(s==='tasks')content=`<div class="row between"><p class="muted">Plan and track your work.</p><button class="btn" onclick="newOffice('task')">+ NEW TASK</button></div><div class="grid g3" style="margin-top:20px">${['TODO','IN PROGRESS','DONE'].map(st=>`<div><div class="eyebrow">${st}</div>${state.tasks.filter(t=>t.status===st).map(t=>`<div class="card" style="margin-top:10px"><strong>${esc(t.title)}</strong><p class="small muted">${esc(t.description||'')}</p><span class="badge">${esc(t.priority||'MEDIUM')}</span><div class="row" style="margin-top:12px"><button class="btn light" style="padding:6px 9px" onclick="editTask('${t.id}')">EDIT</button><button class="btn light" style="padding:6px 9px" onclick="deleteTask('${t.id}')">DELETE</button></div></div>`).join('')||'<div class="empty">No tasks</div>'}</div>`).join('')}</div>`;
-if(s==='projects')content=`<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description||'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress||0}% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
-if(s==='team')content=`<div class="card">${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy'],['Faridov','Frontend Developer','Online'],['Sigma','Community Manager','Offline']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div>`;
-if(s==='documents')content=`<div class="card"><h2>Documents</h2><p class="muted">Local workspace documents.</p><button class="btn" onclick="newOffice('document')">+ NEW DOCUMENT</button><div class="empty">No documents yet.</div></div>`;
-if(s==='calendar')content=`<div class="card"><div class="row between"><h2>Calendar</h2><button class="btn" onclick="newOffice('event')">+ NEW EVENT</button></div><div class="calendar" style="margin-top:18px">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${state.events.filter(e=>Number(e.day)===i+1).map(e=>`<span class="event">${esc(e.title)}</span>`).join('')}</div>`).join('')}</div></div>`;
-if(s==='analytics')content=`<div class="grid g3 stats">${stat('Tasks completed',state.tasks.filter(t=>t.status==='DONE').length)}${stat('Projects',state.projects.length)}${stat('Paper trades',state.trades.length)}</div><div class="card" style="margin-top:18px"><h2>Trading performance</h2><div class="chart">${lineChart(Array.from({length:35},(_,i)=>i*1.5+Math.sin(i*.6)*7))}</div></div>`;
-document.getElementById('app').innerHTML=`<div class="workspace">${officeSide('/'+s)}<section>${shell(title,'Web Office workspace',content)}</section></div>`
+
+function assetRow(a) {
+  return `<a href="#/markets/${a[0]}" class="row"><span class="coin">${a[0][0]}</span><span><strong>${a[0]}</strong><small class="muted" style="display:block">${a[1]}</small></span></a>`;
 }
-function newOffice(type){
-let title=type==='task'?'New task':type==='project'?'New project':type==='event'?'New event':'New document';
-showModal(`<h2>${title}</h2><label>Title</label><input id="omTitle"><label>Description</label><textarea id="omDesc"></textarea>${type==='task'?'<label>Status</label><select id="omStatus"><option>TODO</option><option>IN PROGRESS</option><option>DONE</option></select>':''}${type==='project'?'<label>Progress %</label><input id="omProgress" type="number" min="0" max="100" value="0">':''}${type==='event'?'<label>Day in September</label><input id="omDay" type="number" min="1" max="30" value="16">':''}<button class="btn green" style="width:100%;margin-top:20px" onclick="saveOffice('${type}')">SAVE</button>`)
+
+function render(p) {
+  const app = document.getElementById('app');
+  if (p === '/') {
+    app.innerHTML = `<section class="hero"><div class="heroText"><span class="eyebrow"><span class="dot"></span>SYSTEM ONLINE</span><h1>Build. Trade. Compete.</h1><p>A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.</p><div class="row" style="margin-top:27px"><a class="btn" href="#/register">GET STARTED →</a><a class="btn light" href="#/markets">EXPLORE MARKETS</a></div></div><div class="heroArt"></div><div class="caption">DISCIPLINE<br>CREATES<br>FREEDOM</div></section><section class="grid g4">${[['Markets','Explore market data','◫','/markets'],['Trade','Open trading terminal','↗','/trade'],['Leaderboard','See rankings','♛','/leaderboard'],['Web Office','Open workspace','▦','/web-office']].map(x=>`<a class="card navCard" href="#${x[3]}"><div class="bigIcon">${x[2]}</div><h3>${x[0]}</h3><small class="muted">${x[1]} <span style="float:right">→</span></small></a>`).join('')}</section><div class="status"><div><small><span class="dot"></span>SYSTEM</small><strong>ONLINE</strong></div><div><small><span class="dot"></span>MARKET</small><strong>BINANCE LIVE FEED</strong></div><div><small><span class="dot"></span>TRADING</small><strong>PAPER ONLY</strong></div></div>`;
+    return;
+  }
+  if (p === '/markets') { renderMarkets(); return; }
+  if (p.startsWith('/markets/')) { renderTrade(p.split('/')[2].toUpperCase()); return; }
+  if (p === '/trade') { renderTrade('BTC'); return; }
+  if (p === '/leaderboard') { renderLeaderboard(); return; }
+  if (p === '/web-office' || p.startsWith('/web-office/')) { renderOffice(p); return; }
+  if (p === '/login' || p === '/register' || p === '/forgot-password') { renderAuth(p); return; }
+  if (p === '/profile' || p.startsWith('/profile/')) { renderProfile(); return; }
+  if (p === '/settings' || p.startsWith('/settings/')) { renderSettings(p); return; }
+  if (p === '/notifications') { renderNotifications(); return; }
+  if (p === '/admin' || p.startsWith('/admin/')) { renderAdmin(p); return; }
+  app.innerHTML = `<div class="empty"><h2>Page not found</h2><a class="btn" href="#/">BACK HOME</a></div>`;
 }
-function saveOffice(type){
-const title=document.getElementById('omTitle').value.trim();if(!title)return toast('Title required');
-if(type==='task')state.tasks.push({id:Date.now()+'',title,description:document.getElementById('omDesc').value,status:document.getElementById('omStatus').value,priority:'MEDIUM'});
-if(type==='project')state.projects.push({id:Date.now()+'',title,description:document.getElementById('omDesc').value,progress:Number(document.getElementById('omProgress').value)||0});
-if(type==='event')state.events.push({id:Date.now()+'',title,day:Number(document.getElementById('omDay').value)||16,date:'2026-09-'+String(Number(document.getElementById('omDay').value)||16).padStart(2,'0')});
-save();closeModal();toast('Saved');render(location.hash.slice(1)||'/web-office')
+
+function renderMarkets() {
+  let q = ''; let cat = 'All';
+  document.getElementById('app').innerHTML = shell('Markets', 'Market overview — live and demonstration prices', `<div class="row between"><input id="mq" class="search" placeholder="Search assets, pairs…"><div class="tabs" id="cats">${['All','Crypto','Forex','Stocks','Commodities'].map(x=>`<button class="tab ${x===cat?'active':''}" data-cat="${x}">${x}</button>`).join('')}</div></div><div id="mt"></div><p class="muted small" style="margin-top:18px">Live quotes from Binance API & Synthetic demo feed.</p>`);
+  const draw = () => {
+    const rows = assets.filter(a => (cat === 'All' || cat === 'Crypto') && (a[0] + ' ' + a[1]).toLowerCase().includes(q));
+    document.getElementById('mt').innerHTML = `<div class="tableWrap"><table><thead><tr><th>ASSET</th><th>PRICE</th><th>24H</th><th>VOLUME</th><th>STATUS</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr><td>${assetRow(a)}</td><td id="m-price-${a[0]}">${money(livePrices[a[0]+'USDT'] \vert{}\vert{} a[2])}</td><td class="${a[3]>=0?'pos':'neg'}">${a[3]>0?'+':''}${a[3]}%</td><td>${a[4]}</td><td><span class="badge">LIVE</span></td><td><a class="btn light" style="padding:7px 10px" href="#/markets/${a[0]}">VIEW →</a></td></tr>`).join('')}</tbody></table></div>`;
+    document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
+  };
+  document.getElementById('mq').oninput = e => { q = e.target.value.toLowerCase(); draw(); };
+  draw();
 }
-function editTask(id){const t=state.tasks.find(x=>x.id===id);showModal(`<h2>Edit task</h2><label>Title</label><input id="et" value="${esc(t.title)}"><label>Status</label><select id="es"><option ${t.status==='TODO'?'selected':''}>TODO</option><option ${t.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option ${t.status==='DONE'?'selected':''}>DONE</option></select><button class="btn green" style="width:100%;margin-top:20px" onclick="updateTask('${id}')">SAVE</button>`)}
-function updateTask(id){const t=state.tasks.find(x=>x.id===id);t.title=document.getElementById('et').value;t.status=document.getElementById('es').value;save();closeModal();render('/web-office/tasks')}
-function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);save();render('/web-office/tasks')}
-function deleteProject(id){state.projects=state.projects.filter(x=>x.id!==id);save();render('/web-office/projects')}
-function showModal(html){document.getElementById('modal').innerHTML=`<div class="row between"><span></span><button class="iconBtn" onclick="closeModal()">✕</button></div>${html}`;document.getElementById('modalBack').classList.add('show')}
-function closeModal(){document.getElementById('modalBack').classList.remove('show')}
-function renderAuth(p){
-const login=p==='/login',register=p==='/register';
-document.getElementById('app').innerHTML=`<section class="auth"><div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div><div class="authForm"><h1>${login?'Welcome back':'Create account'}</h1><p class="muted">${login?'Sign in to your account':'Your next chapter starts here'}</p><form id="authForm">${register?'<label>Full name</label><input id="aname" required><label>Username</label><input id="auser" required>':''}<label>Email</label><input id="aemail" type="email" required><label>Password</label><input id="apass" type="password" required><button class="btn green" style="width:100%;margin-top:20px">${login?'SIGN IN':'CREATE ACCOUNT'}</button></form><p class="notice">Demo authentication is stored locally in this single-file version. Connect your existing Telegram/Sheets backend when ready.</p><p style="margin-top:20px">${login?'No account? <a href="#/register"><strong>REGISTER</strong></a>':'Already have an account? <a href="#/login"><strong>SIGN IN</strong></a>'}</p></div></section>`;
-document.getElementById('authForm').onsubmit=e=>{e.preventDefault();const email=document.getElementById('aemail').value;state.user={name:register?document.getElementById('aname').value:email.split('@')[0],username:register?document.getElementById('auser').value:email.split('@')[0],email};save();updateAvatar();toast('Signed in');go('/profile')}
+
+function renderTrade(sym) {
+  const pair = (sym === 'ETH' ? 'ETHUSDT' : 'BTCUSDT');
+  const a = assets.find(x => x[0] === sym) || assets[0];
+  let side = 'LONG';
+  let leverage = 10;
+  const curPrice = livePrices[pair] || a[2];
+
+  document.getElementById('app').innerHTML = shell(sym + ' / USDT', a[1] + ' · PAPER TRADING TERMINAL', `
+    <div class="grid" style="grid-template-columns:180px minmax(0,1fr) 300px">
+      <aside class="card">
+        <h3>Markets</h3>
+        ${assets.map(assetRow).join('')}
+      </aside>
+
+      <section class="card">
+        <div class="row between">
+          <div id="terminal-price" style="font-size:32px;font-weight:700">${money(curPrice)}</div>
+          <span class="badge" style="background:var(--accent);color:#000">LIVE FEED</span>
+        </div>
+        <div class="chart" style="margin-top:14px">
+          <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE%3A${pair}&interval=15&theme=light&style=1&timezone=Asia%2FTashkent"></iframe>
+        </div>
+        <div class="row between muted small" style="margin-top:12px">
+          <span>Asset: ${sym}/USDT</span>
+          <span>Binance Feed (15m Candles)</span>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h3>Trade</h3>
+        <div class="tabs">
+          <button class="tab active" id="btn-side-long">LONG 🟢</button>
+          <button class="tab" id="btn-side-short">SHORT 🔴</button>
+        </div>
+        
+        <div style="margin-bottom:12px">
+          <label>Leverage: <strong id="lev-display">10x</strong></label>
+          <div class="tabs">
+            ${[1, 5, 10, 20].map(l => `<button class="tab ${l===10?'active':''}" data-lev="${l}">${l}x</button>`).join('')}
+          </div>
+        </div>
+
+        <form id="tradeForm">
+          <label>Margin Amount (USDT)</label>
+          <input id="trade-amount" type="number" step="any" min="10" value="1000" required>
+          
+          <div class="row between" style="margin:8px 0">
+            <button type="button" class="tab" onclick="setPercent(0.1)">10%</button>
+            <button type="button" class="tab" onclick="setPercent(0.25)">25%</button>
+            <button type="button" class="tab" onclick="setPercent(0.5)">50%</button>
+            <button type="button" class="tab" onclick="setPercent(1)">MAX</button>
+          </div>
+
+          <label>Take Profit (USDT) - Ixtiyoriy</label>
+          <input id="trade-tp" type="number" step="any" placeholder="Optional">
+
+          <label>Stop Loss (USDT) - Ixtiyoriy</label>
+          <input id="trade-sl" type="number" step="any" placeholder="Optional">
+
+          <p class="row between" style="margin-top:14px">
+            <span class="muted">Available</span>
+            <strong id="avail-balance">${money(state.balance)}</strong>
+          </p>
+
+          <button id="exec-btn" class="btn green" style="width:100%;margin-top:12px">OPEN LONG</button>
+        </form>
+      </aside>
+    </div>
+
+    <!-- ACTIVE POSITION CARD -->
+    <div id="active-pos-box" class="card" style="margin-top:18px;display:${state.position ? 'block' : 'none'}">
+      <div class="row between">
+        <h2>Active Position: <span id="pos-header" class="${state.position?.type==='LONG'?'pos':'neg'}">${state.position ? state.position.type + ' (' + state.position.leverage + 'x)' : ''}</span></h2>
+        <button class="btn red" style="padding:6px 12px" onclick="closePosition()">CLOSE POSITION ✕</button>
+      </div>
+      <div class="grid g4" style="margin-top:12px">
+        <div><small class="muted">Size</small><div id="pos-size-val"><strong>${state.position ? money(state.position.size) : '$0'}</strong></div></div>
+        <div><small class="muted">Entry Price</small><div id="pos-entry-val"><strong>${state.position ? money(state.position.entryPrice) : '$0'}</strong></div></div>
+        <div><small class="muted">Live PnL</small><div id="pos-pnl-val" class="pos"><strong>$0.00 (+0.00%)</strong></div></div>
+        <div><small class="muted">TP / SL</small><div id="pos-tpsl-val"><strong>— / —</strong></div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>Recent Trades</h2>
+      <div id="recent-trades-list">
+        ${state.trades.length ? state.trades.slice(-6).reverse().map(t => `
+          <div class="activity row between">
+            <span><strong>${t.side}</strong>${t.amount} ${t.symbol} (${t.leverage||10}x)</span>
+            <span class="${(t.pnl||0)>=0?'pos':'neg'}">${money(t.price)} \vert{} PnL:${money(t.pnl||0)}</span>
+          </div>
+        `).join('') : '<div class="empty">No paper trades yet.</div>'}
+      </div>
+    </div>
+  `);
+
+  document.getElementById('btn-side-long').onclick = () => {
+    side = 'LONG';
+    document.getElementById('btn-side-long').classList.add('active');
+    document.getElementById('btn-side-short').classList.remove('active');
+    const b = document.getElementById('exec-btn');
+    b.className = 'btn green'; b.textContent = 'OPEN LONG';
+  };
+  document.getElementById('btn-side-short').onclick = () => {
+    side = 'SHORT';
+    document.getElementById('btn-side-short').classList.add('active');
+    document.getElementById('btn-side-long').classList.remove('active');
+    const b = document.getElementById('exec-btn');
+    b.className = 'btn red'; b.textContent = 'OPEN SHORT';
+  };
+
+  document.querySelectorAll('[data-lev]').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('[data-lev]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      leverage = Number(btn.dataset.lev);
+      document.getElementById('lev-display').textContent = leverage + 'x';
+    };
+  });
+
+  window.setPercent = (p) => {
+    document.getElementById('trade-amount').value = Math.max(10, Math.floor(state.balance * p));
+  };
+
+  document.getElementById('tradeForm').onsubmit = (e) => {
+    e.preventDefault();
+    const amount = Number(document.getElementById('trade-amount').value);
+    if (amount < 10) return toast('Minimal savdo $10!');
+    if (amount > state.balance) return toast('Balans yetarli emas!');
+
+    if (state.position) closePosition('Oldingi bitim yopildi!');
+
+    const tpVal = parseFloat(document.getElementById('trade-tp').value) || null;
+    const slVal = parseFloat(document.getElementById('trade-sl').value) || null;
+    const pNow = livePrices[pair] || a[2];
+
+    state.balance -= amount;
+    state.position = {
+      symbol: sym,
+      pair: pair,
+      type: side,
+      size: amount,
+      leverage: leverage,
+      entryPrice: pNow,
+      tp: tpVal,
+      sl: slVal
+    };
+
+    save();
+    syncWithSheets();
+    toast(side + ' bitim ochildi!');
+    renderTrade(sym);
+  };
 }
-function renderProfile(){
-if(!state.user){go('/login');return}
-document.getElementById('app').innerHTML=shell('Profile','Your information and paper trading statistics',`<div class="grid g2"><div class="card"><div class="row"><span class="avatar" style="width:72px;height:72px;font-size:25px">${state.user.username[0].toUpperCase()}</span><div><h2>${esc(state.user.name)}</h2><p class="muted">@${esc(state.user.username)}</p><button class="btn light" onclick="go('/settings/profile')">EDIT PROFILE</button></div></div></div><div class="grid g4">${stat('Balance',money(state.balance))}${stat('Trades',state.trades.length)}${stat('Points',state.trades.length*50)}${stat('Rank','#—')}</div></div><div class="card" style="margin-top:18px"><h2>Performance</h2><div class="chart">${lineChart(Array.from({length:30},(_,i)=>i+Math.sin(i*.5)*4))}</div></div><div class="card" style="margin-top:18px"><h2>Recent Activity</h2>${state.trades.slice(-8).reverse().map(t=>`<div class="activity row between"><span>${t.side} ${t.amount} ${t.symbol}</span><span>${money(t.price)}</span></div>`).join('')||'<div class="empty">No activity yet.</div>'}</div>`)
+
+window.closePosition = function(reason = null) {
+  if (!state.position) return;
+  const p = state.position;
+  const live = livePrices[p.pair] || p.entryPrice;
+  let diff = (live - p.entryPrice) / p.entryPrice;
+  if (p.type === 'SHORT') diff = -diff;
+  const pnl = p.size * diff * p.leverage;
+
+  state.balance += Math.max(0, p.size + pnl);
+  state.trades.push({
+    symbol: p.symbol,
+    side: p.type,
+    amount: p.size,
+    price: live,
+    leverage: p.leverage,
+    pnl: pnl,
+    time: new Date().toISOString()
+  });
+
+  state.position = null;
+  save();
+  syncWithSheets();
+  if (reason) toast(reason);
+  else toast('Bitim yopildi!');
+  render(location.hash.slice(1) || '/trade');
+};
+
+async function renderLeaderboard() {
+  document.getElementById('app').innerHTML = shell('Leaderboard', 'Top traders synced from Google Sheets', `
+    <div class="tabs">
+      <button class="tab active">ALL TIME</button>
+      <button class="tab" onclick="fetchLeaderboardData()">YANGILASH 🔄</button>
+    </div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr><th>RANK</th><th>TRADER</th><th>BALANCE</th><th>POINTS</th><th>STATUS</th></tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr><td colspan="5" class="empty">Yuklanmoqda...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `);
+  fetchLeaderboardData();
 }
-function renderSettings(p){
-if(!state.user){go('/login');return}
-const s=p.split('/')[2]||'profile';
-const links=[['Profile','profile'],['Security','security'],['Notifications','notifications'],['Integrations','integrations'],['Appearance','appearance']];
-let content='';
-if(s==='profile')content=`<form id="sf"><label>Full name</label><input id="sn" value="${esc(state.user.name)}"><label>Username</label><input id="su" value="${esc(state.user.username)}"><button class="btn" style="margin-top:20px">SAVE CHANGES</button></form>`;
-if(s==='security')content=`<label>Current password</label><input type="password"><label>New password</label><input type="password"><button class="btn" style="margin-top:20px" onclick="toast('Security settings saved')">SAVE</button>`;
-if(s==='notifications')content=`<label><input type="checkbox" checked style="width:auto"> Email alerts</label><label><input type="checkbox" checked style="width:auto"> Trading notifications</label><button class="btn" onclick="toast('Preferences saved')">SAVE</button>`;
-if(s==='integrations')content=`<div class="grid g2">${['Telegram','Google Sheets','Google Drive','Google Calendar','Discord','Email'].map(x=>`<div class="card"><div class="row between"><strong>${x}</strong><span class="badge">NOT CONFIGURED</span></div><p class="muted small">Credentials stay server-side.</p><button class="btn light" onclick="toast('${x}: configure on server')">CONFIGURE</button></div>`).join('')}</div>`;
-if(s==='appearance')content=`<label>Theme</label><select><option>Warm Stone</option><option>Dark</option></select><label>Density</label><select><option>Comfortable</option><option>Compact</option></select><button class="btn" onclick="toast('Appearance saved')">SAVE</button>`;
-document.getElementById('app').innerHTML=`<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4>${links.map(x=>`<a href="#/settings/${x[1]}" class="${s===x[1]?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell(s[0].toUpperCase()+s.slice(1),'Your account, preferences and integrations',`<div class="card">${content}</div><button class="btn light" style="margin-top:18px" onclick="logout()">SIGN OUT</button>`)} </section></div>`;
-if(s==='profile')document.getElementById('sf').onsubmit=e=>{e.preventDefault();state.user.name=document.getElementById('sn').value;state.user.username=document.getElementById('su').value;save();updateAvatar();toast('Profile saved')}
+
+async function fetchLeaderboardData() {
+  const tbody = document.getElementById('leaderboard-body');
+  if (!tbody) return;
+  try {
+    const res = await fetch(`/api/leaderboard?t=${Date.now()}`);
+    const data = await res.json();
+    if (data.status === 'success' && data.leaders && data.leaders.length > 0) {
+      tbody.innerHTML = data.leaders.map((u, i) => `
+        <tr>
+          <td><strong>#${i + 1}</strong></td>
+          <td><span class="row"><span class="avatar">${(u.Username||'T')[1]||'T'}</span><strong>${esc(u.Username)}</strong></span></td>
+          <td class="pos">${money(u.Balance)}</td>
+          <td>${(Number(u.Balance) * 0.1).toFixed(0)}</td>
+          <td><span class="badge">VERIFIED</span></td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">Peshqadamlar topilmadi.</td></tr>';
+    }
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Serverga ulanib bo‘lmadi.</td></tr>';
+  }
 }
-function logout(){state.user=null;save();updateAvatar();go('/')}
-function renderNotifications(){if(!state.user){go('/login');return}document.getElementById('app').innerHTML=shell('Notifications','Updates from your trading account and workspace',`<div class="card">${state.trades.length?state.trades.slice(-10).reverse().map(t=>`<div class="activity"><strong>Paper trade executed</strong><small>${t.side} ${t.amount} ${t.symbol} · ${new Date(t.time).toLocaleString()}</small></div>`).join(''):'<div class="empty">You are all caught up.</div>'}</div>`)}
-function renderAdmin(p){if(!state.user){go('/login');return}const s=p.split('/')[2]||'overview';document.getElementById('app').innerHTML=`<div class="workspace"><aside class="sidebar"><h4>ADMIN CONSOLE</h4>${[['Overview',''],['Users','/users'],['Markets','/markets'],['Trades','/trades'],['Leaderboard','/leaderboard'],['Office','/office'],['Integrations','/integrations'],['Logs','/logs'],['Settings','/settings']].map(x=>`<a href="#/admin${x[1]}" class="${s===(x[1].slice(1)||'overview')?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell('Admin · '+s,'Server administration and system records',`<div class="grid g4">${stat('Users','1')}${stat('Paper trades',state.trades.length)}${stat('Volume',money(state.trades.reduce((n,t)=>n+t.total,0)))}${stat('Assets','8')}</div><div class="card" style="margin-top:18px"><h2>System status</h2><p><span class="dot"></span> Online · Demo market data · Paper trading only</p><p class="muted">Admin subpages are wired to real clickable routes in this single-file build.</p></div>`)} </section></div>`}
-function updateAvatar(){const a=document.getElementById('avatar');if(state.user){a.textContent=state.user.username[0].toUpperCase();a.href='#/profile'}else{a.textContent='↗';a.href='#/login'}}
-document.getElementById('menuBtn').onclick=()=>document.getElementById('nav').classList.toggle('open');
-window.addEventListener('hashchange',route);window.addEventListener('load',()=>{updateAvatar();route()});
-document.getElementById('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
+
+const officeItems = [['Overview','','▦'],['Tasks','/tasks','☷'],['Projects','/projects','□'],['Team','/team','♙'],['Documents','/documents','▤'],['Calendar','/calendar','□'],['Analytics','/analytics','⌁']];
+function officeSide(active) {
+  return `<aside class="sidebar"><h4>WEB OFFICE</h4>${officeItems.map(x=>`<a href="#/web-office${x[1]}" class="${active===x[1]?'active':''}">${x[2]}${x[0]}</a>`).join('')}</aside>`;
+}
+
+function renderOffice(p) {
+  const s = p.split('/')[2] || '';
+  if (!s) {
+    document.getElementById('app').innerHTML = `
+      <div class="workspace">
+        ${officeSide('')}
+        <section>
+          ${shell('Web Office', 'Your workspace at a glance', `
+            <div class="grid g4 stats">
+              ${stat('Active tasks', state.tasks.filter(x => x.status !== 'DONE').length)}${stat('Ongoing projects', state.projects.length)}
+              ${stat('Team members', 5)}${stat('Completion rate', state.tasks.length ? Math.round(state.tasks.filter(x => x.status === 'DONE').length / state.tasks.length * 100) + '%' : '0%')}
+            </div>
+            <div class="officeGrid" style="margin-top:18px">
+              <div class="card">
+                <div class="row between"><h2>Recent Activity</h2><a href="#/web-office/tasks">View all →</a></div>
+                ${state.tasks.slice(0, 5).map(t => `<div class="activity"><strong>${esc(t.title)}</strong><small>${esc(t.status || 'TODO')}</small></div>`).join('') || '<div class="empty">Create your first task.</div>'}
+              </div>
+              <div class="card">
+                <h2>Upcoming</h2>
+                ${state.events.slice(0, 5).map(e => `<div class="activity"><strong>${esc(e.title)}</strong><small>${esc(e.date)}</small></div>`).join('') || '<div class="empty">No upcoming events.</div>'}
+              </div>
+              <div class="card">
+                <h2>September 2026</h2>
+                <div class="calendar">${Array.from({length:30}, (_,i) => `<div class="day"><strong>${i+1}</strong>${i===15?'<span class="event">Team sync</span>':''}${i===17?'<span class="event">Review</span>':''}</div>`).join('')}</div>
+              </div>
+            </div>
+          `)}
+        </section>
+      </div>`;
+    return;
+  }
+  if (['tasks','projects','team','documents','calendar','analytics'].includes(s)) {
+    renderOfficeSection(s);
+  }
+}
+
+function renderOfficeSection(s) {
+  let title = s[0].toUpperCase() + s.slice(1), content = '';
+  if (s === 'tasks') content = `<div class="row between"><p class="muted">Plan and track your work.</p><button class="btn" onclick="newOffice('task')">+ NEW TASK</button></div><div class="grid g3" style="margin-top:20px">${['TODO','IN PROGRESS','DONE'].map(st=>`<div><div class="eyebrow">${st}</div>${state.tasks.filter(t=>t.status===st).map(t=>`<div class="card" style="margin-top:10px"><strong>${esc(t.title)}</strong><p class="small muted">${esc(t.description||'')}</p><span class="badge">${esc(t.priority||'MEDIUM')}</span><div class="row" style="margin-top:12px"><button class="btn light" style="padding:6px 9px" onclick="editTask('${t.id}')">EDIT</button><button class="btn light" style="padding:6px 9px" onclick="deleteTask('${t.id}')">DELETE</button></div></div>`).join('')||'<div class="empty">No tasks</div>'}</div>`).join('')}</div>`;
+  if (s === 'projects') content = `<div class="row between"><p class="muted">Projects and progress.</p><button class="btn" onclick="newOffice('project')">+ NEW PROJECT</button></div><div class="grid g2" style="margin-top:20px">${state.projects.map(p=>`<div class="card"><h2>${esc(p.title)}</h2><p class="muted">${esc(p.description\vert{}\vert{}'')}</p><div class="progress"><i style="width:${p.progress||0}%"></i></div><p class="small">${p.progress\vert{}\vert{}0}\% complete</p><button class="btn light" onclick="deleteProject('${p.id}')">DELETE</button></div>`).join('')||'<div class="empty">Create your first project.</div>'}</div>`;
+  if (s === 'team') content = `<div class="card">${[['Jasur','ICT Market Analyst','Online'],['Alex','Algo & Quant Dev','Online'],['Mister Whale','Capital & Risk Manager','Busy']].map(x=>`<div class="activity row between"><div class="row"><span class="avatar">${x[0][0]}</span><span><strong>${x[0]}</strong><small>${x[1]}</small></span></div><span class="badge">${x[2]}</span></div>`).join('')}</div>`;
+  if (s === 'documents') content = `<div class="card"><h2>Documents</h2><p class="muted">Workspace documents.</p><button class="btn" onclick="newOffice('document')">+ NEW DOCUMENT</button><div class="empty">No documents yet.</div></div>`;
+  if (s === 'calendar') content = `<div class="card"><div class="row between"><h2>Calendar</h2><button class="btn" onclick="newOffice('event')">+ NEW EVENT</button></div><div class="calendar" style="margin-top:18px">${Array.from({length:30},(_,i)=>`<div class="day"><strong>${i+1}</strong>${state.events.filter(e=>Number(e.day)===i+1).map(e=>`<span class="event">${esc(e.title)}</span>`).join('')}</div>`).join('')}</div></div>`;
+  if (s === 'analytics') content = `<div class="grid g3 stats">${stat('Tasks completed',state.tasks.filter(t=>t.status==='DONE').length)}${stat('Projects',state.projects.length)}${stat('Paper trades',state.trades.length)}</div>`;
+  document.getElementById('app').innerHTML = `<div class="workspace">${officeSide('/'+s)}<section>${shell(title, 'Web Office workspace', content)}</section></div>`;
+}
+
+function newOffice(type) {
+  let title = type === 'task' ? 'New task' : type === 'project' ? 'New project' : type === 'event' ? 'New event' : 'New document';
+  showModal(`<h2>${title}</h2><label>Title</label><input id="omTitle"><label>Description</label><textarea id="omDesc"></textarea>${type==='task'?'<label>Status</label><select id="omStatus"><option>TODO</option><option>IN PROGRESS</option><option>DONE</option></select>':''}${type==='project'?'<label>Progress %</label><input id="omProgress" type="number" min="0" max="100" value="0">':''}<button class="btn green" style="width:100%;margin-top:20px" onclick="saveOffice('${type}')">SAVE</button>`);
+}
+
+function saveOffice(type) {
+  const title = document.getElementById('omTitle').value.trim();
+  if (!title) return toast('Title required');
+  if (type === 'task') state.tasks.push({ id: Date.now() + '', title, description: document.getElementById('omDesc').value, status: document.getElementById('omStatus').value, priority: 'MEDIUM' });
+  if (type === 'project') state.projects.push({ id: Date.now() + '', title, description: document.getElementById('omDesc').value, progress: Number(document.getElementById('omProgress').value) || 0 });
+  save(); closeModal(); toast('Saved'); render(location.hash.slice(1) || '/web-office');
+}
+
+function editTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  showModal(`<h2>Edit task</h2><label>Title</label><input id="et" value="${esc(t.title)}"><label>Status</label><select id="es"><option ${t.status==='TODO'?'selected':''}>TODO</option><option ${t.status==='IN PROGRESS'?'selected':''}>IN PROGRESS</option><option ${t.status==='DONE'?'selected':''}>DONE</option></select><button class="btn green" style="width:100%;margin-top:20px" onclick="updateTask('${id}')">SAVE</button>`);
+}
+
+function updateTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  t.title = document.getElementById('et').value;
+  t.status = document.getElementById('es').value;
+  save(); closeModal(); render('/web-office/tasks');
+}
+
+function deleteTask(id) { state.tasks = state.tasks.filter(x => x.id !== id); save(); render('/web-office/tasks'); }
+function deleteProject(id) { state.projects = state.projects.filter(x => x.id !== id); save(); render('/web-office/projects'); }
+
+function showModal(html) {
+  document.getElementById('modal').innerHTML = `<div class="row between"><span></span><button class="iconBtn" onclick="closeModal()">✕</button></div>${html}`;
+  document.getElementById('modalBack').classList.add('show');
+}
+function closeModal() { document.getElementById('modalBack').classList.remove('show'); }
+
+function renderAuth(p) {
+  const login = p === '/login', register = p === '/register';
+  document.getElementById('app').innerHTML = `
+    <section class="auth">
+      <div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div>
+      <div class="authForm">
+        <h1>${login ? 'Welcome back' : 'Create account'}</h1>
+        <p class="muted">${login ? 'Sign in to your account' : 'Your next chapter starts here'}</p>
+        <form id="authForm">
+          ${register ? '<label>Full name</label><input id="aname" required><label>Username</label><input id="auser" required>' : ''}
+          <label>Email</label><input id="aemail" type="email" required>
+          <label>Password</label><input id="apass" type="password" required>
+          <button class="btn green" style="width:100%;margin-top:20px">${login ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
+        </form>
+        <p style="margin-top:20px">${login ? 'No account? <a href="#/register"><strong>REGISTER</strong></a>' : 'Already have an account? <a href="#/login"><strong>SIGN IN</strong></a>'}</p>
+      </div>
+    </section>`;
+
+  document.getElementById('authForm').onsubmit = e => {
+    e.preventDefault();
+    const email = document.getElementById('aemail').value;
+    state.user = {
+      id: currentUserId,
+      name: register ? document.getElementById('aname').value : email.split('@')[0],
+      username: register ? document.getElementById('auser').value : email.split('@')[0],
+      email: email
+    };
+    save(); syncWithSheets(); updateAvatar(); toast('Signed in'); go('/profile');
+  };
+}
+
+function renderProfile() {
+  document.getElementById('app').innerHTML = shell('Profile', 'Your information and paper trading statistics', `
+    <div class="grid g2">
+      <div class="card">
+        <div class="row">
+          <span class="avatar" style="width:72px;height:72px;font-size:25px">${(state.user.username||'T')[0].toUpperCase()}</span>
+          <div>
+            <h2>${esc(state.user.name)}</h2>
+            <p class="muted">@${esc(state.user.username)}</p>
+            <button class="btn light" onclick="go('/settings/profile')">EDIT PROFILE</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid g4">
+        ${stat('Balance', money(state.balance))}
+        ${stat('Trades', state.trades.length)}
+        ${stat('Points', (state.trades.length * 50))}
+        ${stat('Active Position', state.position ? state.position.type : 'NONE')}
+      </div>
+    </div>
+  `);
+}
+
+function renderSettings(p) {
+  const s = p.split('/')[2] || 'profile';
+  const links = [['Profile','profile'],['Security','security'],['Notifications','notifications'],['Integrations','integrations']];
+  let content = '';
+  if (s === 'profile') content = `<form id="sf"><label>Full name</label><input id="sn" value="${esc(state.user.name)}"><label>Username</label><input id="su" value="${esc(state.user.username)}"><button class="btn" style="margin-top:20px">SAVE CHANGES</button></form>`;
+  if (s === 'security') content = `<label>Current password</label><input type="password"><label>New password</label><input type="password"><button class="btn" style="margin-top:20px" onclick="toast('Security settings saved')">SAVE</button>`;
+  if (s === 'integrations') content = `<div class="grid g2">${['Telegram','Google Sheets','Binance Live API','AI Radar'].map(x=>`<div class="card"><div class="row between"><strong>${x}</strong><span class="badge" style="background:var(--accent);color:#000">CONNECTED</span></div><p class="muted small">Connected to your backend server.</p></div>`).join('')}</div>`;
+  
+  document.getElementById('app').innerHTML = `<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4>${links.map(x=>`<a href="#/settings/${x[1]}" class="${s===x[1]?'active':''}">${x[0]}</a>`).join('')}</aside><section>${shell(s[0].toUpperCase()+s.slice(1),'Your account and integrations',`<div class="card">${content}</div>`)} </section></div>`;
+  if (s === 'profile') {
+    document.getElementById('sf').onsubmit = e => {
+      e.preventDefault();
+      state.user.name = document.getElementById('sn').value;
+      state.user.username = document.getElementById('su').value;
+      save(); syncWithSheets(); updateAvatar(); toast('Profile saved');
+    };
+  }
+}
+
+function renderNotifications() {
+  document.getElementById('app').innerHTML = shell('Notifications', 'Updates from your trading terminal', `
+    <div class="card">
+      ${state.trades.length ? state.trades.slice(-10).reverse().map(t => `
+        <div class="activity">
+          <strong>Bitim qayd etildi</strong>
+          <small>${t.side}${t.amount} ${t.symbol} ·${new Date(t.time).toLocaleString()}</small>
+        </div>
+      `).join('') : '<div class="empty">Xabarlar yo‘q.</div>'}
+    </div>
+  `);
+}
+
+function renderAdmin(p) {
+  document.getElementById('app').innerHTML = `<div class="workspace"><section>${shell('Admin', 'System records', `<div class="grid g4">${stat('Paper trades', state.trades.length)}${stat('Balance', money(state.balance))}</div>`)}</section></div>`;
+}
+
+function updateAvatar() {
+  const a = document.getElementById('avatar');
+  if (state.user) { a.textContent = (state.user.username || 'T')[0].toUpperCase(); a.href = '#/profile'; }
+  else { a.textContent = '↗'; a.href = '#/login'; }
+}
+
+async function updateBinancePrices() {
+  try {
+    const [resBtc, resEth] = await Promise.all([
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT')
+    ]);
+    const dBtc = await resBtc.json();
+    const dEth = await resEth.json();
+    if (dBtc.price) livePrices.BTCUSDT = parseFloat(dBtc.price);
+    if (dEth.price) livePrices.ETHUSDT = parseFloat(dEth.price);
+  } catch (e) {
+    livePrices.BTCUSDT += (Math.random() - 0.49) * 10;
+  }
+
+  const pBtc = document.getElementById('m-price-BTC');
+  if (pBtc) pBtc.textContent = money(livePrices.BTCUSDT);
+  const pEth = document.getElementById('m-price-ETH');
+  if (pEth) pEth.textContent = money(livePrices.ETHUSDT);
+
+  const termP = document.getElementById('terminal-price');
+  if (termP) {
+    const pair = location.hash.includes('ETH') ? 'ETHUSDT' : 'BTCUSDT';
+    termP.textContent = money(livePrices[pair]);
+  }
+
+  // Ochiq pozitsiya bo'lsa PnL va TP/SL tekshirish
+  if (state.position) {
+    const pos = state.position;
+    const cur = livePrices[pos.pair] || pos.entryPrice;
+    let diff = (cur - pos.entryPrice) / pos.entryPrice;
+    if (pos.type === 'SHORT') diff = -diff;
+    const pnl = pos.size * diff * pos.leverage;
+
+    const pnlEl = document.getElementById('pos-pnl-val');
+    if (pnlEl) {
+      pnlEl.className = pnl >= 0 ? 'pos' : 'neg';
+      pnlEl.innerHTML = `<strong>${pnl >= 0 ? '+' : ''}${money(pnl)} (${((pnl/pos.size)*100).toFixed(2)}%)</strong>`;
+    }
+
+    if (pos.type === 'LONG') {
+      if (pos.tp && cur >= pos.tp) closePosition(`🎯 Take-Profit! Narx: $${cur}`);
+      if (pos.sl && cur <= pos.sl) closePosition(`🛑 Stop-Loss! Narx: $${cur}`);
+    } else {
+      if (pos.tp && cur <= pos.tp) closePosition(`🎯 Take-Profit! Narx: $${cur}`);
+      if (pos.sl && cur >= pos.sl) closePosition(`🛑 Stop-Loss! Narx: $${cur}`);
+    }
+  }
+}
+
+document.getElementById('menuBtn').onclick = () => document.getElementById('nav').classList.toggle('open');
+window.addEventListener('hashchange', route);
+window.addEventListener('load', () => { updateAvatar(); route(); setInterval(updateBinancePrices, 1000); });
+document.getElementById('modalBack').addEventListener('click', e => { if (e.target.id === 'modalBack') closeModal(); });
 </script>
 </body>
 </html>
