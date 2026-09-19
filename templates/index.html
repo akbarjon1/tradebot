@@ -571,20 +571,20 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 
 
 .langPicker{position:relative;flex:0 0 auto;z-index:80}
-.langTrigger{height:34px;min-width:70px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:rgba(241,238,231,.82);color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.7px;cursor:pointer;transition:border-color .18s,background .18s,transform .18s}
-.langTrigger:hover{border-color:#aaa69b;background:var(--card)}
+.langTrigger{height:38px;min-width:82px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 13px;border:1px solid #d8d4ca;border-radius:22px;background:#f2f0e9;color:#202020;font-size:11px;font-weight:750;letter-spacing:.35px;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s}
+.langTrigger:hover{border-color:#b8b3a8;background:#f8f7f2}
 .langTrigger:focus-visible,.langOption:focus-visible{outline:2px solid #a7f329;outline-offset:3px}
-.langChevron{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s}
+.langChevron{width:8px;height:8px;border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s}
 .langPicker.open .langChevron{transform:rotate(225deg) translate(-1px,-1px)}
-.langMenu{position:absolute;right:0;top:calc(100% + 8px);width:112px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:0 12px 30px rgba(0,0,0,.14);display:none;overflow:hidden}
+.langMenu{position:absolute;right:0;top:calc(100% + 8px);width:138px;padding:6px;background:#f8f7f2;border:1px solid #e0ddd5;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.13);display:none;overflow:hidden}
 .langPicker.open .langMenu{display:grid;animation:langPop .14s ease-out}
 @keyframes langPop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-.langOption{display:flex;align-items:center;gap:9px;width:100%;padding:10px 9px;border:0;border-radius:7px;background:transparent;color:var(--ink);text-align:left;font-size:11px;font-weight:650;cursor:pointer}
-.langOption:hover{background:#e5e1d8}
-.langOption[aria-selected="true"]{background:var(--dark);color:#fff}
-.langCode{width:22px;font-size:10px;font-weight:850;letter-spacing:.4px}
-.langCheck{margin-left:auto;color:var(--accent);font-weight:900}
-@media(max-width:700px){.langTrigger{height:32px;min-width:62px;padding:0 8px;gap:8px}.langMenu{width:108px}}
+.langOption{display:flex;align-items:center;gap:11px;width:100%;padding:11px 10px;border:0;border-radius:10px;background:transparent;color:#363630;text-align:left;font-size:12px;font-weight:550;cursor:pointer}
+.langOption:hover{background:#eeece5}
+.langOption[aria-selected="true"]{background:#eeece5;color:#171717}
+.langFlag{width:20px;flex:0 0 20px;font-size:15px;line-height:1}
+.langCheck{margin-left:auto;color:#171717;font-size:15px;font-weight:900}
+@media(max-width:700px){.langTrigger{height:34px;min-width:72px;padding:0 11px;gap:10px}.langMenu{width:132px}}
 
 
 /* Bat mark sizing: avoid clipping and broken image artifacts */
@@ -610,9 +610,9 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <div class="langPicker" id="langPicker">
   <button class="langTrigger" id="langTrigger" type="button" aria-label="Choose language" aria-haspopup="listbox" aria-expanded="false"><span id="langCurrent">EN</span><span class="langChevron" aria-hidden="true"></span></button>
   <div class="langMenu" id="langMenu" role="listbox" aria-label="Choose language">
-    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><span class="langCode">UZ</span><span>O‘zbekcha</span><span class="langCheck"></span></button>
-    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><span class="langCode">RU</span><span>Русский</span><span class="langCheck"></span></button>
-    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><span class="langCode">EN</span><span>English</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><span class="langFlag" aria-hidden="true">🇺🇿</span><span>UZ</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><span class="langFlag" aria-hidden="true">🇷🇺</span><span>RU</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><span class="langFlag" aria-hidden="true">🇬🇧</span><span>EN</span><span class="langCheck"></span></button>
   </div>
 </div>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
@@ -624,7 +624,7 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
     <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
     <div class="profileActions">
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
-      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24"><path d="M12 8.7a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/><path d="m19.4 13.5 1.1.8-1.1 2-1.3-.5a7.7 7.7 0 0 1-1.5.9l-.2 1.4h-2.3l-.4-1.3a7.7 7.7 0 0 1-1.7 0l-.7 1.3H9l-.3-1.4a7.7 7.7 0 0 1-1.5-.9l-1.3.5-1.1-2 1.1-.8a7.3 7.3 0 0 1 0-1.8l-1.1-.8 1.1-2 1.3.5a7.7 7.7 0 0 1 1.5-.9L9 7.1h2.3l.4 1.3a7.7 7.7 0 0 1 1.7 0l.7-1.3h2.3l.2 1.4a7.7 7.7 0 0 1 1.5.9l1.3-.5 1.1 2-1.1.8a7.3 7.3 0 0 1 0 1.8Z"/></svg><span>Settings</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 1.2.9-1.3 2.2-1.4-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.5h-2.6l-.3-1.5a7.8 7.8 0 0 1-1.7 0l-.5 1.5H8.5l-.3-1.5a7.8 7.8 0 0 1-1.5-.9l-1.4.5L4 14.4l1.2-.9a7.6 7.6 0 0 1 0-1.8L4 10.8l1.3-2.2 1.4.5a7.8 7.8 0 0 1 1.5-.9l.3-1.5h2.6l.3 1.5a7.8 7.8 0 0 1 1.7 0l.5-1.5h2.6l.2 1.5a7.8 7.8 0 0 1 1.5.9l1.4-.5 1.3 2.2-1.2.9a7.6 7.6 0 0 1 0 1.8Z"/></svg><span>Settings</span></button>
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" aria-hidden="true"></i></button>
       <button class="profileAction logout" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
     </div>
