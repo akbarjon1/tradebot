@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OBSIDIAN LAB — Build. Trade. Compete.</title>
-<link rel="icon" type="image/svg+xml" href="static/bat.svg">
-<link rel="apple-touch-icon" href="static/bat.svg">
+<link rel="icon" type="image/svg+xml" href="/static/bat.svg?v=3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
@@ -21,40 +20,7 @@ button,a{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 header{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:50;background:rgba(231,227,218,.96);backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:1.8px;white-space:nowrap}
-/* Logo va ko'rshapalak ikonkasini mukammal moslash */
-.logoMark{
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 8px;
-  background: transparent !important;
-  line-height: 0;
-}
-.logoMark img{
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-.authBrandMark{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  line-height: 0;
-}
-.authBrandMark img{
-  display: block;
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
+.logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;font-size:18px}
 nav{display:flex;gap:29px;margin:auto}
 nav a{font-size:12px;padding:26px 0;position:relative;color:#333}
 nav a:hover{opacity:.55}
@@ -551,9 +517,21 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 }
 
 
-.languageSelect{appearance:auto;background:transparent;border:1px solid var(--line,#d8d6cf);border-radius:8px;padding:8px 9px;color:inherit;font:inherit;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;min-width:54px}
-.languageSelect:focus{outline:2px solid #a7f329;outline-offset:2px}
-@media(max-width:700px){.languageSelect{padding:7px 5px;min-width:48px;font-size:10px}}
+.langPicker{position:relative;flex:0 0 auto;z-index:80}
+.langTrigger{height:34px;min-width:70px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:rgba(241,238,231,.82);color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.7px;cursor:pointer;transition:border-color .18s,background .18s,transform .18s}
+.langTrigger:hover{border-color:#aaa69b;background:var(--card)}
+.langTrigger:focus-visible,.langOption:focus-visible{outline:2px solid #a7f329;outline-offset:3px}
+.langChevron{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s}
+.langPicker.open .langChevron{transform:rotate(225deg) translate(-1px,-1px)}
+.langMenu{position:absolute;right:0;top:calc(100% + 8px);width:112px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:0 12px 30px rgba(0,0,0,.14);display:none;overflow:hidden}
+.langPicker.open .langMenu{display:grid;animation:langPop .14s ease-out}
+@keyframes langPop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.langOption{display:flex;align-items:center;gap:9px;width:100%;padding:10px 9px;border:0;border-radius:7px;background:transparent;color:var(--ink);text-align:left;font-size:11px;font-weight:650;cursor:pointer}
+.langOption:hover{background:#e5e1d8}
+.langOption[aria-selected="true"]{background:var(--dark);color:#fff}
+.langCode{width:22px;font-size:10px;font-weight:850;letter-spacing:.4px}
+.langCheck{margin-left:auto;color:var(--accent);font-weight:900}
+@media(max-width:700px){.langTrigger{height:32px;min-width:62px;padding:0 8px;gap:8px}.langMenu{width:108px}}
 
 
 /* Bat mark sizing: avoid clipping and broken image artifacts */
@@ -576,7 +554,14 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <a data-route="/web-office" href="#/web-office" onclick="go('/web-office')">Web Office</a>
 </nav>
 <div class="headRight">
-<select id="languageSelect" class="languageSelect" aria-label="Language" title="Language"><option value="uz">UZ</option><option value="ru">RU</option><option value="en">EN</option></select>
+<div class="langPicker" id="langPicker">
+  <button class="langTrigger" id="langTrigger" type="button" aria-label="Choose language" aria-haspopup="listbox" aria-expanded="false"><span id="langCurrent">EN</span><span class="langChevron" aria-hidden="true"></span></button>
+  <div class="langMenu" id="langMenu" role="listbox" aria-label="Choose language">
+    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><span class="langCode">UZ</span><span>O‘zbekcha</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><span class="langCode">RU</span><span>Русский</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><span class="langCode">EN</span><span>English</span><span class="langCheck"></span></button>
+  </div>
+</div>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
 <a id="avatar" class="avatar" href="#/login" onclick="go('/login')">↗</a>
 <button class="iconBtn menu" id="menuBtn">☰</button>
@@ -1589,7 +1574,11 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
 <script>
 /* Lightweight interface localization: Uzbek, Russian, English. */
 (function(){
-  const select=document.getElementById('languageSelect');
+  const picker=document.getElementById('langPicker');
+  const trigger=document.getElementById('langTrigger');
+  const currentLabel=document.getElementById('langCurrent');
+  const options=[...document.querySelectorAll('.langOption')];
+  const codeFor={uz:'UZ',ru:'RU',en:'EN'};
   const originalText=new WeakMap();
   const previousText=new WeakMap();
   const dict={
@@ -1651,11 +1640,21 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
   }
   let lang=localStorage.getItem('obsidian_language')||'en';
   if(!['uz','ru','en'].includes(lang))lang='en';
-  if(select){select.value=lang;select.addEventListener('change',()=>{
-    lang=select.value;localStorage.setItem('obsidian_language',lang);document.documentElement.lang=lang;
-    walk(document.body,lang);
-  });}
+  function closePicker(){if(!picker)return;picker.classList.remove('open');trigger?.setAttribute('aria-expanded','false');}
+  function setLanguage(next){
+    if(!['uz','ru','en'].includes(next))return;
+    lang=next;localStorage.setItem('obsidian_language',lang);document.documentElement.lang=lang;
+    if(currentLabel)currentLabel.textContent=codeFor[lang];
+    options.forEach(option=>{const selected=option.dataset.lang===lang;option.setAttribute('aria-selected',String(selected));const check=option.querySelector('.langCheck');if(check)check.textContent=selected?'✓':'';});
+    walk(document.body,lang);closePicker();
+  }
+  trigger?.addEventListener('click',()=>{const isOpen=picker.classList.toggle('open');trigger.setAttribute('aria-expanded',String(isOpen));});
+  options.forEach(option=>option.addEventListener('click',()=>setLanguage(option.dataset.lang)));
+  document.addEventListener('click',event=>{if(picker&&!picker.contains(event.target))closePicker();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closePicker();});
   document.documentElement.lang=lang;
+  if(currentLabel)currentLabel.textContent=codeFor[lang];
+  options.forEach(option=>{const selected=option.dataset.lang===lang;option.setAttribute('aria-selected',String(selected));const check=option.querySelector('.langCheck');if(check)check.textContent=selected?'✓':'';});
   const observer=new MutationObserver(records=>{
     records.forEach(r=>r.addedNodes.forEach(node=>{
       if(node.nodeType===Node.ELEMENT_NODE)walk(node,lang);
