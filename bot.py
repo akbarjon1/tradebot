@@ -182,13 +182,15 @@ CORS(app)
 app.secret_key = get_env("SECRET_KEY") or hashlib.sha256(
     (TELEGRAM_BOT_TOKEN + ":obsidian-lab-session").encode()
 ).hexdigest()
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
+DATABASE = get_env("DATABASE_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=get_env("COOKIE_SECURE", "false").lower() == "true",
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=30),
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
 )
+app.permanent_session_lifetime = datetime.timedelta(days=30)
 
 def db_conn():
     if "obs_db" not in g:
@@ -498,6 +500,45 @@ def api_session():
         "csrf":session["csrf"]
     })
 
+
+def users_worksheet():
+    """Return the dedicated Users tab when Google Sheets is configured."""
+    try:
+        return spreadsheet.worksheet("Users")
+    except Exception as exc:
+        print(f"Google Sheets Users tab unavailable: {exc}")
+        return None
+
+def find_user_in_sheet(email):
+    ws = users_worksheet()
+    if ws is None:
+        return None
+    try:
+        for row in ws.get_all_values()[1:]:
+            # Users columns: User ID, Email, Username, Password Hash, Balance
+            if len(row) >= 4 and row[1].strip().lower() == email:
+                return {
+                    "id": row[0].strip(),
+                    "email": row[1].strip().lower(),
+                    "username": row[2].strip(),
+                    "password": row[3].strip(),
+                    "balance": float(row[4]) if len(row) > 4 and row[4].strip() else 10000.0,
+                }
+    except Exception as exc:
+        print(f"Google Sheets Users read failed: {exc}")
+    return None
+
+def add_user_to_sheet(user_id, email, username, password_hash, balance=10000.0):
+    ws = users_worksheet()
+    if ws is None:
+        return False
+    try:
+        ws.append_row([user_id, email, username, password_hash, balance], value_input_option="USER_ENTERED")
+        return True
+    except Exception as exc:
+        print(f"Google Sheets Users write failed: {exc}")
+        return False
+
 @app.route("/api/auth/register", methods=["POST"])
 def api_register():
     key = request.remote_addr or "unknown"
@@ -524,16 +565,38 @@ def api_register():
         return jsonify({"status":"error","message":"Password must contain at least 10 characters"}), 400
     if password != confirm:
         return jsonify({"status":"error","message":"Passwords do not match"}), 400
+    # If this email already exists in the durable Google Sheet, restore it locally
+    # rather than asking the user to register again after a Render filesystem reset.
+    existing_sheet_user = find_user_in_sheet(email)
+    if existing_sheet_user:
+        stamp = db_now()
+        try:
+            db_conn().execute(
+                "INSERT OR IGNORE INTO web_users VALUES(?,?,?,?,?,?,?,?,?)",
+                (existing_sheet_user["id"], existing_sheet_user["email"], existing_sheet_user["username"],
+                 existing_sheet_user["username"], existing_sheet_user["password"], "USER",
+                 existing_sheet_user["balance"], stamp, stamp)
+            )
+            db_conn().commit()
+        except Exception as exc:
+            print(f"Unable to restore sheet user into SQLite: {exc}")
+        return jsonify({"status":"error","message":"This account already exists. Please sign in."}), 409
+
     user_id = uuid.uuid4().hex
     stamp = db_now()
+    password_hash = generate_password_hash(password)
     try:
         db_conn().execute(
             "INSERT INTO web_users VALUES(?,?,?,?,?,?,?,?,?)",
-            (user_id,email,username,name,generate_password_hash(password),"USER",10000.0,stamp,stamp)
+            (user_id,email,username,name,password_hash,"USER",10000.0,stamp,stamp)
         )
         db_conn().commit()
     except sqlite3.IntegrityError:
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
+
+    # Keep account credentials in the persistent Users worksheet.
+    if not add_user_to_sheet(user_id, email, username, password_hash, 10000.0):
+        print("WARNING: account created in SQLite but not backed up to Google Sheets Users tab.")
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -542,12 +605,28 @@ def api_login():
     email = str(d.get("email","")).strip().lower()
     password = str(d.get("password",""))
     user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+    if user is None:
+        # SQLite may be empty after a Render redeploy. Restore account from Users sheet.
+        saved = find_user_in_sheet(email)
+        if saved:
+            stamp = db_now()
+            try:
+                db_conn().execute(
+                    "INSERT OR IGNORE INTO web_users VALUES(?,?,?,?,?,?,?,?,?)",
+                    (saved["id"], saved["email"], saved["username"], saved["username"],
+                     saved["password"], "USER", saved["balance"], stamp, stamp)
+                )
+                db_conn().commit()
+                user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+            except Exception as exc:
+                print(f"Google Sheet account restore failed: {exc}")
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"status":"error","message":"Invalid email or password"}), 401
     session.clear()
     session["web_uid"] = user["id"]
     session["csrf"] = secrets.token_hex(32)
-    session.permanent = bool(d.get("remember"))
+    # Web terminalda login 30 kun saqlanadi; page reload/renderdan keyin qayta register shart emas.
+    session.permanent = True
     return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -622,13 +701,20 @@ def paper_open():
         return jsonify({"status":"error","message":"Invalid leverage"}), 400
     if entry <= 0:
         return jsonify({"status":"error","message":"Invalid entry price"}), 400
-    if amount > float(user["balance"]):
-        return jsonify({"status":"error","message":"Insufficient balance"}), 400
-
     c = db_conn()
     stamp = db_now()
     pos_id = uuid.uuid4().hex
     trade_id = uuid.uuid4().hex
+
+    # Balance check + deduction atomically: PC va telefon bir vaqtda order yuborsa
+    # ham balans minusga ketmaydi.
+    updated = c.execute(
+        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=? AND balance>=?",
+        (amount, stamp, user["id"], amount)
+    )
+    if updated.rowcount != 1:
+        c.rollback()
+        return jsonify({"status":"error","message":"Insufficient balance"}), 400
 
     c.execute(
         """INSERT INTO web_positions
@@ -637,20 +723,17 @@ def paper_open():
         (pos_id, user["id"], asset, side, amount, leverage, entry, tp, sl, stamp)
     )
     c.execute(
-        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=?",
-        (amount, stamp, user["id"])
-    )
-    c.execute(
         """INSERT INTO web_trades
            (id,user_id,asset,side,amount,entry_price,status,created_at)
            VALUES(?,?,?,?,?,?,?,?)""",
         (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
     )
     c.commit()
+    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
 
     return jsonify({
         "status":"success",
-        "balance":float(user["balance"]) - amount,
+        "balance":float(fresh["balance"]),
         "position":{
             "id":pos_id,
             "symbol":asset.replace("USDT",""),
@@ -745,22 +828,33 @@ def paper_close():
     credit = max(0.0, float(pos["size"]) + pnl)
     stamp = db_now()
 
-    c.execute(
-        """UPDATE web_trades
-           SET exit_price=?,pnl=?,status='CLOSED'
-           WHERE user_id=? AND asset=? AND side=? AND status='OPEN'""",
-        (live, pnl, user["id"], pos["asset"], pos["side"])
-    )
+    # Aynan shu positionga tegishli OPEN trade'ni yopamiz.
+    # Bir xil symbol/side bilan bir nechta position bo'lishi mumkin.
+    trade_row = c.execute(
+        """SELECT id FROM web_trades
+           WHERE user_id=? AND asset=? AND side=? AND amount=?
+             AND entry_price=? AND status='OPEN' AND created_at=?
+           ORDER BY created_at ASC LIMIT 1""",
+        (user["id"], pos["asset"], pos["side"], float(pos["size"]),
+         float(pos["entry_price"]), pos["opened_at"])
+    ).fetchone()
+    if trade_row:
+        c.execute(
+            "UPDATE web_trades SET exit_price=?,pnl=?,status='CLOSED' WHERE id=?",
+            (live, pnl, trade_row["id"])
+        )
+
     c.execute(
         "UPDATE web_users SET balance=balance+?,updated_at=? WHERE id=?",
         (credit, stamp, user["id"])
     )
-    c.execute("DELETE FROM web_positions WHERE id=?", (pos["id"],))
+    c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?", (pos["id"], user["id"]))
     c.commit()
 
+    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
     return jsonify({
         "status":"success",
-        "balance":float(user["balance"]) + credit,
+        "balance":float(fresh["balance"]),
         "closed_id": pos["id"],
         "pnl":pnl
     })
@@ -934,83 +1028,37 @@ def update_balance():
 def get_leaderboard():
     global spreadsheet
     try:
-        # Start with accounts persisted in the app database.
-        leaders_by_id = {}
-        try:
+        if not spreadsheet:
+            rows=[]
             for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
-                uid = str(u["id"] or "").strip()
-                username = str(u["username"] or "Trader").strip()
-                leaders_by_id[uid or username.lower()] = {
-                    "User ID": uid,
-                    "Username": "@" + username.lstrip("@"),
-                    "Balance": float(u["balance"] or 0),
-                    "Points": int(max(0, float(u["balance"] or 0)) // 10),
-                    "Status": "VERIFIED"
-                }
-        except Exception as db_error:
-            print(f"Leaderboard DB read warning: {db_error}")
-
-        # Also read the Users tab, so registrations survive in the leaderboard
-        # when the app's local SQLite database has been reset on an ephemeral host.
-        if spreadsheet:
-            try:
-                users_ws = spreadsheet.worksheet("Users")
-                for r in users_ws.get_all_records():
-                    uid = str(r.get("User ID", "") or "").strip()
-                    username = str(r.get("Username", "") or "Trader").strip()
-                    key = uid or username.lower()
-                    if not key:
-                        continue
-                    raw_bal = str(r.get("Balance", "0") or "0").replace(" ", "").replace("\xa0", "").replace(",", ".")
-                    try:
-                        balance = float(raw_bal)
-                    except (TypeError, ValueError):
-                        balance = 0.0
-                    # DB data, when present, remains authoritative for current balance.
-                    existing = leaders_by_id.get(key)
-                    if existing is None:
-                        leaders_by_id[key] = {
-                            "User ID": uid,
-                            "Username": "@" + username.lstrip("@"),
-                            "Balance": balance,
-                            "Points": int(max(0, balance) // 10),
-                            "Status": "VERIFIED"
-                        }
-                    elif uid:
-                        existing["User ID"] = uid
-            except Exception as users_error:
-                print(f"Leaderboard Users sheet read warning: {users_error}")
-
-            try:
-                board_ws = spreadsheet.worksheet("Leaderboard")
-                for r in board_ws.get_all_records():
-                    uid = str(r.get("User ID", "") or "").strip()
-                    username = str(r.get("Username", "") or "Trader").strip()
-                    key = uid or username.lower()
-                    raw_bal = str(r.get("Balance", "0") or "0").replace(" ", "").replace("\xa0", "").replace(",", ".")
-                    try:
-                        balance = float(raw_bal)
-                    except (TypeError, ValueError):
-                        balance = 0.0
-                    existing = leaders_by_id.get(key)
-                    if existing is None:
-                        leaders_by_id[key] = {
-                            "User ID": uid,
-                            "Username": "@" + username.lstrip("@"),
-                            "Balance": balance,
-                            "Points": int(r.get("Points", max(0, balance) // 10) or 0),
-                            "Status": str(r.get("Status", "VERIFIED") or "VERIFIED")
-                        }
-                    # If a DB or Users-tab record exists, don't replace its balance
-                    # with a stale leaderboard snapshot.
-            except Exception as board_error:
-                print(f"Leaderboard tab read warning: {board_error}")
-
-        leaders = sorted(leaders_by_id.values(), key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
-        return jsonify({"status": "success", "leaders": leaders})
+                rows.append({
+                    "User ID":u["id"],
+                    "Username":"@"+str(u["username"]).lstrip("@"),
+                    "Balance":float(u["balance"])
+                })
+            rows.sort(key=lambda x:x["Balance"], reverse=True)
+            return jsonify({"status":"success","leaders":rows})
+        try:
+            ws = spreadsheet.worksheet("Leaderboard")
+        except Exception:
+            return jsonify({"status":"success","leaders":[]})
+        records = ws.get_all_records()
+        valid_leaders=[]
+        for r in records:
+            raw_bal=str(r.get("Balance","0")).replace(" ","").replace("\xa0","").replace(",",".")
+            try: bal_val=float(raw_bal)
+            except Exception: bal_val=0.0
+            valid_leaders.append({
+                "User ID":str(r.get("User ID","")),
+                "Username":str(r.get("Username","Trader")),
+                "Balance":bal_val
+            })
+        sorted_leaders=sorted(valid_leaders,key=lambda x:x["Balance"],reverse=True)[:10]
+        return jsonify({"status":"success","leaders":sorted_leaders})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
-        return jsonify({"status": "error", "message": "Leaderboard unavailable"}), 500
+        return jsonify({"status":"error","message":"Leaderboard unavailable"}),500
+
 
 @app.route('/api/agent_tasks', methods=['GET'])
 def get_agent_tasks():
