@@ -674,32 +674,16 @@ async function syncPaperState() {
     const data = await fetchAPI('/api/paper/state?t=' + Date.now());
     if (data.status !== 'success') return;
 
-    const serverHasPosition = Array.isArray(data.positions) ? data.positions.length > 0 : !!data.position;
-
-    // Eski versiyadagi local position bo'lsa, uni serverga bir marta ko'chiramiz.
-    if (!serverHasPosition && oldLocalPosition) {
-      const migrated = await fetchAPI('/api/paper/migrate', {
-        method: 'POST',
-        body: JSON.stringify({ position: oldLocalPosition })
-      });
-      if (migrated.status === 'success') {
-        oldLocalPosition = null;
-        const again = await fetchAPI('/api/paper/state?t=' + Date.now());
-        if (again.status === 'success') {
-          state.balance = Number(again.balance || 10000);
-          state.positions = again.positions || (again.position ? [again.position] : []);
-          state.position = state.positions[0] || null;
-          state.trades = again.trades || [];
-          updateNotificationDot();
-        }
-      }
-    } else {
-      state.balance = Number(data.balance || 10000);
-      state.positions = data.positions || (data.position ? [data.position] : []);
-      state.position = state.positions[0] || null;
-      state.trades = data.trades || [];
-      updateNotificationDot();
-    }
+    // Server is the source of truth across devices. Never keep a browser-only
+    // position when the server reports that it has already been closed or removed.
+    state.balance = Number(data.balance ?? 10000);
+    state.positions = Array.isArray(data.positions)
+      ? data.positions
+      : (data.position ? [data.position] : []);
+    state.position = state.positions[0] || null;
+    state.trades = Array.isArray(data.trades) ? data.trades : [];
+    oldLocalPosition = null;
+    updateNotificationDot();
 
     localStorage.setItem('obsidian_balance', state.balance);
     localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
@@ -1092,14 +1076,26 @@ window.closePosition = async function(positionId, reason = null) {
 
   closingPosition = true;
   const live = livePrices[p.pair] || p.entryPrice;
-  const res = await fetchAPI('/api/paper/close', {
-    method: 'POST',
-    body: JSON.stringify({ id: p.id, livePrice: live })
-  });
+  let res;
+  try {
+    res = await fetchAPI('/api/paper/close', {
+      method: 'POST',
+      body: JSON.stringify({ id: p.id, livePrice: live })
+    });
+  } catch (err) {
+    closingPosition = false;
+    return toast('Server bilan aloqa uzildi. Qayta urinib ko‘ring.');
+  }
 
   if (res.status !== 'success') {
     closingPosition = false;
-    return toast(res.message || 'Position yopilmadi');
+    if (res.message === 'No open position' || res.status === 'error') {
+      await syncPaperState();
+      renderTrade((location.hash.split('/')[2] || 'BTC').toUpperCase());
+    }
+    return toast(res.message === 'No open position'
+      ? 'Bu pozitsiya serverda allaqachon yopilgan. Ro‘yxat yangilandi.'
+      : (res.message || 'Position yopilmadi'));
   }
 
   state.balance = Number(res.balance);
