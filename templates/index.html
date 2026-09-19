@@ -62,22 +62,26 @@ nav a.active{font-weight:700}
 nav a.active:after{content:"";position:absolute;bottom:13px;left:0;right:0;height:2px;background:var(--ink)}
 .headRight{display:flex;align-items:center;gap:12px}
 .iconBtn{border:0;background:transparent;padding:8px}
- .avatar{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--dark);color:#fff;border:1px solid rgba(0,0,0,.12);font-weight:700;cursor:pointer;transition:transform .16s,background .16s}
- .avatar:hover{transform:translateY(-1px);background:#292929}
- .profileWrap{position:relative;display:flex;align-items:center}
- .avatar svg{width:21px;height:21px;display:block}
- .profileMenu{position:absolute;right:0;top:calc(100% + 11px);width:218px;background:#f8f7f2;border:1px solid #d8d6ce;border-radius:13px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.16);z-index:1000;display:none}
- .profileMenu.open{display:block;animation:profilePop .14s ease-out}
- @keyframes profilePop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
- .profileIdentity{padding:10px 11px 12px;border-bottom:1px solid #e1dfd7;margin-bottom:6px;overflow:hidden}
- .profileIdentity strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .profileIdentity small{display:block;color:#77766f;font-size:10px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .profileItem{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:10px 11px;border-radius:8px;font:inherit;font-size:12px;color:#222;cursor:pointer}
- .profileItem:hover{background:#eae8df}
- .profileItem.danger{color:#b63838}
- .profileItem .menuGlyph{width:17px;text-align:center;font-size:15px;color:#666}
- @media(max-width:600px){.profileMenu{right:-4px;width:205px}.avatar{width:34px;height:34px;border-radius:10px}}
-
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--dark);color:#fff;font-weight:700}
+.profileWrap{position:relative;display:flex;align-items:center}
+.profileTrigger{width:36px;height:36px;border:0;border-radius:50%;display:grid;place-items:center;background:#171717;color:#fff;font-weight:750;letter-spacing:.2px;box-shadow:0 2px 5px #00000012}
+.profileTrigger svg{width:20px;height:20px;display:block}
+.profilePopover{position:absolute;right:0;top:calc(100% + 13px);width:284px;background:#f7f5ef;border:1px solid #d9d6ce;border-radius:15px;box-shadow:0 14px 42px #00000020;overflow:hidden;z-index:100;display:none;color:#202020}
+.profilePopover.open{display:block;animation:profileIn .14s ease-out}
+@keyframes profileIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.profilePopover:before{content:"";position:absolute;right:15px;top:-7px;width:13px;height:13px;background:#f7f5ef;border-left:1px solid #d9d6ce;border-top:1px solid #d9d6ce;transform:rotate(45deg)}
+.profileIdentity{display:flex;align-items:center;gap:14px;padding:18px 16px 15px;border-bottom:1px solid #dfdcd4}
+.profileFace{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:#171717;color:#fff}
+.profileFace svg{width:28px;height:28px}
+.profileName{font-size:16px;font-weight:650;line-height:1.3;overflow-wrap:anywhere}
+.profileEmail{font-size:13px;color:#696861;margin-top:3px;overflow-wrap:anywhere}
+.profileActions{padding:7px 0}
+.profileAction{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:15px;text-align:left;padding:12px 17px;font-size:14px;color:#202020}
+.profileAction:hover{background:#eae8e0}
+.profileAction svg{width:19px;height:19px;flex:0 0 19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.profileAction .noticeDot{width:9px;height:9px;border-radius:50%;background:#73b52c;margin-left:auto}
+.profileAction.logout{border-top:1px solid #dfdcd4;margin-top:5px;padding-top:15px}
+@media(max-width:640px){.profilePopover{position:fixed;right:10px;top:66px;width:min(284px,calc(100vw - 20px))}.profilePopover:before{right:17px}}
 .menu{display:none}
 main{max-width:1450px;margin:auto;padding:42px 4.5% 65px;min-height:calc(100vh - 130px)}
 .hero{min-height:485px;display:flex;align-items:center;position:relative;overflow:hidden}
@@ -613,13 +617,17 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 </div>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
 <div class="profileWrap" id="profileWrap">
-  <button id="avatar" class="avatar" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false" onclick="toggleProfileMenu(event)"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4.5 20c.65-4.1 3.35-6.4 7.5-6.4s6.85 2.3 7.5 6.4" fill="currentColor"/></svg></button>
-  <div class="profileMenu" id="profileMenu" role="menu">
-    <div class="profileIdentity"><strong id="profileMenuName">Guest</strong><small id="profileMenuEmail">Sign in to your account</small></div>
-    <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/profile')"><span class="menuGlyph">◉</span>My Profile</button>
-    <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/settings')"><span class="menuGlyph">⚙</span>Settings</button>
-    <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/notifications')"><span class="menuGlyph">♧</span>Notifications</button>
-    <button class="profileItem danger" id="profileSignOut" type="button" role="menuitem" onclick="logoutUser()"><span class="menuGlyph">↪</span>Log Out</button>
+  <button id="avatar" class="profileTrigger" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false" onclick="toggleProfileMenu(event)">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1" fill="currentColor"/></svg>
+  </button>
+  <div class="profilePopover" id="profilePopover" role="menu" aria-label="Profile menu">
+    <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
+    <div class="profileActions">
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24"><path d="M12 8.7a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/><path d="m19.4 13.5 1.1.8-1.1 2-1.3-.5a7.7 7.7 0 0 1-1.5.9l-.2 1.4h-2.3l-.4-1.3a7.7 7.7 0 0 1-1.7 0l-.7 1.3H9l-.3-1.4a7.7 7.7 0 0 1-1.5-.9l-1.3.5-1.1-2 1.1-.8a7.3 7.3 0 0 1 0-1.8l-1.1-.8 1.1-2 1.3.5a7.7 7.7 0 0 1 1.5-.9L9 7.1h2.3l.4 1.3a7.7 7.7 0 0 1 1.7 0l.7-1.3h2.3l.2 1.4a7.7 7.7 0 0 1 1.5.9l1.3-.5 1.1 2-1.1.8a7.3 7.3 0 0 1 0 1.8Z"/></svg><span>Settings</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" aria-hidden="true"></i></button>
+      <button class="profileAction logout" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
+    </div>
   </div>
 </div>
 <button class="iconBtn menu" id="menuBtn">☰</button>
@@ -1537,49 +1545,45 @@ function renderAdmin(p) {
 
 function toggleProfileMenu(event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('profileMenu');
-  const button = document.getElementById('avatar');
-  if (!menu || !button) return;
-  const opened = menu.classList.toggle('open');
-  button.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  const menu = document.getElementById('profilePopover');
+  const trigger = document.getElementById('avatar');
+  if (!menu || !trigger) return;
+  const open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  trigger.setAttribute('aria-expanded', String(open));
 }
 function closeProfileMenu() {
-  const menu = document.getElementById('profileMenu');
-  const button = document.getElementById('avatar');
+  const menu = document.getElementById('profilePopover');
+  const trigger = document.getElementById('avatar');
   if (menu) menu.classList.remove('open');
-  if (button) button.setAttribute('aria-expanded', 'false');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
 }
-function profileMenuGo(route) {
-  closeProfileMenu();
-  if (!state.user && route !== '/notifications') return go('/login');
-  go(route);
+function profileNavigate(path) { closeProfileMenu(); go(path); }
+function profileLogout() { closeProfileMenu(); if (state.user) logoutUser(); else go('/login'); }
+function updateAvatar() {
+  const a = document.getElementById('avatar');
+  const name = document.getElementById('profileName');
+  const email = document.getElementById('profileEmail');
+  const face = document.getElementById('profileFace');
+  if (!a) return;
+  if (state.user) {
+    const username = state.user.username || state.user.name || 'Trader';
+    a.textContent = username.trim().charAt(0).toUpperCase() || 'T';
+    if (name) name.textContent = username;
+    if (email) email.textContent = state.user.email || 'Obsidian Lab account';
+    if (face) face.textContent = (username.trim().charAt(0).toUpperCase() || 'T');
+  } else {
+    a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1" fill="currentColor"/></svg>';
+    if (name) name.textContent = 'Guest';
+    if (email) email.textContent = 'Sign in to your account';
+    if (face) face.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg>';
+  }
 }
 document.addEventListener('click', (event) => {
   const wrap = document.getElementById('profileWrap');
   if (wrap && !wrap.contains(event.target)) closeProfileMenu();
 });
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeProfileMenu(); });
-function updateAvatar() {
-  const a = document.getElementById('avatar');
-  const name = document.getElementById('profileMenuName');
-  const email = document.getElementById('profileMenuEmail');
-  const signOut = document.getElementById('profileSignOut');
-  if (!a) return;
-  if (state.user) {
-    const initial = (state.user.username || 'U')[0].toUpperCase();
-    a.innerHTML = `<span style="font-size:13px;line-height:1">${esc(initial)}</span>`;
-    a.setAttribute('aria-label', 'Open profile menu');
-    if (name) name.textContent = state.user.username || 'My account';
-    if (email) email.textContent = state.user.email || 'Signed in';
-    if (signOut) signOut.style.display = 'flex';
-  } else {
-    a.innerHTML = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4.5 20c.65-4.1 3.35-6.4 7.5-6.4s6.85 2.3 7.5 6.4" fill="currentColor"/></svg>`;
-    a.setAttribute('aria-label', 'Open profile menu');
-    if (name) name.textContent = 'Guest';
-    if (email) email.textContent = 'Sign in to your account';
-    if (signOut) signOut.style.display = 'none';
-  }
-}
 
 async function updateBinancePrices() {
   try {
