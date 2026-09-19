@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OBSIDIAN LAB — Build. Trade. Compete.</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151515'/%3E%3Cpath d='M32 15 49 32 32 49 15 32Z' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M32 24 40 32 32 40 24 32Z' fill='%23b8ff3d'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/static/bat.svg?v=3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
@@ -20,6 +20,40 @@ button,a{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 header{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:50;background:rgba(231,227,218,.96);backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:1.8px;white-space:nowrap}
+/* Logo va ko'rshapalak ikonkasini mukammal moslash */
+.logoMark{
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: transparent !important;
+  line-height: 0;
+}
+.logoMark img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.authBrandMark{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  line-height: 0;
+}
+.authBrandMark img{
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
 .logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;font-size:18px}
 nav{display:flex;gap:29px;margin:auto}
 nav a{font-size:12px;padding:26px 0;position:relative;color:#333}
@@ -30,18 +64,24 @@ nav a.active:after{content:"";position:absolute;bottom:13px;left:0;right:0;heigh
 .iconBtn{border:0;background:transparent;padding:8px}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--dark);color:#fff;font-weight:700}
 .profileWrap{position:relative;display:flex;align-items:center}
- .avatar svg{width:21px;height:21px;display:block}
- .profileMenu{position:absolute;right:0;top:calc(100% + 11px);width:218px;background:#f8f7f2;border:1px solid #d8d6ce;border-radius:13px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.16);z-index:1000;display:none}
- .profileMenu.open{display:block;animation:profilePop .14s ease-out}
- @keyframes profilePop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
- .profileIdentity{padding:10px 11px 12px;border-bottom:1px solid #e1dfd7;margin-bottom:6px;overflow:hidden}
- .profileIdentity strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .profileIdentity small{display:block;color:#77766f;font-size:10px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .profileItem{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:10px 11px;border-radius:8px;font:inherit;font-size:12px;color:#222;cursor:pointer}
- .profileItem:hover{background:#eae8df}
- .profileItem.danger{color:#b63838}
- .profileItem .menuGlyph{width:17px;text-align:center;font-size:15px;color:#666}
- @media(max-width:600px){.profileMenu{right:-4px;width:205px}.avatar{width:34px;height:34px;border-radius:10px}}
+.profileTrigger{width:36px;height:36px;border:0;border-radius:50%;display:grid;place-items:center;background:#171717;color:#fff;font-weight:750;letter-spacing:.2px;box-shadow:0 2px 5px #00000012}
+.profileTrigger svg{width:20px;height:20px;display:block}
+.profilePopover{position:absolute;right:0;top:calc(100% + 13px);width:284px;background:#f7f5ef;border:1px solid #d9d6ce;border-radius:15px;box-shadow:0 14px 42px #00000020;overflow:hidden;z-index:100;display:none;color:#202020}
+.profilePopover.open{display:block;animation:profileIn .14s ease-out}
+@keyframes profileIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.profilePopover:before{content:"";position:absolute;right:15px;top:-7px;width:13px;height:13px;background:#f7f5ef;border-left:1px solid #d9d6ce;border-top:1px solid #d9d6ce;transform:rotate(45deg)}
+.profileIdentity{display:flex;align-items:center;gap:14px;padding:18px 16px 15px;border-bottom:1px solid #dfdcd4}
+.profileFace{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:#171717;color:#fff}
+.profileFace svg{width:28px;height:28px}
+.profileName{font-size:16px;font-weight:650;line-height:1.3;overflow-wrap:anywhere}
+.profileEmail{font-size:13px;color:#696861;margin-top:3px;overflow-wrap:anywhere}
+.profileActions{padding:7px 0}
+.profileAction{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:15px;text-align:left;padding:12px 17px;font-size:14px;color:#202020}
+.profileAction:hover{background:#eae8e0}
+.profileAction svg{display:block;width:20px;height:20px;flex:0 0 20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.profileAction .noticeDot{width:9px;height:9px;border-radius:50%;background:#73b52c;margin-left:auto;display:none}.noticeDot.isUnread{display:inline-block}
+.profileAction.logout{border-top:1px solid #dfdcd4;margin-top:5px;padding-top:15px}
+@media(max-width:640px){.profilePopover{position:fixed;right:10px;top:66px;width:min(284px,calc(100vw - 20px))}.profilePopover:before{right:17px}}
 .menu{display:none}
 main{max-width:1450px;margin:auto;padding:42px 4.5% 65px;min-height:calc(100vh - 130px)}
 .hero{min-height:485px;display:flex;align-items:center;position:relative;overflow:hidden}
@@ -107,6 +147,82 @@ tr:last-child td{border-bottom:0}
 .activity small{display:block;color:var(--muted);margin-top:2px}
 .chart{height:400px;position:relative;overflow:hidden;border-radius:8px}
 .chart iframe{width:100%;height:100%;border:0}
+
+/* Register / Login visual panel */
+.authArt{
+  position:relative;
+  overflow:hidden;
+  min-height:520px;
+  background:#151515;
+  color:#fff;
+  padding:42px;
+  border-radius:10px 0 0 10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.authArt::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 18%,#000 82%,transparent 100%);
+  pointer-events:none;
+}
+.authArt::after{
+  content:"";
+  position:absolute;
+  width:360px;
+  height:360px;
+  right:-120px;
+  top:115px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:50%;
+  box-shadow:0 0 0 38px rgba(255,255,255,.025),0 0 0 76px rgba(255,255,255,.018);
+  pointer-events:none;
+}
+.authBrand,.authVisual,.authCopy{position:relative;z-index:2}
+.authBrand{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:1.6px;
+}
+.authBrandMark{
+  width:20px;height:20px;border:1px solid rgba(255,255,255,.8);
+  border-radius:5px;display:grid;place-items:center;font-size:10px;
+}
+.authVisual{margin-top:8px}
+.authTerminal{
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  padding:18px;
+  width:min(100%,390px);
+  backdrop-filter:blur(4px);
+}
+.authTerminalTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.authTerminalTitle{font-size:10px;letter-spacing:1.4px;color:rgba(255,255,255,.62)}
+.authLive{font-size:9px;letter-spacing:1px;color:#fff;display:flex;align-items:center;gap:6px}
+.authLive i{width:6px;height:6px;border-radius:50%;background:#fff;display:block;box-shadow:0 0 10px rgba(255,255,255,.8)}
+.authChart{height:145px;position:relative;overflow:hidden}
+.authChart svg{width:100%;height:100%;display:block}
+.authChartLine{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:authDraw 4s ease-in-out infinite alternate}
+.authChartGlow{fill:none;stroke:rgba(255,255,255,.14);stroke-width:8;filter:blur(5px)}
+.authChartGrid{stroke:rgba(255,255,255,.08);stroke-width:1}
+@keyframes authDraw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+.authStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.authStat{border-top:1px solid rgba(255,255,255,.12);padding-top:9px}
+.authStat b{display:block;font-size:11px;letter-spacing:.7px}
+.authStat span{display:block;margin-top:3px;font-size:8px;letter-spacing:1.1px;color:rgba(255,255,255,.42)}
+.authCopy h2{font-size:24px;letter-spacing:-1px;margin:0 0 9px}
+.authCopy p{margin:0;color:rgba(255,255,255,.55);font-size:12px;line-height:1.65}
+
 .auth{max-width:980px;margin:30px auto;display:grid;grid-template-columns:1fr 1fr}
 .authArt{background:var(--dark);color:#fff;padding:42px;border-radius:10px 0 0 10px;display:flex;flex-direction:column;justify-content:space-between}
 .authForm{background:var(--card);padding:42px;border-radius:0 10px 10px 0}
@@ -118,6 +234,17 @@ tr:last-child td{border-bottom:0}
 .toast.show{display:block}
 footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-content:space-between;color:var(--muted);font-size:9px;letter-spacing:1px}
 .empty{text-align:center;padding:50px;color:var(--muted)}
+
+@media(max-width:700px){
+  .authArt{min-height:430px;padding:24px}
+  .authTerminal{width:100%;padding:14px}
+  .authChart{height:125px}
+  .authStats{gap:7px}
+  .authStat b{font-size:10px}
+  .authStat span{font-size:7px}
+  .authCopy h2{font-size:20px}
+}
+
 @media(max-width:1050px){nav{gap:17px}.g4{grid-template-columns:repeat(2,1fr)}.officeGrid{grid-template-columns:1fr 1fr}.terminal{grid-template-columns:1fr!important}.heroArt{opacity:.35;width:70%}}
 @media(max-width:720px){
  header{height:64px;padding:0 17px;gap:10px}.menu{display:block}.headRight{margin-left:auto}nav{display:none;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:15px 20px;border-bottom:1px solid var(--line);flex-direction:column;gap:4px}nav.open{display:flex}nav a{padding:10px}nav a.active:after{display:none}
@@ -442,11 +569,37 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
   }
 }
 
+
+.langPicker{position:relative;flex:0 0 auto;z-index:80}
+.langTrigger{height:38px;min-width:82px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 13px;border:1px solid #d8d4ca;border-radius:22px;background:#f2f0e9;color:#202020;font-size:11px;font-weight:750;letter-spacing:.35px;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s}
+.langTrigger:hover{border-color:#b8b3a8;background:#f8f7f2}
+.langTrigger:focus-visible,.langOption:focus-visible{outline:2px solid #a7f329;outline-offset:3px}
+.langChevron{width:8px;height:8px;border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s}
+.langPicker.open .langChevron{transform:rotate(225deg) translate(-1px,-1px)}
+.langMenu{position:absolute;right:0;top:calc(100% + 8px);width:138px;padding:6px;background:#f8f7f2;border:1px solid #e0ddd5;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.13);display:none;overflow:hidden}
+.langPicker.open .langMenu{display:grid;animation:langPop .14s ease-out}
+@keyframes langPop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.langOption{display:flex;align-items:center;gap:11px;width:100%;padding:11px 10px;border:0;border-radius:10px;background:transparent;color:#363630;text-align:left;font-size:12px;font-weight:550;cursor:pointer}
+.langOption:hover{background:#eeece5}
+.langOption[aria-selected="true"]{background:#eeece5;color:#171717}
+.langFlag{width:20px;flex:0 0 20px;font-size:15px;line-height:1}
+.langCheck{margin-left:auto;color:#171717;font-size:15px;font-weight:900}
+@media(max-width:700px){.langTrigger{height:34px;min-width:72px;padding:0 11px;gap:10px}.langMenu{width:132px}}
+
+
+/* Bat mark sizing: avoid clipping and broken image artifacts */
+.logoMark{width:32px;height:32px;flex:0 0 32px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;background:#171717;line-height:0}
+.logoMark img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.authBrandMark{display:inline-flex;align-items:center;justify-content:center;overflow:hidden;line-height:0}
+.authBrandMark img{display:block;width:20px;height:20px;object-fit:contain}
+
+.langFlagSvg{display:block;width:20px;height:14px;flex:0 0 20px;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
 </style>
+  <link rel="apple-touch-icon" href="/static/bat.svg?v=3">
 </head>
 <body>
 <header>
-<a class="logo" href="#/" onclick="go('/')"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
+<a class="logo" href="#/" onclick="go('/')"><span class="logoMark"><img src="/static/bat.svg?v=3" alt="Obsidian Lab"></span> OBSIDIAN LAB</a>
 <nav id="nav">
 <a data-route="/" href="#/" onclick="go('/')">Home</a>
 <a data-route="/markets" href="#/markets" onclick="go('/markets')">Markets</a>
@@ -455,20 +608,32 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <a data-route="/web-office" href="#/web-office" onclick="go('/web-office')">Web Office</a>
 </nav>
 <div class="headRight">
+<div class="langPicker" id="langPicker">
+  <button class="langTrigger" id="langTrigger" type="button" aria-label="Choose language" aria-haspopup="listbox" aria-expanded="false"><span id="langCurrent">EN</span><span class="langChevron" aria-hidden="true"></span></button>
+  <div class="langMenu" id="langMenu" role="listbox" aria-label="Choose language">
+    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="5.1" fill="#1eb5e5"/><rect y="5.45" width="24" height="5.1" fill="#fff"/><rect y="10.9" width="24" height="5.1" fill="#1eb45a"/><path d="M0 4.9h24v.6H0zM0 10.5h24v.6H0z" fill="#ce1126"/><circle cx="5.2" cy="2.6" r="1.45" fill="#fff"/><circle cx="5.8" cy="2.25" r="1.2" fill="#1eb5e5"/><g fill="#fff"><circle cx="9" cy="1.2" r=".42"/><circle cx="11" cy="1.2" r=".42"/><circle cx="13" cy="1.2" r=".42"/><circle cx="15" cy="1.2" r=".42"/><circle cx="9" cy="2.8" r=".42"/><circle cx="11" cy="2.8" r=".42"/><circle cx="13" cy="2.8" r=".42"/><circle cx="15" cy="2.8" r=".42"/></g></svg><span>UZ</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#fff"/><path fill="#2456a6" d="M0 5.33h24v5.34H0z"/><path fill="#d52b1e" d="M0 10.67h24V16H0z"/></svg><span>RU</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#234078"/><path d="M0 0 24 16M24 0 0 16" stroke="#fff" stroke-width="4"/><path d="M0 0 24 16M24 0 0 16" stroke="#c8102e" stroke-width="1.5"/><path d="M12 0v16M0 8h24" stroke="#fff" stroke-width="6"/><path d="M12 0v16M0 8h24" stroke="#c8102e" stroke-width="3.2"/></svg><span>EN</span><span class="langCheck"></span></button>
+  </div>
+</div>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
 <div class="profileWrap" id="profileWrap">
-  <button id="avatar" class="avatar" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false" onclick="toggleProfileMenu(event)"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4.5 20c.65-4.1 3.35-6.4 7.5-6.4s6.85 2.3 7.5 6.4" fill="currentColor"/></svg></button>
-  <div class="profileMenu" id="profileMenu" role="menu">
-    <div class="profileIdentity"><strong id="profileMenuName">Guest</strong><small id="profileMenuEmail">Sign in to your account</small></div>
-    <div id="profileSignedInItems">
-      <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/profile')"><span class="menuGlyph">♙</span>My Profile</button>
-      <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/settings')"><span class="menuGlyph">⚙</span>Settings</button>
-      <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/notifications')"><span class="menuGlyph">♧</span>Notifications</button>
-      <button class="profileItem danger" id="profileSignOut" type="button" role="menuitem" onclick="logoutUser()"><span class="menuGlyph">↪</span>Log Out</button>
-    </div>
-    <div id="profileGuestItems" style="display:none">
-      <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/login')"><span class="menuGlyph">↗</span>Sign In</button>
-      <button class="profileItem" type="button" role="menuitem" onclick="profileMenuGo('/register')"><span class="menuGlyph">＋</span>Create Account</button>
+  <button id="avatar" class="profileTrigger" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false" onclick="toggleProfileMenu(event)">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1" fill="currentColor"/></svg>
+  </button>
+  <div class="profilePopover" id="profilePopover" role="menu" aria-label="Profile menu">
+    <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
+    <div class="profileActions">
+      <button class="profileAction guestOnly" type="button" role="menuitem" onclick="profileNavigate('/login')"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Sign In</span></button>
+      <button class="profileAction guestOnly" type="button" role="menuitem" onclick="profileNavigate('/register')"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Create Account</span></button>
+
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9.7 2.8h4.6l.55 2.1a7.5 7.5 0 0 1 1.55.9l2.1-.65 2.3 4-1.55 1.55a7.7 7.7 0 0 1 0 1.8l1.55 1.55-2.3 4-2.1-.65a7.5 7.5 0 0 1-1.55.9l-.55 2.1H9.7l-.55-2.1a7.5 7.5 0 0 1-1.55-.9l-2.1.65-2.3-4 1.55-1.55a7.7 7.7 0 0 1 0-1.8L3.2 9.15l2.3-4 2.1.65a7.5 7.5 0 0 1 1.55-.9L9.7 2.8Z"/>
+        <circle cx="12" cy="12" r="3.1"/>
+      </svg><span>Settings</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" id="profileNoticeDot" aria-hidden="true" hidden></i></button>
+      <button class="profileAction logout memberOnly" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
     </div>
   </div>
 </div>
@@ -494,6 +659,7 @@ let paperSynced = false;
 let oldLocalPosition = state.position;
 let closingPosition = false;
 let openingPosition = false;
+let lastPaperSignature = '';
 
 async function syncPaperState() {
   try {
@@ -527,6 +693,7 @@ async function syncPaperState() {
           state.positions = again.positions || (again.position ? [again.position] : []);
           state.position = state.positions[0] || null;
           state.trades = again.trades || [];
+          updateNotificationDot();
         }
       }
     } else {
@@ -534,6 +701,7 @@ async function syncPaperState() {
       state.positions = data.positions || (data.position ? [data.position] : []);
       state.position = state.positions[0] || null;
       state.trades = data.trades || [];
+      updateNotificationDot();
     }
 
     localStorage.setItem('obsidian_balance', state.balance);
@@ -542,8 +710,22 @@ async function syncPaperState() {
     else localStorage.removeItem('obsidian_pos');
     localStorage.setItem('obsidian_positions', JSON.stringify(state.positions || []));
 
+    // IMPORTANT: syncing from the second device must NOT rebuild the whole page
+    // every 3 seconds. Re-rendering the trade page recreated the TradingView iframe
+    // and looked like a browser refresh. Only rebuild when server-side positions
+    // or trade history actually changed; balance alone is updated in-place.
+    const paperSignature = JSON.stringify({
+      positions: (state.positions || []).map(p => [p.id,p.pair,p.type,p.size,p.leverage,p.entryPrice,p.tp,p.sl]),
+      trades: (state.trades || []).map(t => [t.id,t.status,t.exit_price,t.pnl,t.created_at])
+    });
+    const positionsChanged = paperSignature !== lastPaperSignature;
+    lastPaperSignature = paperSignature;
+
     paperSynced = true;
-    if (location.hash.includes('/trade') || location.hash.includes('/markets/')) {
+    const avail = document.getElementById('avail-balance');
+    if (avail) avail.textContent = money(state.balance);
+
+    if (positionsChanged && (location.hash.includes('/trade') || location.hash.includes('/markets/'))) {
       const sym = (location.hash.split('/')[2] || 'BTC').toUpperCase();
       renderTrade(sym === 'TRADE' ? 'BTC' : sym);
     }
@@ -1232,7 +1414,34 @@ function renderAuth(p) {
   const login = p === '/login', register = p === '/register';
   document.getElementById('app').innerHTML = `
     <section class="auth">
-      <div class="authArt"><div class="logo">◈ OBSIDIAN LAB</div><div><h2>Build. Trade. Compete.</h2><p>Better decisions.<br>Bigger opportunities.</p></div></div>
+      <div class="authArt">
+  <div class="authBrand"><span class="authBrandMark">◆</span> OBSIDIAN LAB</div>
+  <div class="authVisual">
+    <div class="authTerminal">
+      <div class="authTerminalTop">
+        <span class="authTerminalTitle">OBSIDIAN TERMINAL / PAPER MARKET</span>
+        <span class="authLive"><i></i>SYSTEM ONLINE</span>
+      </div>
+      <div class="authChart">
+        <svg viewBox="0 0 390 145" preserveAspectRatio="none" aria-hidden="true">
+          <path class="authChartGrid" d="M0 25H390M0 60H390M0 95H390M0 130H390"/>
+          <path class="authChartGrid" d="M55 0V145M130 0V145M205 0V145M280 0V145M355 0V145"/>
+          <path class="authChartGlow" d="M0 112 L30 106 L52 116 L78 91 L103 101 L130 72 L151 80 L176 57 L199 66 L224 39 L247 54 L270 47 L294 63 L319 32 L343 45 L366 21 L390 29"/>
+          <path class="authChartLine" d="M0 112 L30 106 L52 116 L78 91 L103 101 L130 72 L151 80 L176 57 L199 66 L224 39 L247 54 L270 47 L294 63 L319 32 L343 45 L366 21 L390 29"/>
+        </svg>
+      </div>
+      <div class="authStats">
+        <div class="authStat"><b>24/7</b><span>MARKETS</span></div>
+        <div class="authStat"><b>$10K</b><span>STARTING BALANCE</span></div>
+        <div class="authStat"><b>LIVE</b><span>MARKET DATA</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="authCopy">
+    <h2>Build. Trade. Compete.</h2>
+    <p>Better decisions.<br>Bigger opportunities.</p>
+  </div>
+</div>
       <div class="authForm">
         <h1>${login ? 'Welcome back' : 'Create account'}</h1>
         <p class="muted">${login ? 'Sign in to your account' : 'Your next chapter starts here'}</p>
@@ -1326,7 +1535,29 @@ function renderSettings(p) {
   document.getElementById('app').innerHTML = `<div class="workspace"><aside class="sidebar"><h4>SETTINGS</h4><a href="#/settings/profile" class="active">Profile</a></aside><section>${shell('Settings', 'Akkaunt sozlamalari', `<div class="card"><p>Foydalanuvchi: <strong>${esc(state.user?.username || 'Mehmon')}</strong></p><p>Sessiya: <strong>${state.user ? 'Serverga ulangan' : 'Mehmon rejimi'}</strong></p></div>`)}</section></div>`;
 }
 
+
+function notificationSignature() {
+  const list = Array.isArray(state.trades) ? state.trades : [];
+  if (!list.length) return '';
+  const newest = list.reduce((latest, item) => {
+    const stamp = String(item.created_at || item.time || item.id || '');
+    return stamp > latest ? stamp : latest;
+  }, '');
+  return `${list.length}:${newest}`;
+}
+function updateNotificationDot() {
+  const dot = document.getElementById('profileNoticeDot');
+  if (!dot) return;
+  const signature = notificationSignature();
+  let seen = '';
+  try { seen = localStorage.getItem('obsidian_notifications_seen') || ''; } catch (_) {}
+  dot.classList.toggle('isUnread', Boolean(signature && signature !== seen));
+  dot.hidden = !(signature && signature !== seen);
+}
+
 function renderNotifications() {
+  try { localStorage.setItem('obsidian_notifications_seen', notificationSignature()); } catch (_) {}
+  updateNotificationDot();
   document.getElementById('app').innerHTML = shell('Notifications', 'Updates from your trading terminal', `
     <div class="card">
       ${state.trades.length ? state.trades.slice(-10).reverse().map(t => `
@@ -1345,50 +1576,48 @@ function renderAdmin(p) {
 
 function toggleProfileMenu(event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('profileMenu');
-  const button = document.getElementById('avatar');
-  if (!menu || !button) return;
-  const opened = menu.classList.toggle('open');
-  button.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  const menu = document.getElementById('profilePopover');
+  const trigger = document.getElementById('avatar');
+  if (!menu || !trigger) return;
+  const open = !menu.classList.contains('open');
+  updateNotificationDot();
+  menu.classList.toggle('open', open);
+  trigger.setAttribute('aria-expanded', String(open));
 }
 function closeProfileMenu() {
-  const menu = document.getElementById('profileMenu');
-  const button = document.getElementById('avatar');
+  const menu = document.getElementById('profilePopover');
+  const trigger = document.getElementById('avatar');
   if (menu) menu.classList.remove('open');
-  if (button) button.setAttribute('aria-expanded', 'false');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
 }
-function profileMenuGo(route) {
-  closeProfileMenu();
-  if (!state.user && !['/login','/register','/notifications'].includes(route)) return go('/login');
-  go(route);
+function profileNavigate(path) { closeProfileMenu(); go(path); }
+function profileLogout() { closeProfileMenu(); if (state.user) logoutUser(); else go('/login'); }
+function updateAvatar() {
+  const a = document.getElementById('avatar');
+  const name = document.getElementById('profileName');
+  const email = document.getElementById('profileEmail');
+  const face = document.getElementById('profileFace');
+  if (!a) return;
+  document.querySelectorAll('.memberOnly').forEach(el => el.style.display = state.user ? 'flex' : 'none');
+  document.querySelectorAll('.guestOnly').forEach(el => el.style.display = state.user ? 'none' : 'flex');
+  if (state.user) {
+    const username = state.user.username || state.user.name || 'Trader';
+    a.textContent = username.trim().charAt(0).toUpperCase() || 'T';
+    if (name) name.textContent = username;
+    if (email) email.textContent = state.user.email || 'Obsidian Lab account';
+    if (face) face.textContent = (username.trim().charAt(0).toUpperCase() || 'T');
+  } else {
+    a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1" fill="currentColor"/></svg>';
+    if (name) name.textContent = 'Guest';
+    if (email) email.textContent = 'Sign in to your account';
+    if (face) face.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg>';
+  }
 }
 document.addEventListener('click', (event) => {
   const wrap = document.getElementById('profileWrap');
   if (wrap && !wrap.contains(event.target)) closeProfileMenu();
 });
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeProfileMenu(); });
-function updateAvatar() {
-  const a = document.getElementById('avatar');
-  const name = document.getElementById('profileMenuName');
-  const email = document.getElementById('profileMenuEmail');
-  const signedIn = document.getElementById('profileSignedInItems');
-  const guestItems = document.getElementById('profileGuestItems');
-  if (!a) return;
-  if (state.user) {
-    const initial = (state.user.username || 'U')[0].toUpperCase();
-    a.innerHTML = `<span style="font-size:13px;line-height:1">${esc(initial)}</span>`;
-    if (name) name.textContent = state.user.username || 'My account';
-    if (email) email.textContent = state.user.email || 'Signed in';
-    if (signedIn) signedIn.style.display = 'block';
-    if (guestItems) guestItems.style.display = 'none';
-  } else {
-    a.innerHTML = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="currentColor"/><path d="M4.5 20c.65-4.1 3.35-6.4 7.5-6.4s6.85 2.3 7.5 6.4" fill="currentColor"/></svg>`;
-    if (name) name.textContent = 'Guest';
-    if (email) email.textContent = 'Sign in to your account';
-    if (signedIn) signedIn.style.display = 'none';
-    if (guestItems) guestItems.style.display = 'block';
-  }
-}
 
 async function updateBinancePrices() {
   try {
@@ -1466,6 +1695,105 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
   window.addEventListener('orientationchange', function(){
     setTimeout(mobileLayoutFix, 150);
   }, {passive:true});
+})();
+</script>
+
+
+<script>
+/* Lightweight interface localization: Uzbek, Russian, English. */
+(function(){
+  const picker=document.getElementById('langPicker');
+  const trigger=document.getElementById('langTrigger');
+  const currentLabel=document.getElementById('langCurrent');
+  const options=[...document.querySelectorAll('.langOption')];
+  const codeFor={uz:'UZ',ru:'RU',en:'EN'};
+  const originalText=new WeakMap();
+  const previousText=new WeakMap();
+  const dict={
+    uz:{
+      'Home':'Bosh sahifa','Markets':'Bozorlar','Trade':'Savdo','Leaderboard':'Reyting','Web Office':'Web ofis','Notifications':'Bildirishnomalar',
+      'SYSTEM ONLINE':'TIZIM ISHLAYAPTI','Build. Trade. Compete.':'Yarat. Savdo qil. Bellash.','A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.':'Treydyerlar va yangi g‘oyalar uchun zamonaviy platforma. Bozorlarni o‘rganing, savdoni mashq qiling va imkoniyatlaringizni kengaytiring.',
+      'GET STARTED →':'BOSHLASH →','EXPLORE MARKETS':'BOZORLARNI KO‘RISH','Explore market data':'Bozor ma’lumotlarini ko‘rish','Open trading terminal':'Savdo terminalini ochish','See rankings':'Reytingni ko‘rish','Open workspace':'Ish joyini ochish',
+      'SYSTEM':'TIZIM','ONLINE':'ISHLAYAPTI','MARKET':'BOZOR','BINANCE LIVE FEED':'BINANCE JONLI MA’LUMOTI','TRADING':'SAVDO','PAPER ONLY':'DEMO SAVDO','Market overview — live and demonstration prices':'Bozor ko‘rinishi — jonli va demo narxlar','Search assets, pairs…':'Aktiv yoki juftlikni qidirish…',
+      'All':'Barchasi','Crypto':'Kripto','Forex':'Forex','Stocks':'Aksiyalar','Commodities':'Xomashyo','ASSET':'AKTIV','PRICE':'NARX','24H':'24 SOAT','VOLUME':'HAJM','STATUS':'HOLAT','LIVE':'JONLI','VIEW →':'KO‘RISH →',
+      'Welcome back':'Xush kelibsiz','Create account':'Hisob yaratish','Sign in to your account':'Hisobingizga kiring','Your next chapter starts here':'Keyingi bosqichingiz shu yerdan boshlanadi','Full name':'To‘liq ism','Username':'Foydalanuvchi nomi','Email':'Email','Password':'Parol','Confirm Password':'Parolni tasdiqlang','SIGN IN':'KIRISH','CREATE ACCOUNT':'HISOB YARATISH','No account?':'Hisobingiz yo‘qmi?','REGISTER':'RO‘YXATDAN O‘TISH','Already have an account?':'Hisobingiz bormi?','Better decisions.':'Yaxshiroq qarorlar.','Bigger opportunities.':'Kattaroq imkoniyatlar.','DISCIPLINE':'INTIZOM','CREATES':'YARATADI','FREEDOM':'ERKINLIK',
+      'Page not found':'Sahifa topilmadi','BACK HOME':'BOSH SAHIFAGA','Profile':'Profil','Settings':'Sozlamalar','Updates from your trading terminal':'Savdo terminalingizdan yangiliklar','Paper trades':'Demo bitimlar','Balance':'Balans','Loading…':'Yuklanmoqda…','Close':'Yopish','CLOSE':'YOPISH','Buy':'Sotib olish','Sell':'Sotish','Amount':'Miqdor','Leverage':'Kredit yelkasi','Open position':'Pozitsiya ochish','No positions open':'Ochiq pozitsiyalar yo‘q'
+    },
+    ru:{
+      'Home':'Главная','Markets':'Рынки','Trade':'Торговля','Leaderboard':'Рейтинг','Web Office':'Веб-офис','Notifications':'Уведомления',
+      'SYSTEM ONLINE':'СИСТЕМА РАБОТАЕТ','Build. Trade. Compete.':'Создавай. Торгуй. Соревнуйся.','A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.':'Современная платформа для трейдеров и создателей. Изучайте рынки, практикуйтесь в торговле и создавайте новые возможности.',
+      'GET STARTED →':'НАЧАТЬ →','EXPLORE MARKETS':'ОБЗОР РЫНКОВ','Explore market data':'Изучить данные рынка','Open trading terminal':'Открыть торговый терминал','See rankings':'Посмотреть рейтинг','Open workspace':'Открыть рабочее пространство',
+      'SYSTEM':'СИСТЕМА','ONLINE':'РАБОТАЕТ','MARKET':'РЫНОК','BINANCE LIVE FEED':'ПОТОК BINANCE','TRADING':'ТОРГОВЛЯ','PAPER ONLY':'ТОЛЬКО ДЕМО','Market overview — live and demonstration prices':'Обзор рынка — реальные и демонстрационные цены','Search assets, pairs…':'Поиск активов и пар…',
+      'All':'Все','Crypto':'Криптовалюты','Forex':'Форекс','Stocks':'Акции','Commodities':'Сырьё','ASSET':'АКТИВ','PRICE':'ЦЕНА','24H':'24 Ч','VOLUME':'ОБЪЁМ','STATUS':'СТАТУС','LIVE':'LIVE','VIEW →':'ОТКРЫТЬ →',
+      'Welcome back':'С возвращением','Create account':'Создать аккаунт','Sign in to your account':'Войдите в аккаунт','Your next chapter starts here':'Ваш следующий этап начинается здесь','Full name':'Полное имя','Username':'Имя пользователя','Email':'Электронная почта','Password':'Пароль','Confirm Password':'Подтвердите пароль','SIGN IN':'ВОЙТИ','CREATE ACCOUNT':'СОЗДАТЬ АККАУНТ','No account?':'Нет аккаунта?','REGISTER':'РЕГИСТРАЦИЯ','Already have an account?':'Уже есть аккаунт?','Better decisions.':'Лучшие решения.','Bigger opportunities.':'Больше возможностей.','DISCIPLINE':'ДИСЦИПЛИНА','CREATES':'СОЗДАЁТ','FREEDOM':'СВОБОДУ',
+      'Page not found':'Страница не найдена','BACK HOME':'НА ГЛАВНУЮ','Profile':'Профиль','Settings':'Настройки','Updates from your trading terminal':'Обновления торгового терминала','Paper trades':'Демо-сделки','Balance':'Баланс','Loading…':'Загрузка…','Close':'Закрыть','CLOSE':'ЗАКРЫТЬ','Buy':'Купить','Sell':'Продать','Amount':'Сумма','Leverage':'Плечо','Open position':'Открыть позицию','No positions open':'Нет открытых позиций'
+    }
+  };
+  function translateString(src,lang){
+    if(lang==='en') return src;
+    const table=dict[lang]||{};
+    if(Object.prototype.hasOwnProperty.call(table,src.trim())){
+      const leading=src.match(/^\s*/)?.[0]||'', trailing=src.match(/\s*$/)?.[0]||'';
+      return leading+table[src.trim()]+trailing;
+    }
+    let result=src;
+    Object.keys(table).sort((a,b)=>b.length-a.length).forEach(key=>{
+      if(key.length>2) result=result.split(key).join(table[key]);
+    });
+    return result;
+  }
+  function walk(root,lang){
+    if(!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    let n;
+    while((n=walker.nextNode())){
+      const current=n.nodeValue;
+      if(!current.trim() || n.parentElement?.closest('script,style,svg,code,pre'))continue;
+      const previous=previousText.get(n);
+      let source=originalText.get(n);
+      if(source===undefined || (previous!==undefined && current!==previous)){
+        source=current; originalText.set(n,source);
+      }
+      const out=translateString(source,lang);
+      n.nodeValue=out; previousText.set(n,out);
+    }
+    root.querySelectorAll?.('input[placeholder],textarea[placeholder],[aria-label],[title]').forEach(el=>{
+      ['placeholder','aria-label','title'].forEach(attr=>{
+        if(!el.hasAttribute(attr))return;
+        const key='i18n_'+attr;
+        if(!el.dataset[key])el.dataset[key]=el.getAttribute(attr);
+        el.setAttribute(attr,translateString(el.dataset[key],lang));
+      });
+    });
+  }
+  let lang=localStorage.getItem('obsidian_language')||'en';
+  if(!['uz','ru','en'].includes(lang))lang='en';
+  function closePicker(){if(!picker)return;picker.classList.remove('open');trigger?.setAttribute('aria-expanded','false');}
+  function setLanguage(next){
+    if(!['uz','ru','en'].includes(next))return;
+    lang=next;localStorage.setItem('obsidian_language',lang);document.documentElement.lang=lang;
+    if(currentLabel)currentLabel.textContent=codeFor[lang];
+    options.forEach(option=>{const selected=option.dataset.lang===lang;option.setAttribute('aria-selected',String(selected));const check=option.querySelector('.langCheck');if(check)check.textContent=selected?'✓':'';});
+    walk(document.body,lang);closePicker();
+  }
+  trigger?.addEventListener('click',()=>{const isOpen=picker.classList.toggle('open');trigger.setAttribute('aria-expanded',String(isOpen));});
+  options.forEach(option=>option.addEventListener('click',()=>setLanguage(option.dataset.lang)));
+  document.addEventListener('click',event=>{if(picker&&!picker.contains(event.target))closePicker();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closePicker();});
+  document.documentElement.lang=lang;
+  if(currentLabel)currentLabel.textContent=codeFor[lang];
+  options.forEach(option=>{const selected=option.dataset.lang===lang;option.setAttribute('aria-selected',String(selected));const check=option.querySelector('.langCheck');if(check)check.textContent=selected?'✓':'';});
+  const observer=new MutationObserver(records=>{
+    records.forEach(r=>r.addedNodes.forEach(node=>{
+      if(node.nodeType===Node.ELEMENT_NODE)walk(node,lang);
+      else if(node.nodeType===Node.TEXT_NODE){
+        if(!originalText.has(node))originalText.set(node,node.nodeValue);
+        const src=originalText.get(node),out=translateString(src,lang);node.nodeValue=out;previousText.set(node,out);
+      }
+    }));
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+  walk(document.body,lang);
 })();
 </script>
 
