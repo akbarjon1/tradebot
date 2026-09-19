@@ -538,12 +538,77 @@ def api_register():
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
 
+def find_user_in_google_sheet(email):
+    """Return an existing account from the Users worksheet, if configured."""
+    global spreadsheet
+    if not spreadsheet:
+        return None
+    try:
+        ws = spreadsheet.worksheet("Users")
+        rows = ws.get_all_values()
+        if not rows:
+            return None
+        headers = [str(h).strip().lower() for h in rows[0]]
+        aliases = {
+            "id": ("user id", "userid", "id"),
+            "email": ("email", "e-mail"),
+            "username": ("username", "user name", "handle"),
+            "password": ("password hash", "password", "password_hash"),
+            "balance": ("balance",),
+            "name": ("full name", "name", "fullname"),
+        }
+        indexes = {}
+        for key, options in aliases.items():
+            indexes[key] = next((headers.index(x) for x in options if x in headers), None)
+        if indexes["email"] is None or indexes["password"] is None:
+            return None
+        for row in rows[1:]:
+            def value(key, default=""):
+                idx = indexes.get(key)
+                return str(row[idx]).strip() if idx is not None and idx < len(row) else default
+            if value("email").lower() != email:
+                continue
+            user_id = value("id") or uuid.uuid4().hex
+            username = value("username") or email.split("@", 1)[0]
+            name = value("name") or username
+            hashed = value("password")
+            try:
+                balance = float(value("balance", "10000") or 10000)
+            except (TypeError, ValueError):
+                balance = 10000.0
+            return {
+                "id": user_id, "email": email, "username": username,
+                "name": name, "password": hashed, "role": "USER",
+                "balance": balance, "created_at": db_now(), "updated_at": db_now()
+            }
+    except Exception as err:
+        print(f"Google Sheets Users login lookup failed: {err}")
+    return None
+
+
 @app.route("/api/auth/login", methods=["POST"])
 def api_login():
     d = json_body()
     email = str(d.get("email","")).strip().lower()
     password = str(d.get("password",""))
     user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+
+    # Render may start with a fresh local SQLite database. Restore a matching
+    # existing user from the connected Users worksheet before rejecting login.
+    if not user:
+        sheet_user = find_user_in_google_sheet(email)
+        if sheet_user and check_password_hash(sheet_user["password"], password):
+            try:
+                db_conn().execute(
+                    "INSERT INTO web_users (id,email,username,name,password,role,balance,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                    tuple(sheet_user[k] for k in ("id","email","username","name","password","role","balance","created_at","updated_at"))
+                )
+                db_conn().commit()
+                user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+            except sqlite3.IntegrityError:
+                # Resolve any partial restore/duplicate row by looking up email again.
+                user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
+
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"status":"error","message":"Invalid email or password"}), 401
     session.clear()
