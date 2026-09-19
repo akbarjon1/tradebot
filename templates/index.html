@@ -78,7 +78,7 @@ nav a.active:after{content:"";position:absolute;bottom:13px;left:0;right:0;heigh
 .profileActions{padding:7px 0}
 .profileAction{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:15px;text-align:left;padding:12px 17px;font-size:14px;color:#202020}
 .profileAction:hover{background:#eae8e0}
-.profileAction svg{width:19px;height:19px;flex:0 0 19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.profileAction svg{display:block;width:20px;height:20px;flex:0 0 20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .profileAction .noticeDot{width:9px;height:9px;border-radius:50%;background:#73b52c;margin-left:auto}
 .profileAction.logout{border-top:1px solid #dfdcd4;margin-top:5px;padding-top:15px}
 @media(max-width:640px){.profilePopover{position:fixed;right:10px;top:66px;width:min(284px,calc(100vw - 20px))}.profilePopover:before{right:17px}}
@@ -625,7 +625,10 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
     <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
     <div class="profileActions">
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
-      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.2 13.6 1.1.8-1.5 2.6-1.3-.5a7.7 7.7 0 0 1-1.4.8l-.2 1.4h-3l-.3-1.4a7.7 7.7 0 0 1-1.5 0l-.4 1.4h-3l-.2-1.4a7.7 7.7 0 0 1-1.4-.8l-1.3.5-1.5-2.6 1.1-.8a7.4 7.4 0 0 1 0-1.6l-1.1-.8 1.5-2.6 1.3.5a7.7 7.7 0 0 1 1.4-.8l.2-1.4h3l.3 1.4a7.7 7.7 0 0 1 1.5 0l.4-1.4h3l.2 1.4a7.7 7.7 0 0 1 1.4.8l1.3-.5 1.5 2.6-1.1.8a7.4 7.4 0 0 1 0 1.6Z"/></svg><span>Settings</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"/>
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 2.94-.09-.03a1.7 1.7 0 0 0-1.83.35 1.7 1.7 0 0 0-.57 1.28V21.6h-3.4l-.02-.1a1.7 1.7 0 0 0-1.18-1.45 1.7 1.7 0 0 0-1.83.35l-.07.06-2.94-1.7.03-.09a1.7 1.7 0 0 0-.35-1.83 1.7 1.7 0 0 0-1.28-.57H4.4v-3.4l.1-.02a1.7 1.7 0 0 0 1.45-1.18 1.7 1.7 0 0 0-.35-1.83l-.06-.07 1.7-2.94.09.03a1.7 1.7 0 0 0 1.83-.35 1.7 1.7 0 0 0 .57-1.28V5.4h3.4l.02.1a1.7 1.7 0 0 0 1.18 1.45 1.7 1.7 0 0 0 1.83-.35l.07-.06 2.94 1.7-.03.09a1.7 1.7 0 0 0 .35 1.83 1.7 1.7 0 0 0 1.28.57h.1v3.4l-.1.02A1.7 1.7 0 0 0 19.4 15Z" transform="translate(-1 -1) scale(1.08)"/>
+      </svg><span>Settings</span></button>
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" aria-hidden="true"></i></button>
       <button class="profileAction logout" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
     </div>
