@@ -593,6 +593,7 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 .authBrandMark{display:inline-flex;align-items:center;justify-content:center;overflow:hidden;line-height:0}
 .authBrandMark img{display:block;width:20px;height:20px;object-fit:contain}
 
+.langFlagSvg{display:block;width:20px;height:14px;flex:0 0 20px;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
 </style>
   <link rel="apple-touch-icon" href="/static/bat.svg?v=3">
 </head>
@@ -610,9 +611,9 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <div class="langPicker" id="langPicker">
   <button class="langTrigger" id="langTrigger" type="button" aria-label="Choose language" aria-haspopup="listbox" aria-expanded="false"><span id="langCurrent">EN</span><span class="langChevron" aria-hidden="true"></span></button>
   <div class="langMenu" id="langMenu" role="listbox" aria-label="Choose language">
-    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><span class="langFlag" aria-hidden="true">🇺🇿</span><span>UZ</span><span class="langCheck"></span></button>
-    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><span class="langFlag" aria-hidden="true">🇷🇺</span><span>RU</span><span class="langCheck"></span></button>
-    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><span class="langFlag" aria-hidden="true">🇬🇧</span><span>EN</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="uz" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="5.1" fill="#1eb5e5"/><rect y="5.45" width="24" height="5.1" fill="#fff"/><rect y="10.9" width="24" height="5.1" fill="#1eb45a"/><path d="M0 4.9h24v.6H0zM0 10.5h24v.6H0z" fill="#ce1126"/><circle cx="5.2" cy="2.6" r="1.45" fill="#fff"/><circle cx="5.8" cy="2.25" r="1.2" fill="#1eb5e5"/><g fill="#fff"><circle cx="9" cy="1.2" r=".42"/><circle cx="11" cy="1.2" r=".42"/><circle cx="13" cy="1.2" r=".42"/><circle cx="15" cy="1.2" r=".42"/><circle cx="9" cy="2.8" r=".42"/><circle cx="11" cy="2.8" r=".42"/><circle cx="13" cy="2.8" r=".42"/><circle cx="15" cy="2.8" r=".42"/></g></svg><span>UZ</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="ru" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#fff"/><path fill="#2456a6" d="M0 5.33h24v5.34H0z"/><path fill="#d52b1e" d="M0 10.67h24V16H0z"/></svg><span>RU</span><span class="langCheck"></span></button>
+    <button class="langOption" type="button" role="option" data-lang="en" aria-selected="false"><svg class="langFlagSvg" viewBox="0 0 24 16" aria-hidden="true"><rect width="24" height="16" rx="2" fill="#234078"/><path d="M0 0 24 16M24 0 0 16" stroke="#fff" stroke-width="4"/><path d="M0 0 24 16M24 0 0 16" stroke="#c8102e" stroke-width="1.5"/><path d="M12 0v16M0 8h24" stroke="#fff" stroke-width="6"/><path d="M12 0v16M0 8h24" stroke="#c8102e" stroke-width="3.2"/></svg><span>EN</span><span class="langCheck"></span></button>
   </div>
 </div>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
@@ -624,7 +625,7 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
     <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
     <div class="profileActions">
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
-      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 1.2.9-1.3 2.2-1.4-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.5h-2.6l-.3-1.5a7.8 7.8 0 0 1-1.7 0l-.5 1.5H8.5l-.3-1.5a7.8 7.8 0 0 1-1.5-.9l-1.4.5L4 14.4l1.2-.9a7.6 7.6 0 0 1 0-1.8L4 10.8l1.3-2.2 1.4.5a7.8 7.8 0 0 1 1.5-.9l.3-1.5h2.6l.3 1.5a7.8 7.8 0 0 1 1.7 0l.5-1.5h2.6l.2 1.5a7.8 7.8 0 0 1 1.5.9l1.4-.5 1.3 2.2-1.2.9a7.6 7.6 0 0 1 0 1.8Z"/></svg><span>Settings</span></button>
+      <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.2 13.6 1.1.8-1.5 2.6-1.3-.5a7.7 7.7 0 0 1-1.4.8l-.2 1.4h-3l-.3-1.4a7.7 7.7 0 0 1-1.5 0l-.4 1.4h-3l-.2-1.4a7.7 7.7 0 0 1-1.4-.8l-1.3.5-1.5-2.6 1.1-.8a7.4 7.4 0 0 1 0-1.6l-1.1-.8 1.5-2.6 1.3.5a7.7 7.7 0 0 1 1.4-.8l.2-1.4h3l.3 1.4a7.7 7.7 0 0 1 1.5 0l.4-1.4h3l.2 1.4a7.7 7.7 0 0 1 1.4.8l1.3-.5 1.5 2.6-1.1.8a7.4 7.4 0 0 1 0 1.6Z"/></svg><span>Settings</span></button>
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" aria-hidden="true"></i></button>
       <button class="profileAction logout" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
     </div>
