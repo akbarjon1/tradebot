@@ -574,6 +574,8 @@ def find_user_in_google_sheet(email):
             hashed = value("password")
             try:
                 balance = float(value("balance", "10000") or 10000)
+                if balance <= 0:
+                    balance = 10000.0
             except (TypeError, ValueError):
                 balance = 10000.0
             return {
