@@ -246,6 +246,13 @@ def init_web_db():
         created_at TEXT NOT NULL,
         FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS web_agent_settings(
+        user_id TEXT PRIMARY KEY,
+        enabled INTEGER NOT NULL DEFAULT 0,
+        agents_json TEXT NOT NULL DEFAULT '["jasur","alex","whale"]',
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES web_users(id) ON DELETE CASCADE
+    );
     CREATE TABLE IF NOT EXISTS web_positions(
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
@@ -1111,6 +1118,138 @@ def get_leaderboard():
         return jsonify({"status":"error","message":"Leaderboard unavailable"}), 500
 
 
+# ===== DEMO AUTO-TRADING AGENTS =====
+# Auto mode is PAPER ONLY: no exchange orders or real-money API credentials are used.
+AGENT_SYMBOLS = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
+AUTO_AGENT_IDS = {"jasur", "alex", "whale"}
+
+@app.route('/api/agents/auto', methods=['GET', 'POST'])
+@require_web_auth
+def agent_auto_settings():
+    user = current_web_user()
+    c = db_conn()
+    row = c.execute("SELECT * FROM web_agent_settings WHERE user_id=?", (user['id'],)).fetchone()
+    if request.method == 'GET':
+        return jsonify({"status":"success", "enabled": bool(row['enabled']) if row else False,
+                        "agents": json.loads(row['agents_json']) if row else sorted(AUTO_AGENT_IDS),
+                        "mode":"PAPER_ONLY", "interval_seconds":60})
+    body = json_body()
+    enabled = bool(body.get('enabled', False))
+    agents = body.get('agents', sorted(AUTO_AGENT_IDS))
+    if not isinstance(agents, list) or not agents or any(a not in AUTO_AGENT_IDS for a in agents):
+        return jsonify({"status":"error", "message":"Choose one or more valid agents"}), 400
+    stamp = db_now()
+    c.execute("""INSERT INTO web_agent_settings(user_id,enabled,agents_json,updated_at) VALUES(?,?,?,?)
+                 ON CONFLICT(user_id) DO UPDATE SET enabled=excluded.enabled,agents_json=excluded.agents_json,updated_at=excluded.updated_at""",
+              (user['id'], int(enabled), json.dumps(agents), stamp))
+    c.commit()
+    return jsonify({"status":"success", "enabled":enabled, "agents":agents, "mode":"PAPER_ONLY"})
+
+
+def _fetch_auto_candles(symbol):
+    r = requests.get('https://api.binance.com/api/v3/klines', params={"symbol":symbol,"interval":"15m","limit":35}, timeout=8)
+    r.raise_for_status()
+    raw = r.json()
+    if len(raw) < 25: raise ValueError('Not enough candle data')
+    return [{"o":float(x[1]),"h":float(x[2]),"l":float(x[3]),"c":float(x[4])} for x in raw]
+
+
+def _agent_vote(agent, bars):
+    closes=[b['c'] for b in bars]
+    last, prev=bars[-1], bars[-2]
+    avg8=sum(closes[-8:])/8
+    avg21=sum(closes[-21:])/21
+    momentum=(closes[-1]/closes[-4]-1)*100
+    if agent == 'jasur':
+        prior=bars[-22:-2]
+        hi=max(b['h'] for b in prior); lo=min(b['l'] for b in prior)
+        # A close back inside the prior range after taking liquidity can be a reversal cue.
+        if last['h']>hi and last['c']<hi and last['c']<prev['c']: return 'SHORT','Liquidity sweep rejection'
+        if last['l']<lo and last['c']>lo and last['c']>prev['c']: return 'LONG','Sell-side sweep reclaim'
+        return None,'No supported ICT-style sweep'
+    if agent == 'alex':
+        if avg8>avg21*1.001 and momentum>0.15: return 'LONG','MA8/MA21 bullish alignment + positive momentum'
+        if avg8<avg21*0.999 and momentum<-0.15: return 'SHORT','MA8/MA21 bearish alignment + negative momentum'
+        return None,'Quant filters are not aligned'
+    # Risk manager permits only directional setups with moderate recent ranges.
+    ranges=[(b['h']-b['l'])/b['c'] for b in bars[-12:]]
+    volatility=sum(ranges)/len(ranges)
+    if volatility>0.018: return None,'Blocked: volatility exceeds safety threshold'
+    if avg8>avg21*1.002 and momentum>0.25: return 'LONG','Risk gate passed for bullish setup'
+    if avg8<avg21*0.998 and momentum<-0.25: return 'SHORT','Risk gate passed for bearish setup'
+    return None,'Risk gate: no sufficiently clear setup'
+
+
+def _auto_close_positions(c, user_id, prices):
+    rows=c.execute("SELECT * FROM web_positions WHERE user_id=?",(user_id,)).fetchall()
+    for p in rows:
+        price=prices.get(p['asset'])
+        if not price: continue
+        side=p['side']; tp=p['tp']; sl=p['sl']
+        hit_tp = tp is not None and ((side=='LONG' and price>=tp) or (side=='SHORT' and price<=tp))
+        hit_sl = sl is not None and ((side=='LONG' and price<=sl) or (side=='SHORT' and price>=sl))
+        if not (hit_tp or hit_sl): continue
+        pnl=(price-p['entry_price'])/p['entry_price']*p['size']*p['leverage']*(1 if side=='LONG' else -1)
+        c.execute("UPDATE web_users SET balance=balance+?,updated_at=? WHERE id=?",(p['size']+pnl,db_now(),user_id))
+        c.execute("UPDATE web_trades SET exit_price=?,pnl=?,status='CLOSED' WHERE user_id=? AND status='OPEN' AND asset=? AND side=? AND amount=? AND entry_price=? AND created_at=?",
+                  (price,pnl,user_id,p['asset'],side,p['size'],p['entry_price'],p['opened_at']))
+        c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?",(p['id'],user_id))
+        c.execute("INSERT INTO web_notifications(id,user_id,title,message,read,created_at) VALUES(?,?,?,?,0,?)",
+                  (uuid.uuid4().hex,user_id,'Auto agent closed a paper trade',f"{p['asset']} {side} closed at {price:.4f}; PnL {pnl:+.2f} USD",db_now()))
+
+
+def auto_agent_loop():
+    print('🤖 Obsidian demo auto-agent worker started (60s interval)')
+    while True:
+        try:
+            # Snapshot enabled users without holding a connection during network requests.
+            with sqlite3.connect(DATABASE, timeout=20) as con:
+                con.row_factory=sqlite3.Row
+                enabled=con.execute("SELECT user_id,agents_json FROM web_agent_settings WHERE enabled=1").fetchall()
+            for setting in enabled:
+                uid=setting['user_id']; agents=json.loads(setting['agents_json'])
+                try:
+                    prices={}; all_bars={}
+                    for sym in AGENT_SYMBOLS:
+                        bars=_fetch_auto_candles(sym); all_bars[sym]=bars; prices[sym]=bars[-1]['c']
+                    with sqlite3.connect(DATABASE, timeout=20) as con:
+                        con.row_factory=sqlite3.Row
+                        con.execute('PRAGMA foreign_keys=ON')
+                        _auto_close_positions(con,uid,prices)
+                        # Conservative portfolio guard: one bot-managed position per account.
+                        has_open=con.execute("SELECT 1 FROM web_positions WHERE user_id=? LIMIT 1",(uid,)).fetchone()
+                        if not has_open:
+                            user=con.execute("SELECT balance FROM web_users WHERE id=?",(uid,)).fetchone()
+                            if user and float(user['balance'])>=10:
+                                for sym,bars in all_bars.items():
+                                    votes=[_agent_vote(a,bars) for a in agents]
+                                    directions=[v[0] for v in votes if v[0]]
+                                    # Require agreement of at least two enabled agents; no signal means no trade.
+                                    direction=max(set(directions),key=directions.count) if directions else None
+                                    if direction and directions.count(direction)>=2:
+                                        margin=round(min(float(user['balance'])*0.02,100.0),2)
+                                        if margin<10: break
+                                        price=prices[sym]; leverage=2
+                                        tp=price*(1.012 if direction=='LONG' else 0.988)
+                                        sl=price*(0.993 if direction=='LONG' else 1.007)
+                                        stamp=db_now(); pid=uuid.uuid4().hex; tid=uuid.uuid4().hex
+                                        cur=con.execute("UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=? AND balance>=?",(margin,stamp,uid,margin))
+                                        if cur.rowcount==1:
+                                            con.execute("INSERT INTO web_positions(id,user_id,asset,side,size,leverage,entry_price,tp,sl,opened_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                                                        (pid,uid,sym,direction,margin,leverage,price,tp,sl,stamp))
+                                            con.execute("INSERT INTO web_trades(id,user_id,asset,side,amount,entry_price,status,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                                                        (tid,uid,sym,direction,margin,price,'OPEN',stamp))
+                                            con.execute("INSERT INTO web_notifications(id,user_id,title,message,read,created_at) VALUES(?,?,?,?,0,?)",
+                                                        (uuid.uuid4().hex,uid,'Auto agent opened a paper trade',f"{sym} {direction}; margin ${margin:.2f}; leverage {leverage}x. Agents agreed; demo only.",stamp))
+                                            con.commit()
+                                        break
+                        con.commit()
+                except Exception as exc:
+                    print(f'Auto agent user cycle error ({uid}): {exc}')
+        except Exception as exc:
+            print(f'Auto agent worker error: {exc}')
+        time.sleep(60)
+
 # Agent runtime cache: last real analysis returned by the model, per role.
 agent_runtime = {
     "jasur": {"task": "Waiting for market scan", "last_result": "", "updated_at": None},
@@ -1122,7 +1261,7 @@ agent_runtime = {
 def analyze_with_agent():
     """Run an actual model-backed analysis for one of the three HQ agents.
 
-    This endpoint only provides analysis. It never submits or closes a trade.
+    This endpoint returns analysis; auto paper execution is handled separately by the opt-in worker.
     """
     try:
         data = request.get_json(silent=True) or {}
@@ -1599,6 +1738,9 @@ if __name__ == "__main__":
 
     t_radar = threading.Thread(target=scan_and_post_ai_signals, daemon=True)
     t_radar.start()
+
+    t_auto_agents = threading.Thread(target=auto_agent_loop, daemon=True)
+    t_auto_agents.start()
 
     try:
         bot.remove_webhook()
