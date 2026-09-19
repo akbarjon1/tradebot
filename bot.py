@@ -628,6 +628,25 @@ def api_logout():
 
 
 # ===== SHARED PAPER TRADING STATE (MULTI-POSITION SUPPORT) =====
+@app.route("/api/paper/restore-balance", methods=["POST"])
+@require_web_auth
+def paper_restore_balance():
+    """Set demo balance to $10,000 only when the account is currently below $10k."""
+    user = current_web_user()
+    c = db_conn()
+    row = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    if not row:
+        return jsonify({"status": "error", "message": "User not found"}), 404
+    current = float(row["balance"] or 0)
+    if current >= 10000:
+        return jsonify({"status": "error", "message": "Balance is already $10,000 or more"}), 400
+    c.execute("UPDATE web_users SET balance=10000, updated_at=? WHERE id=? AND balance < 10000",
+              (db_now(), user["id"]))
+    c.commit()
+    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
+    return jsonify({"status": "success", "balance": float(fresh["balance"])})
+
+
 @app.route("/api/paper/state", methods=["GET"])
 @require_web_auth
 def paper_state():
