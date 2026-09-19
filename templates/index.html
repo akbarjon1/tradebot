@@ -1340,6 +1340,14 @@ function renderOffice(p) {
         ${officeSide('/ai-hub')}
         <section>
           ${shell('AI Research & Signal Desk', 'AI Agentlarining bozor tahlili va signallari', `
+            <div class="card" style="margin-bottom:16px;border:1px solid var(--line)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div><h2 style="margin:0 0 6px">Demo Auto Trading</h2><p class="small muted" style="margin:0">Faqat virtual balans. Agentlar 60 soniyada tekshiradi; kamida 2 agent kelishsa savdo ochiladi. Bitta avtomatik pozitsiya bir vaqtda.</p></div>
+                <button id="auto-agent-toggle" class="btn green" onclick="toggleAutoAgents()">AUTO TRADING: LOADING…</button>
+              </div>
+              <p id="auto-agent-status" class="small muted" style="margin:10px 0 0">Holat tekshirilmoqda…</p>
+              <p class="small muted" style="margin:6px 0 0">Strategiyalar demo sinov uchun. Foyda kafolatlanmaydi; real birjaga order yuborilmaydi.</p>
+            </div>
             <div class="grid g3">
               <div class="card">
                 <h2>☕️ Jasur (ICT Radar)</h2>
@@ -1364,6 +1372,7 @@ function renderOffice(p) {
         </section>
       </div>`;
     runAgentAnalysis();
+    loadAutoAgentSettings();
     return;
   }
 
@@ -1666,6 +1675,30 @@ document.addEventListener('click', (event) => {
   if (wrap && !wrap.contains(event.target)) closeProfileMenu();
 });
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeProfileMenu(); });
+
+let autoAgentsEnabled = false;
+async function loadAutoAgentSettings() {
+  const button=document.getElementById('auto-agent-toggle');
+  const status=document.getElementById('auto-agent-status');
+  if(!button || !state.user) { if(button) button.textContent='LOGIN REQUIRED'; if(status) status.textContent='Avval akkauntingizga kiring.'; return; }
+  const data=await fetchAPI('/api/agents/auto');
+  if(data.status==='success') {
+    autoAgentsEnabled=!!data.enabled;
+    button.textContent=autoAgentsEnabled?'AUTO TRADING: ON':'AUTO TRADING: OFF';
+    button.className=autoAgentsEnabled?'btn dark':'btn green';
+    if(status) status.textContent=autoAgentsEnabled?'Faol: BTC / ETH / SOL kuzatilmoqda. Faqat demo orderlar.':'O‘chiq: agentlar avtomatik order ochmaydi.';
+  } else { button.textContent='AGENT STATUS ERROR'; if(status) status.textContent=data.message||'Server bilan aloqa yo‘q.'; }
+}
+async function toggleAutoAgents() {
+  if(!state.user) { go('/login'); return; }
+  const button=document.getElementById('auto-agent-toggle');
+  if(button) { button.disabled=true; button.textContent='SAVING…'; }
+  const data=await fetchAPI('/api/agents/auto',{method:'POST',body:JSON.stringify({enabled:!autoAgentsEnabled,agents:['jasur','alex','whale']})});
+  if(data.status==='success') { autoAgentsEnabled=!!data.enabled; toast(autoAgentsEnabled?'Demo Auto Trading yoqildi':'Demo Auto Trading o‘chirildi'); }
+  else toast(data.message||'Sozlamani saqlab bo‘lmadi');
+  if(button) button.disabled=false;
+  await loadAutoAgentSettings();
+}
 
 // Transparent rule-based agents: live Binance candles + account risk checks.
 // These are deterministic analytics, not an external generative-AI service.
