@@ -182,15 +182,13 @@ CORS(app)
 app.secret_key = get_env("SECRET_KEY") or hashlib.sha256(
     (TELEGRAM_BOT_TOKEN + ":obsidian-lab-session").encode()
 ).hexdigest()
-DATABASE = get_env("DATABASE_PATH") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "obsidian_lab.sqlite3")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=get_env("COOKIE_SECURE", "false").lower() == "true",
-    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=30),
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
 )
-app.permanent_session_lifetime = datetime.timedelta(days=30)
 
 def db_conn():
     if "obs_db" not in g:
@@ -500,55 +498,6 @@ def api_session():
         "csrf":session["csrf"]
     })
 
-
-
-def sync_web_user_to_users_sheet(user_id):
-    """Upsert a web account's identity and current balance into the Users worksheet."""
-    global spreadsheet
-    if not spreadsheet:
-        return False
-    try:
-        user = db_conn().execute("SELECT id,email,username,password,balance FROM web_users WHERE id=?", (user_id,)).fetchone()
-        if not user:
-            return False
-        ws = spreadsheet.worksheet("Users")
-        rows = ws.get_all_values()
-        headers = [str(x).strip().lower() for x in (rows[0] if rows else [])]
-        aliases = {
-            "id": ("user id", "userid", "id"),
-            "email": ("email", "e-mail"),
-            "username": ("username", "user name", "handle"),
-            "password": ("password hash", "password", "password_hash"),
-            "balance": ("balance",),
-        }
-        cols = {k: next((headers.index(a)+1 for a in names if a in headers), None) for k,names in aliases.items()}
-        # Match the actual Users sheet layout shown in the project if header parsing is unavailable.
-        defaults = {"id":1, "email":2, "username":3, "password":4, "balance":5}
-        cols = {k: (v or defaults[k]) for k,v in cols.items()}
-        target_row = None
-        for rnum, row in enumerate(rows[1:], start=2):
-            sheet_id = row[cols["id"]-1].strip() if len(row) >= cols["id"] else ""
-            sheet_email = row[cols["email"]-1].strip().lower() if len(row) >= cols["email"] else ""
-            if sheet_id == str(user["id"]) or (sheet_email and sheet_email == str(user["email"]).lower()):
-                target_row = rnum
-                break
-        if target_row is None:
-            target_row = max(2, len(rows)+1)
-        values = {
-            "id": str(user["id"]),
-            "email": str(user["email"]),
-            "username": str(user["username"]),
-            "password": str(user["password"]),
-            "balance": f"{float(user['balance']):.2f}",
-        }
-        for key, value in values.items():
-            ws.update_cell(target_row, cols[key], value)
-        return True
-    except Exception as err:
-        print(f"Users worksheet sync warning: {err}")
-        return False
-
-
 @app.route("/api/auth/register", methods=["POST"])
 def api_register():
     key = request.remote_addr or "unknown"
@@ -583,60 +532,9 @@ def api_register():
             (user_id,email,username,name,generate_password_hash(password),"USER",10000.0,stamp,stamp)
         )
         db_conn().commit()
-        sync_web_user_to_users_sheet(user_id)
     except sqlite3.IntegrityError:
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
-
-def find_user_in_google_sheet(email):
-    """Return an existing account from the Users worksheet, if configured."""
-    global spreadsheet
-    if not spreadsheet:
-        return None
-    try:
-        ws = spreadsheet.worksheet("Users")
-        rows = ws.get_all_values()
-        if not rows:
-            return None
-        headers = [str(h).strip().lower() for h in rows[0]]
-        aliases = {
-            "id": ("user id", "userid", "id"),
-            "email": ("email", "e-mail"),
-            "username": ("username", "user name", "handle"),
-            "password": ("password hash", "password", "password_hash"),
-            "balance": ("balance",),
-            "name": ("full name", "name", "fullname"),
-        }
-        indexes = {}
-        for key, options in aliases.items():
-            indexes[key] = next((headers.index(x) for x in options if x in headers), None)
-        if indexes["email"] is None or indexes["password"] is None:
-            return None
-        for row in rows[1:]:
-            def value(key, default=""):
-                idx = indexes.get(key)
-                return str(row[idx]).strip() if idx is not None and idx < len(row) else default
-            if value("email").lower() != email:
-                continue
-            user_id = value("id") or uuid.uuid4().hex
-            username = value("username") or email.split("@", 1)[0]
-            name = value("name") or username
-            hashed = value("password")
-            try:
-                balance = float(value("balance", "10000") or 10000)
-                if balance <= 0:
-                    balance = 10000.0
-            except (TypeError, ValueError):
-                balance = 10000.0
-            return {
-                "id": user_id, "email": email, "username": username,
-                "name": name, "password": hashed, "role": "USER",
-                "balance": balance, "created_at": db_now(), "updated_at": db_now()
-            }
-    except Exception as err:
-        print(f"Google Sheets Users login lookup failed: {err}")
-    return None
-
 
 @app.route("/api/auth/login", methods=["POST"])
 def api_login():
@@ -644,31 +542,12 @@ def api_login():
     email = str(d.get("email","")).strip().lower()
     password = str(d.get("password",""))
     user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
-
-    # Render may start with a fresh local SQLite database. Restore a matching
-    # existing user from the connected Users worksheet before rejecting login.
-    if not user:
-        sheet_user = find_user_in_google_sheet(email)
-        if sheet_user and check_password_hash(sheet_user["password"], password):
-            try:
-                db_conn().execute(
-                    "INSERT INTO web_users (id,email,username,name,password,role,balance,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)",
-                    tuple(sheet_user[k] for k in ("id","email","username","name","password","role","balance","created_at","updated_at"))
-                )
-                db_conn().commit()
-                user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
-            except sqlite3.IntegrityError:
-                # Resolve any partial restore/duplicate row by looking up email again.
-                user = db_conn().execute("SELECT * FROM web_users WHERE email=?", (email,)).fetchone()
-
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"status":"error","message":"Invalid email or password"}), 401
     session.clear()
     session["web_uid"] = user["id"]
     session["csrf"] = secrets.token_hex(32)
-    # Web terminalda login 30 kun saqlanadi; page reload/renderdan keyin qayta register shart emas.
-    session.permanent = True
-    sync_web_user_to_users_sheet(user["id"])
+    session.permanent = bool(d.get("remember"))
     return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -679,26 +558,6 @@ def api_logout():
 
 
 # ===== SHARED PAPER TRADING STATE (MULTI-POSITION SUPPORT) =====
-@app.route("/api/paper/restore-balance", methods=["POST"])
-@require_web_auth
-def paper_restore_balance():
-    """Set demo balance to $10,000 only when the account is currently below $10k."""
-    user = current_web_user()
-    c = db_conn()
-    row = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
-    if not row:
-        return jsonify({"status": "error", "message": "User not found"}), 404
-    current = float(row["balance"] or 0)
-    if current >= 10000:
-        return jsonify({"status": "error", "message": "Balance is already $10,000 or more"}), 400
-    c.execute("UPDATE web_users SET balance=10000, updated_at=? WHERE id=? AND balance < 10000",
-              (db_now(), user["id"]))
-    c.commit()
-    sync_web_user_to_users_sheet(user["id"])
-    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
-    return jsonify({"status": "success", "balance": float(fresh["balance"])})
-
-
 @app.route("/api/paper/state", methods=["GET"])
 @require_web_auth
 def paper_state():
@@ -763,20 +622,13 @@ def paper_open():
         return jsonify({"status":"error","message":"Invalid leverage"}), 400
     if entry <= 0:
         return jsonify({"status":"error","message":"Invalid entry price"}), 400
+    if amount > float(user["balance"]):
+        return jsonify({"status":"error","message":"Insufficient balance"}), 400
+
     c = db_conn()
     stamp = db_now()
     pos_id = uuid.uuid4().hex
     trade_id = uuid.uuid4().hex
-
-    # Balance check + deduction atomically: PC va telefon bir vaqtda order yuborsa
-    # ham balans minusga ketmaydi.
-    updated = c.execute(
-        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=? AND balance>=?",
-        (amount, stamp, user["id"], amount)
-    )
-    if updated.rowcount != 1:
-        c.rollback()
-        return jsonify({"status":"error","message":"Insufficient balance"}), 400
 
     c.execute(
         """INSERT INTO web_positions
@@ -785,18 +637,20 @@ def paper_open():
         (pos_id, user["id"], asset, side, amount, leverage, entry, tp, sl, stamp)
     )
     c.execute(
+        "UPDATE web_users SET balance=balance-?,updated_at=? WHERE id=?",
+        (amount, stamp, user["id"])
+    )
+    c.execute(
         """INSERT INTO web_trades
            (id,user_id,asset,side,amount,entry_price,status,created_at)
            VALUES(?,?,?,?,?,?,?,?)""",
         (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
     )
     c.commit()
-    sync_web_user_to_users_sheet(user["id"])
-    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
 
     return jsonify({
         "status":"success",
-        "balance":float(fresh["balance"]),
+        "balance":float(user["balance"]) - amount,
         "position":{
             "id":pos_id,
             "symbol":asset.replace("USDT",""),
@@ -861,7 +715,6 @@ def paper_migrate():
         (trade_id, user["id"], asset, side, size, entry, "OPEN", stamp)
     )
     c.commit()
-    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success"})
 
 
@@ -892,34 +745,22 @@ def paper_close():
     credit = max(0.0, float(pos["size"]) + pnl)
     stamp = db_now()
 
-    # Aynan shu positionga tegishli OPEN trade'ni yopamiz.
-    # Bir xil symbol/side bilan bir nechta position bo'lishi mumkin.
-    trade_row = c.execute(
-        """SELECT id FROM web_trades
-           WHERE user_id=? AND asset=? AND side=? AND amount=?
-             AND entry_price=? AND status='OPEN' AND created_at=?
-           ORDER BY created_at ASC LIMIT 1""",
-        (user["id"], pos["asset"], pos["side"], float(pos["size"]),
-         float(pos["entry_price"]), pos["opened_at"])
-    ).fetchone()
-    if trade_row:
-        c.execute(
-            "UPDATE web_trades SET exit_price=?,pnl=?,status='CLOSED' WHERE id=?",
-            (live, pnl, trade_row["id"])
-        )
-
+    c.execute(
+        """UPDATE web_trades
+           SET exit_price=?,pnl=?,status='CLOSED'
+           WHERE user_id=? AND asset=? AND side=? AND status='OPEN'""",
+        (live, pnl, user["id"], pos["asset"], pos["side"])
+    )
     c.execute(
         "UPDATE web_users SET balance=balance+?,updated_at=? WHERE id=?",
         (credit, stamp, user["id"])
     )
-    c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?", (pos["id"], user["id"]))
+    c.execute("DELETE FROM web_positions WHERE id=?", (pos["id"],))
     c.commit()
-    sync_web_user_to_users_sheet(user["id"])
 
-    fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
     return jsonify({
         "status":"success",
-        "balance":float(fresh["balance"]),
+        "balance":float(user["balance"]) + credit,
         "closed_id": pos["id"],
         "pnl":pnl
     })
@@ -947,7 +788,6 @@ def api_settings_profile():
         return jsonify({"status":"error","message":"Valid name required"}),400
     db_conn().execute("UPDATE web_users SET name=?,updated_at=? WHERE id=?",(name,db_now(),user["id"]))
     db_conn().commit()
-    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success","user":public_web_user(current_web_user())})
 
 @app.route("/api/settings/security", methods=["POST"])
@@ -961,7 +801,6 @@ def api_settings_security():
         return jsonify({"status":"error","message":"New password must contain at least 10 characters"}),400
     db_conn().execute("UPDATE web_users SET password=?,updated_at=? WHERE id=?",(generate_password_hash(new),db_now(),user["id"]))
     db_conn().commit()
-    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success"})
 
 @app.route("/api/office/<kind>", methods=["GET","POST"])
@@ -1068,7 +907,6 @@ def update_balance():
             except sqlite3.IntegrityError:
                 pass
         db_conn().commit()
-        sync_web_user_to_users_sheet(user_id)
 
         if spreadsheet:
             try:
@@ -1096,37 +934,83 @@ def update_balance():
 def get_leaderboard():
     global spreadsheet
     try:
-        if not spreadsheet:
-            rows=[]
-            for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
-                rows.append({
-                    "User ID":u["id"],
-                    "Username":"@"+str(u["username"]).lstrip("@"),
-                    "Balance":float(u["balance"])
-                })
-            rows.sort(key=lambda x:x["Balance"], reverse=True)
-            return jsonify({"status":"success","leaders":rows})
+        # Start with accounts persisted in the app database.
+        leaders_by_id = {}
         try:
-            ws = spreadsheet.worksheet("Leaderboard")
-        except Exception:
-            return jsonify({"status":"success","leaders":[]})
-        records = ws.get_all_records()
-        valid_leaders=[]
-        for r in records:
-            raw_bal=str(r.get("Balance","0")).replace(" ","").replace("\xa0","").replace(",",".")
-            try: bal_val=float(raw_bal)
-            except Exception: bal_val=0.0
-            valid_leaders.append({
-                "User ID":str(r.get("User ID","")),
-                "Username":str(r.get("Username","Trader")),
-                "Balance":bal_val
-            })
-        sorted_leaders=sorted(valid_leaders,key=lambda x:x["Balance"],reverse=True)[:10]
-        return jsonify({"status":"success","leaders":sorted_leaders})
+            for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
+                uid = str(u["id"] or "").strip()
+                username = str(u["username"] or "Trader").strip()
+                leaders_by_id[uid or username.lower()] = {
+                    "User ID": uid,
+                    "Username": "@" + username.lstrip("@"),
+                    "Balance": float(u["balance"] or 0),
+                    "Points": int(max(0, float(u["balance"] or 0)) // 10),
+                    "Status": "VERIFIED"
+                }
+        except Exception as db_error:
+            print(f"Leaderboard DB read warning: {db_error}")
+
+        # Also read the Users tab, so registrations survive in the leaderboard
+        # when the app's local SQLite database has been reset on an ephemeral host.
+        if spreadsheet:
+            try:
+                users_ws = spreadsheet.worksheet("Users")
+                for r in users_ws.get_all_records():
+                    uid = str(r.get("User ID", "") or "").strip()
+                    username = str(r.get("Username", "") or "Trader").strip()
+                    key = uid or username.lower()
+                    if not key:
+                        continue
+                    raw_bal = str(r.get("Balance", "0") or "0").replace(" ", "").replace("\xa0", "").replace(",", ".")
+                    try:
+                        balance = float(raw_bal)
+                    except (TypeError, ValueError):
+                        balance = 0.0
+                    # DB data, when present, remains authoritative for current balance.
+                    existing = leaders_by_id.get(key)
+                    if existing is None:
+                        leaders_by_id[key] = {
+                            "User ID": uid,
+                            "Username": "@" + username.lstrip("@"),
+                            "Balance": balance,
+                            "Points": int(max(0, balance) // 10),
+                            "Status": "VERIFIED"
+                        }
+                    elif uid:
+                        existing["User ID"] = uid
+            except Exception as users_error:
+                print(f"Leaderboard Users sheet read warning: {users_error}")
+
+            try:
+                board_ws = spreadsheet.worksheet("Leaderboard")
+                for r in board_ws.get_all_records():
+                    uid = str(r.get("User ID", "") or "").strip()
+                    username = str(r.get("Username", "") or "Trader").strip()
+                    key = uid or username.lower()
+                    raw_bal = str(r.get("Balance", "0") or "0").replace(" ", "").replace("\xa0", "").replace(",", ".")
+                    try:
+                        balance = float(raw_bal)
+                    except (TypeError, ValueError):
+                        balance = 0.0
+                    existing = leaders_by_id.get(key)
+                    if existing is None:
+                        leaders_by_id[key] = {
+                            "User ID": uid,
+                            "Username": "@" + username.lstrip("@"),
+                            "Balance": balance,
+                            "Points": int(r.get("Points", max(0, balance) // 10) or 0),
+                            "Status": str(r.get("Status", "VERIFIED") or "VERIFIED")
+                        }
+                    # If a DB or Users-tab record exists, don't replace its balance
+                    # with a stale leaderboard snapshot.
+            except Exception as board_error:
+                print(f"Leaderboard tab read warning: {board_error}")
+
+        leaders = sorted(leaders_by_id.values(), key=lambda x: float(x.get("Balance", 0)), reverse=True)[:10]
+        return jsonify({"status": "success", "leaders": leaders})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
-        return jsonify({"status":"error","message":"Leaderboard unavailable"}),500
-
+        return jsonify({"status": "error", "message": "Leaderboard unavailable"}), 500
 
 @app.route('/api/agent_tasks', methods=['GET'])
 def get_agent_tasks():
