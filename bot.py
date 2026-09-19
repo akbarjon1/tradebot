@@ -1111,6 +1111,89 @@ def get_leaderboard():
         return jsonify({"status":"error","message":"Leaderboard unavailable"}), 500
 
 
+# Agent runtime cache: last real analysis returned by the model, per role.
+agent_runtime = {
+    "jasur": {"task": "Waiting for market scan", "last_result": "", "updated_at": None},
+    "alex": {"task": "Waiting for quantitative check", "last_result": "", "updated_at": None},
+    "whale": {"task": "Waiting for risk review", "last_result": "", "updated_at": None},
+}
+
+@app.route('/api/agents/analyze', methods=['POST'])
+def analyze_with_agent():
+    """Run an actual model-backed analysis for one of the three HQ agents.
+
+    This endpoint only provides analysis. It never submits or closes a trade.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        agent_id = str(data.get("agent", "jasur")).lower().strip()
+        symbol = str(data.get("symbol", "BTCUSDT")).upper().strip()
+        if agent_id not in agent_runtime:
+            return jsonify({"status": "error", "message": "Unknown agent"}), 400
+        if symbol not in {"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"}:
+            return jsonify({"status": "error", "message": "Unsupported symbol"}), 400
+
+        # Get verifiable market data instead of asking the model to invent prices.
+        market = requests.get(
+            "https://api.binance.com/api/v3/klines",
+            params={"symbol": symbol, "interval": "15m", "limit": 12}, timeout=8
+        )
+        market.raise_for_status()
+        candles = market.json()
+        if not candles:
+            return jsonify({"status": "error", "message": "No market candles available"}), 502
+        candle_lines = []
+        for c in candles[-8:]:
+            candle_lines.append(
+                f"O={c[1]} H={c[2]} L={c[3]} C={c[4]} volume={c[5]}"
+            )
+        market_context = "\n".join(candle_lines)
+
+        roles = {
+            "jasur": (
+                "You are Jasur, an ICT/SMC market analyst. Review the supplied 15-minute OHLCV candles. "
+                "Discuss structure, liquidity and possible FVG only where supported by the data. "
+                "Do not fabricate levels or claim certainty. Return a concise report with bias, evidence, "
+                "invalidation and 'no setup' when evidence is insufficient."
+            ),
+            "alex": (
+                "You are Alex, a quantitative and algorithmic developer. Analyze the supplied 15-minute OHLCV "
+                "candles quantitatively: recent range, momentum, volatility and what a backtest would need to test. "
+                "Do not invent indicators or claim a backtest was run. Return concise findings and limitations."
+            ),
+            "whale": (
+                "You are Mister Whale, a conservative risk manager. Review the supplied market candles and explain "
+                "risk conditions, uncertainty and sensible position-sizing principles. Do not promise returns or "
+                "give a guaranteed trade call. Keep the response concise and capital-preservation focused."
+            ),
+        }
+        prompt = (
+            f"{roles[agent_id]}\nSymbol: {symbol}\nTimeframe: 15m\n"
+            f"Latest candle close: {candles[-1][4]}\nRecent OHLCV candles (oldest first):\n{market_context}\n"
+            "Answer in the same language as the user's interface when possible; otherwise Uzbek."
+        )
+        result = get_ai_analysis(prompt)
+        if not result:
+            return jsonify({"status": "error", "message": "AI provider unavailable; check GEMINI_API_KEY/GROQ_API_KEY"}), 503
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        agent_runtime[agent_id] = {
+            "task": f"Completed live {symbol} 15m review",
+            "last_result": result,
+            "updated_at": now,
+        }
+        return jsonify({
+            "status": "success", "agent": agent_id, "symbol": symbol,
+            "timeframe": "15m", "price": candles[-1][4],
+            "analysis": result, "updated_at": now,
+        })
+    except requests.RequestException as exc:
+        print(f"Agent market-data error: {exc}")
+        return jsonify({"status": "error", "message": "Market data feed unavailable"}), 502
+    except Exception as exc:
+        print(f"Agent analysis error: {exc}")
+        return jsonify({"status": "error", "message": "Agent analysis failed"}), 500
+
+
 @app.route('/api/agent_tasks', methods=['GET'])
 def get_agent_tasks():
     return jsonify({
@@ -1120,19 +1203,25 @@ def get_agent_tasks():
             "jasur": {
                 "name": "Jasur",
                 "role": "ICT Market Analyst",
-                "current_task": latest_ict_status.get("BTC", "Scanning 15m Liquidity"),
+                "current_task": agent_runtime["jasur"]["task"],
+                "last_result": agent_runtime["jasur"]["last_result"],
+                "updated_at": agent_runtime["jasur"]["updated_at"],
                 "location": "Central Desk"
             },
             "alex": {
                 "name": "Alex",
                 "role": "Algo & Quant Dev",
-                "current_task": "Backtesting CISD v2.4",
+                "current_task": agent_runtime["alex"]["task"],
+                "last_result": agent_runtime["alex"]["last_result"],
+                "updated_at": agent_runtime["alex"]["updated_at"],
                 "location": "Server Terminal"
             },
             "whale": {
                 "name": "Mister Whale",
                 "role": "Capital & Risk Manager",
-                "current_task": "Reviewing Portfolio PnL",
+                "current_task": agent_runtime["whale"]["task"],
+                "last_result": agent_runtime["whale"]["last_result"],
+                "updated_at": agent_runtime["whale"]["updated_at"],
                 "location": "VIP Lounge"
             }
         },
