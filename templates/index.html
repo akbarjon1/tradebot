@@ -668,6 +668,9 @@ async function syncPaperState() {
       state.user = sessionData.user;
       localStorage.setItem('obsidian_user', JSON.stringify(state.user));
     } else {
+      state.user = null;
+      try { localStorage.removeItem('obsidian_user'); } catch (err) {}
+      updateAvatar();
       return;
     }
 
@@ -731,7 +734,7 @@ async function fetchAPI(url, options = {}) {
 }
 
 function checkSessionBg() {
-  fetchAPI('/api/session').then(data => {
+  fetchAPI('/api/session?t=' + Date.now()).then(data => {
     if (data && data.csrf) csrfToken = data.csrf;
     if (data && data.user) {
       state.user = data.user;
@@ -739,8 +742,11 @@ function checkSessionBg() {
       state.balance = Number(state.balance || data.user.balance || 10000.0);
       localStorage.setItem('obsidian_user', JSON.stringify(state.user));
       localStorage.setItem('obsidian_balance', state.balance);
-      updateAvatar();
+    } else {
+      state.user = null;
+      try { localStorage.removeItem('obsidian_user'); } catch (err) {}
     }
+    updateAvatar();
   }).catch(()=>{});
 }
 
@@ -1513,14 +1519,34 @@ function renderProfile() {
 }
 
 async function logoutUser() {
-  fetchAPI('/api/auth/logout', { method: 'POST' }).catch(()=>{});
-  state.user = null;
-  state.balance = 10000.0;
-  state.trades = [];
-  save();
-  updateAvatar();
-  toast('Tizimdan chiqildi');
-  go('/');
+  // Lock the UI against a second click while the server invalidates this session.
+  if (window.__obsidianLoggingOut) return;
+  window.__obsidianLoggingOut = true;
+  try {
+    await fetchAPI('/api/auth/logout', { method: 'POST' });
+  } catch (err) {
+    // Clear this browser's identity locally even if the network is unavailable.
+  } finally {
+    state.user = null;
+    state.balance = 10000.0;
+    state.trades = [];
+    state.position = null;
+    state.positions = [];
+    oldLocalPosition = null;
+    try {
+      localStorage.removeItem('obsidian_user');
+      localStorage.removeItem('obsidian_pos');
+      localStorage.removeItem('obsidian_positions');
+      localStorage.removeItem('obsidian_trades');
+      localStorage.removeItem('obsidian_balance');
+    } catch (err) {}
+    save();
+    updateAvatar();
+    closeProfileMenu();
+    window.__obsidianLoggingOut = false;
+    toast('Tizimdan chiqildi');
+    go('/');
+  }
 }
 
 function renderSettings(p) {
