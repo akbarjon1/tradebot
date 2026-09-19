@@ -539,6 +539,43 @@ def add_user_to_sheet(user_id, email, username, password_hash, balance=10000.0):
         print(f"Google Sheets Users write failed: {exc}")
         return False
 
+
+def leaderboard_worksheet():
+    if spreadsheet is None:
+        return None
+    try:
+        ws = spreadsheet.worksheet("Leaderboard")
+    except Exception:
+        try:
+            ws = spreadsheet.add_worksheet(title="Leaderboard", rows=1000, cols=5)
+            ws.append_row(["User ID", "Username", "Balance", "Points", "Status"])
+        except Exception as exc:
+            print(f"Google Sheets Leaderboard tab unavailable: {exc}")
+            return None
+    if not ws.row_values(1):
+        ws.append_row(["User ID", "Username", "Balance", "Points", "Status"])
+    return ws
+
+
+def upsert_leaderboard_user(user_id, username, balance):
+    ws = leaderboard_worksheet()
+    if ws is None:
+        return False
+    try:
+        vals = ws.get_all_values()
+        row_num = next((i for i, row in enumerate(vals[1:], start=2)
+                        if row and row[0].strip() == str(user_id)), None)
+        rec = [str(user_id), "@" + str(username or "Trader").lstrip("@"),
+               f"{float(balance):.2f}", str(int(float(balance) * 0.1)), "VERIFIED"]
+        if row_num:
+            ws.update(f"A{row_num}:E{row_num}", [rec], value_input_option="USER_ENTERED")
+        else:
+            ws.append_row(rec, value_input_option="USER_ENTERED")
+        return True
+    except Exception as exc:
+        print(f"Leaderboard sync failed: {exc}")
+        return False
+
 @app.route("/api/auth/register", methods=["POST"])
 def api_register():
     key = request.remote_addr or "unknown"
@@ -597,6 +634,7 @@ def api_register():
     # Keep account credentials in the persistent Users worksheet.
     if not add_user_to_sheet(user_id, email, username, password_hash, 10000.0):
         print("WARNING: account created in SQLite but not backed up to Google Sheets Users tab.")
+    upsert_leaderboard_user(user_id, username, 10000.0)
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -1002,22 +1040,7 @@ def update_balance():
                 pass
         db_conn().commit()
 
-        if spreadsheet:
-            try:
-                ws = spreadsheet.worksheet("Leaderboard")
-                all_vals = ws.get_all_values()
-                row_to_update = None
-                for i, row in enumerate(all_vals[1:], start=2):
-                    if len(row) >= 1 and row[0].strip() == user_id:
-                        row_to_update = i; break
-                formatted_bal = f"{balance:.2f}"
-                if row_to_update:
-                    ws.update_cell(row_to_update, 2, username or "Trader")
-                    ws.update_cell(row_to_update, 3, formatted_bal)
-                else:
-                    ws.append_row([user_id, username or "Trader", formatted_bal])
-            except Exception as sheet_err:
-                print(f"Sheets sync warning: {sheet_err}")
+        upsert_leaderboard_user(user_id, username or "Trader", balance)
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Xatolik update_balance: {e}")
@@ -1026,38 +1049,45 @@ def update_balance():
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
-    global spreadsheet
     try:
-        if not spreadsheet:
-            rows=[]
+        leaders = []
+        ws = leaderboard_worksheet()
+        if ws is not None:
+            values = ws.get_all_values()
+            for row in values[1:]:
+                if len(row) < 3 or not row[0].strip():
+                    continue
+                try:
+                    bal = float(str(row[2]).replace("$", "").replace(" ", "").replace("\\xa0", "").replace(",", ""))
+                except (TypeError, ValueError):
+                    continue
+                leaders.append({"User ID": row[0].strip(),
+                                "Username": row[1].strip() if len(row) > 1 and row[1].strip() else "Trader",
+                                "Balance": bal})
+        if not leaders:
+            users_ws = users_worksheet()
+            if users_ws is not None:
+                for row in users_ws.get_all_values()[1:]:
+                    if len(row) < 3 or not row[0].strip():
+                        continue
+                    try:
+                        raw = row[4] if len(row) > 4 and row[4].strip() else "10000"
+                        bal = float(str(raw).replace("$", "").replace(",", "").replace(" ", ""))
+                    except (TypeError, ValueError):
+                        bal = 0.0
+                    leaders.append({"User ID": row[0].strip(),
+                                    "Username": "@" + row[2].strip().lstrip("@"),
+                                    "Balance": bal})
+        if not leaders:
             for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
-                rows.append({
-                    "User ID":u["id"],
-                    "Username":"@"+str(u["username"]).lstrip("@"),
-                    "Balance":float(u["balance"])
-                })
-            rows.sort(key=lambda x:x["Balance"], reverse=True)
-            return jsonify({"status":"success","leaders":rows})
-        try:
-            ws = spreadsheet.worksheet("Leaderboard")
-        except Exception:
-            return jsonify({"status":"success","leaders":[]})
-        records = ws.get_all_records()
-        valid_leaders=[]
-        for r in records:
-            raw_bal=str(r.get("Balance","0")).replace(" ","").replace("\xa0","").replace(",",".")
-            try: bal_val=float(raw_bal)
-            except Exception: bal_val=0.0
-            valid_leaders.append({
-                "User ID":str(r.get("User ID","")),
-                "Username":str(r.get("Username","Trader")),
-                "Balance":bal_val
-            })
-        sorted_leaders=sorted(valid_leaders,key=lambda x:x["Balance"],reverse=True)[:10]
-        return jsonify({"status":"success","leaders":sorted_leaders})
+                leaders.append({"User ID": u["id"],
+                                "Username": "@" + str(u["username"]).lstrip("@"),
+                                "Balance": float(u["balance"])})
+        leaders.sort(key=lambda x: x["Balance"], reverse=True)
+        return jsonify({"status": "success", "leaders": leaders[:10]})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
-        return jsonify({"status":"error","message":"Leaderboard unavailable"}),500
+        return jsonify({"status":"error","message":"Leaderboard unavailable"}), 500
 
 
 @app.route('/api/agent_tasks', methods=['GET'])
