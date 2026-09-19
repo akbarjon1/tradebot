@@ -1828,15 +1828,29 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
   if(currentLabel)currentLabel.textContent=codeFor[lang];
   options.forEach(option=>{const selected=option.dataset.lang===lang;option.setAttribute('aria-selected',String(selected));const check=option.querySelector('.langCheck');if(check)check.textContent=selected?'✓':'';});
   const observer=new MutationObserver(records=>{
-    records.forEach(r=>r.addedNodes.forEach(node=>{
-      if(node.nodeType===Node.ELEMENT_NODE)walk(node,lang);
-      else if(node.nodeType===Node.TEXT_NODE){
-        if(!originalText.has(node))originalText.set(node,node.nodeValue);
-        const src=originalText.get(node),out=translateString(src,lang);node.nodeValue=out;previousText.set(node,out);
+    records.forEach(r=>{
+      if(r.type==='characterData'){
+        const node=r.target;
+        // Ignore the observer's own translation writes; translate genuine UI text updates.
+        if(previousText.has(node) && node.nodeValue===previousText.get(node))return;
+        originalText.set(node,node.nodeValue);
+        const out=translateString(node.nodeValue,lang);
+        if(out!==node.nodeValue){node.nodeValue=out;previousText.set(node,out);}
+        else previousText.set(node,node.nodeValue);
+        return;
       }
-    }));
+      r.addedNodes.forEach(node=>{
+        if(node.nodeType===Node.ELEMENT_NODE)walk(node,lang);
+        else if(node.nodeType===Node.TEXT_NODE){
+          if(!originalText.has(node))originalText.set(node,node.nodeValue);
+          const src=originalText.get(node),out=translateString(src,lang);
+          if(out!==node.nodeValue)node.nodeValue=out;
+          previousText.set(node,out);
+        }
+      });
+    });
   });
-  observer.observe(document.body,{childList:true,subtree:true});
+  observer.observe(document.body,{childList:true,subtree:true,characterData:true});
   walk(document.body,lang);
 })();
 </script>
