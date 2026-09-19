@@ -516,6 +516,11 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
   }
 }
 
+
+.languageSelect{appearance:auto;background:transparent;border:1px solid var(--line,#d8d6cf);border-radius:8px;padding:8px 9px;color:inherit;font:inherit;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;min-width:54px}
+.languageSelect:focus{outline:2px solid #a7f329;outline-offset:2px}
+@media(max-width:700px){.languageSelect{padding:7px 5px;min-width:48px;font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -529,6 +534,7 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 <a data-route="/web-office" href="#/web-office" onclick="go('/web-office')">Web Office</a>
 </nav>
 <div class="headRight">
+<select id="languageSelect" class="languageSelect" aria-label="Language" title="Language"><option value="uz">UZ</option><option value="ru">RU</option><option value="en">EN</option></select>
 <button class="iconBtn" onclick="go('/notifications')" aria-label="Notifications">♧</button>
 <a id="avatar" class="avatar" href="#/login" onclick="go('/login')">↗</a>
 <button class="iconBtn menu" id="menuBtn">☰</button>
@@ -1534,6 +1540,91 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
   window.addEventListener('orientationchange', function(){
     setTimeout(mobileLayoutFix, 150);
   }, {passive:true});
+})();
+</script>
+
+
+<script>
+/* Lightweight interface localization: Uzbek, Russian, English. */
+(function(){
+  const select=document.getElementById('languageSelect');
+  const originalText=new WeakMap();
+  const previousText=new WeakMap();
+  const dict={
+    uz:{
+      'Home':'Bosh sahifa','Markets':'Bozorlar','Trade':'Savdo','Leaderboard':'Reyting','Web Office':'Web ofis','Notifications':'Bildirishnomalar',
+      'SYSTEM ONLINE':'TIZIM ISHLAYAPTI','Build. Trade. Compete.':'Yarat. Savdo qil. Bellash.','A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.':'Treydyerlar va yangi g‘oyalar uchun zamonaviy platforma. Bozorlarni o‘rganing, savdoni mashq qiling va imkoniyatlaringizni kengaytiring.',
+      'GET STARTED →':'BOSHLASH →','EXPLORE MARKETS':'BOZORLARNI KO‘RISH','Explore market data':'Bozor ma’lumotlarini ko‘rish','Open trading terminal':'Savdo terminalini ochish','See rankings':'Reytingni ko‘rish','Open workspace':'Ish joyini ochish',
+      'SYSTEM':'TIZIM','ONLINE':'ISHLAYAPTI','MARKET':'BOZOR','BINANCE LIVE FEED':'BINANCE JONLI MA’LUMOTI','TRADING':'SAVDO','PAPER ONLY':'DEMO SAVDO','Market overview — live and demonstration prices':'Bozor ko‘rinishi — jonli va demo narxlar','Search assets, pairs…':'Aktiv yoki juftlikni qidirish…',
+      'All':'Barchasi','Crypto':'Kripto','Forex':'Forex','Stocks':'Aksiyalar','Commodities':'Xomashyo','ASSET':'AKTIV','PRICE':'NARX','24H':'24 SOAT','VOLUME':'HAJM','STATUS':'HOLAT','LIVE':'JONLI','VIEW →':'KO‘RISH →',
+      'Welcome back':'Xush kelibsiz','Create account':'Hisob yaratish','Sign in to your account':'Hisobingizga kiring','Your next chapter starts here':'Keyingi bosqichingiz shu yerdan boshlanadi','Full name':'To‘liq ism','Username':'Foydalanuvchi nomi','Email':'Email','Password':'Parol','Confirm Password':'Parolni tasdiqlang','SIGN IN':'KIRISH','CREATE ACCOUNT':'HISOB YARATISH','No account?':'Hisobingiz yo‘qmi?','REGISTER':'RO‘YXATDAN O‘TISH','Already have an account?':'Hisobingiz bormi?','Better decisions.':'Yaxshiroq qarorlar.','Bigger opportunities.':'Kattaroq imkoniyatlar.','DISCIPLINE':'INTIZOM','CREATES':'YARATADI','FREEDOM':'ERKINLIK',
+      'Page not found':'Sahifa topilmadi','BACK HOME':'BOSH SAHIFAGA','Profile':'Profil','Settings':'Sozlamalar','Updates from your trading terminal':'Savdo terminalingizdan yangiliklar','Paper trades':'Demo bitimlar','Balance':'Balans','Loading…':'Yuklanmoqda…','Close':'Yopish','CLOSE':'YOPISH','Buy':'Sotib olish','Sell':'Sotish','Amount':'Miqdor','Leverage':'Kredit yelkasi','Open position':'Pozitsiya ochish','No positions open':'Ochiq pozitsiyalar yo‘q'
+    },
+    ru:{
+      'Home':'Главная','Markets':'Рынки','Trade':'Торговля','Leaderboard':'Рейтинг','Web Office':'Веб-офис','Notifications':'Уведомления',
+      'SYSTEM ONLINE':'СИСТЕМА РАБОТАЕТ','Build. Trade. Compete.':'Создавай. Торгуй. Соревнуйся.','A modern platform for traders, builders and ambitious minds. Explore markets, practice trading and build your next opportunity.':'Современная платформа для трейдеров и создателей. Изучайте рынки, практикуйтесь в торговле и создавайте новые возможности.',
+      'GET STARTED →':'НАЧАТЬ →','EXPLORE MARKETS':'ОБЗОР РЫНКОВ','Explore market data':'Изучить данные рынка','Open trading terminal':'Открыть торговый терминал','See rankings':'Посмотреть рейтинг','Open workspace':'Открыть рабочее пространство',
+      'SYSTEM':'СИСТЕМА','ONLINE':'РАБОТАЕТ','MARKET':'РЫНОК','BINANCE LIVE FEED':'ПОТОК BINANCE','TRADING':'ТОРГОВЛЯ','PAPER ONLY':'ТОЛЬКО ДЕМО','Market overview — live and demonstration prices':'Обзор рынка — реальные и демонстрационные цены','Search assets, pairs…':'Поиск активов и пар…',
+      'All':'Все','Crypto':'Криптовалюты','Forex':'Форекс','Stocks':'Акции','Commodities':'Сырьё','ASSET':'АКТИВ','PRICE':'ЦЕНА','24H':'24 Ч','VOLUME':'ОБЪЁМ','STATUS':'СТАТУС','LIVE':'LIVE','VIEW →':'ОТКРЫТЬ →',
+      'Welcome back':'С возвращением','Create account':'Создать аккаунт','Sign in to your account':'Войдите в аккаунт','Your next chapter starts here':'Ваш следующий этап начинается здесь','Full name':'Полное имя','Username':'Имя пользователя','Email':'Электронная почта','Password':'Пароль','Confirm Password':'Подтвердите пароль','SIGN IN':'ВОЙТИ','CREATE ACCOUNT':'СОЗДАТЬ АККАУНТ','No account?':'Нет аккаунта?','REGISTER':'РЕГИСТРАЦИЯ','Already have an account?':'Уже есть аккаунт?','Better decisions.':'Лучшие решения.','Bigger opportunities.':'Больше возможностей.','DISCIPLINE':'ДИСЦИПЛИНА','CREATES':'СОЗДАЁТ','FREEDOM':'СВОБОДУ',
+      'Page not found':'Страница не найдена','BACK HOME':'НА ГЛАВНУЮ','Profile':'Профиль','Settings':'Настройки','Updates from your trading terminal':'Обновления торгового терминала','Paper trades':'Демо-сделки','Balance':'Баланс','Loading…':'Загрузка…','Close':'Закрыть','CLOSE':'ЗАКРЫТЬ','Buy':'Купить','Sell':'Продать','Amount':'Сумма','Leverage':'Плечо','Open position':'Открыть позицию','No positions open':'Нет открытых позиций'
+    }
+  };
+  function translateString(src,lang){
+    if(lang==='en') return src;
+    const table=dict[lang]||{};
+    if(Object.prototype.hasOwnProperty.call(table,src.trim())){
+      const leading=src.match(/^\s*/)?.[0]||'', trailing=src.match(/\s*$/)?.[0]||'';
+      return leading+table[src.trim()]+trailing;
+    }
+    let result=src;
+    Object.keys(table).sort((a,b)=>b.length-a.length).forEach(key=>{
+      if(key.length>2) result=result.split(key).join(table[key]);
+    });
+    return result;
+  }
+  function walk(root,lang){
+    if(!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    let n;
+    while((n=walker.nextNode())){
+      const current=n.nodeValue;
+      if(!current.trim() || n.parentElement?.closest('script,style,svg,code,pre'))continue;
+      const previous=previousText.get(n);
+      let source=originalText.get(n);
+      if(source===undefined || (previous!==undefined && current!==previous)){
+        source=current; originalText.set(n,source);
+      }
+      const out=translateString(source,lang);
+      n.nodeValue=out; previousText.set(n,out);
+    }
+    root.querySelectorAll?.('input[placeholder],textarea[placeholder],[aria-label],[title]').forEach(el=>{
+      ['placeholder','aria-label','title'].forEach(attr=>{
+        if(!el.hasAttribute(attr))return;
+        const key='i18n_'+attr;
+        if(!el.dataset[key])el.dataset[key]=el.getAttribute(attr);
+        el.setAttribute(attr,translateString(el.dataset[key],lang));
+      });
+    });
+  }
+  let lang=localStorage.getItem('obsidian_language')||'en';
+  if(!['uz','ru','en'].includes(lang))lang='en';
+  if(select){select.value=lang;select.addEventListener('change',()=>{
+    lang=select.value;localStorage.setItem('obsidian_language',lang);document.documentElement.lang=lang;
+    walk(document.body,lang);
+  });}
+  document.documentElement.lang=lang;
+  const observer=new MutationObserver(records=>{
+    records.forEach(r=>r.addedNodes.forEach(node=>{
+      if(node.nodeType===Node.ELEMENT_NODE)walk(node,lang);
+      else if(node.nodeType===Node.TEXT_NODE){
+        if(!originalText.has(node))originalText.set(node,node.nodeValue);
+        const src=originalText.get(node),out=translateString(src,lang);node.nodeValue=out;previousText.set(node,out);
+      }
+    }));
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+  walk(document.body,lang);
 })();
 </script>
 
