@@ -676,7 +676,13 @@ def api_register():
         db_conn().commit()
         created_user = db_conn().execute("SELECT * FROM web_users WHERE id=?", (user_id,)).fetchone()
         if created_user:
-            _save_user_to_sheet(dict(created_user))
+            # Yangi accountning boshlang'ich paper balansi QAT'IY 10,000 USD.
+            # Mavjud Users sheetdagi Balance katagiga ham aynan shu qiymat yoziladi.
+            created_dict = dict(created_user)
+            created_dict["balance"] = 10000.0
+            _save_user_to_sheet(created_dict)
+            # Agar Sheets API vaqtincha xato bersa, account lokal DBda baribir saqlanadi.
+            print(f"✅ WEB USER CREATED: {email} / @{username} / initial balance=$10000.00")
     except sqlite3.IntegrityError:
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
@@ -1072,7 +1078,11 @@ def update_balance():
             return jsonify({"status":"error","message":"Invalid balance"}),400
 
         stamp=db_now()
-        row=db_conn().execute("SELECT id FROM web_users WHERE id=?", (user_id,)).fetchone()
+        row=db_conn().execute("SELECT id,balance FROM web_users WHERE id=?", (user_id,)).fetchone()
+        # Web account balansini eski frontend tasodifan 0 ga sync qilib yubormasin.
+        # Paper trading balansining haqiqiy o'zgarishi /api/paper/open va /close orqali bo'ladi.
+        if row and balance == 0 and balance < float(row["balance"]):
+            return jsonify({"status":"error","message":"Web paper balance must be changed by trading API"}), 409
         if row:
             db_conn().execute("UPDATE web_users SET username=?,balance=?,updated_at=? WHERE id=?",(username or "trader",balance,stamp,user_id))
         else:
