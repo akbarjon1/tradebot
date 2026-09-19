@@ -1049,41 +1049,62 @@ def update_balance():
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
+    """Combine both Sheets tabs by stable User ID so existing leaderboard rows
+    cannot hide newly registered Users-sheet accounts."""
     try:
-        leaders = []
-        ws = leaderboard_worksheet()
-        if ws is not None:
-            values = ws.get_all_values()
-            for row in values[1:]:
+        by_id = {}
+
+        def parse_balance(raw, default=0.0):
+            text = str(raw if raw is not None else "").strip()
+            if not text:
+                return default
+            text = text.replace("$", "").replace("\xa0", "").replace(" ", "")
+            # Sheet values may use either 10,000.00 or 10000,00 formatting.
+            if "," in text and "." not in text:
+                text = text.replace(",", ".")
+            else:
+                text = text.replace(",", "")
+            try:
+                return float(text)
+            except (TypeError, ValueError):
+                return default
+
+        # Start with leaderboard entries (historical/demo rows may already exist).
+        lb_ws = leaderboard_worksheet()
+        if lb_ws is not None:
+            for row in lb_ws.get_all_values()[1:]:
                 if len(row) < 3 or not row[0].strip():
                     continue
-                try:
-                    bal = float(str(row[2]).replace("$", "").replace(" ", "").replace("\\xa0", "").replace(",", ""))
-                except (TypeError, ValueError):
+                uid = row[0].strip()
+                by_id[uid] = {
+                    "User ID": uid,
+                    "Username": row[1].strip() if len(row) > 1 and row[1].strip() else "Trader",
+                    "Balance": parse_balance(row[2]),
+                }
+
+        # Users is authoritative for registered accounts; merge it even when
+        # Leaderboard already has data, and refresh username/balance by User ID.
+        users_ws = users_worksheet()
+        if users_ws is not None:
+            for row in users_ws.get_all_values()[1:]:
+                if len(row) < 3 or not row[0].strip():
                     continue
-                leaders.append({"User ID": row[0].strip(),
-                                "Username": row[1].strip() if len(row) > 1 and row[1].strip() else "Trader",
-                                "Balance": bal})
-        if not leaders:
-            users_ws = users_worksheet()
-            if users_ws is not None:
-                for row in users_ws.get_all_values()[1:]:
-                    if len(row) < 3 or not row[0].strip():
-                        continue
-                    try:
-                        raw = row[4] if len(row) > 4 and row[4].strip() else "10000"
-                        bal = float(str(raw).replace("$", "").replace(",", "").replace(" ", ""))
-                    except (TypeError, ValueError):
-                        bal = 0.0
-                    leaders.append({"User ID": row[0].strip(),
-                                    "Username": "@" + row[2].strip().lstrip("@"),
-                                    "Balance": bal})
-        if not leaders:
-            for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
-                leaders.append({"User ID": u["id"],
-                                "Username": "@" + str(u["username"]).lstrip("@"),
-                                "Balance": float(u["balance"])})
-        leaders.sort(key=lambda x: x["Balance"], reverse=True)
+                uid = row[0].strip()
+                username = "@" + row[2].strip().lstrip("@") if row[2].strip() else "Trader"
+                balance = parse_balance(row[4] if len(row) > 4 else "", 10000.0)
+                by_id[uid] = {"User ID": uid, "Username": username, "Balance": balance}
+
+        # Include locally stored accounts too, without duplicating IDs.
+        for u in db_conn().execute("SELECT id,username,balance FROM web_users"):
+            uid = str(u["id"])
+            if uid not in by_id:
+                by_id[uid] = {
+                    "User ID": uid,
+                    "Username": "@" + str(u["username"] or "Trader").lstrip("@"),
+                    "Balance": float(u["balance"] or 0),
+                }
+
+        leaders = sorted(by_id.values(), key=lambda item: item["Balance"], reverse=True)
         return jsonify({"status": "success", "leaders": leaders[:10]})
     except Exception as e:
         print(f"Leaderboard olishda xatolik: {e}")
