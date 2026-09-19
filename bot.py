@@ -500,6 +500,55 @@ def api_session():
         "csrf":session["csrf"]
     })
 
+
+
+def sync_web_user_to_users_sheet(user_id):
+    """Upsert a web account's identity and current balance into the Users worksheet."""
+    global spreadsheet
+    if not spreadsheet:
+        return False
+    try:
+        user = db_conn().execute("SELECT id,email,username,password,balance FROM web_users WHERE id=?", (user_id,)).fetchone()
+        if not user:
+            return False
+        ws = spreadsheet.worksheet("Users")
+        rows = ws.get_all_values()
+        headers = [str(x).strip().lower() for x in (rows[0] if rows else [])]
+        aliases = {
+            "id": ("user id", "userid", "id"),
+            "email": ("email", "e-mail"),
+            "username": ("username", "user name", "handle"),
+            "password": ("password hash", "password", "password_hash"),
+            "balance": ("balance",),
+        }
+        cols = {k: next((headers.index(a)+1 for a in names if a in headers), None) for k,names in aliases.items()}
+        # Match the actual Users sheet layout shown in the project if header parsing is unavailable.
+        defaults = {"id":1, "email":2, "username":3, "password":4, "balance":5}
+        cols = {k: (v or defaults[k]) for k,v in cols.items()}
+        target_row = None
+        for rnum, row in enumerate(rows[1:], start=2):
+            sheet_id = row[cols["id"]-1].strip() if len(row) >= cols["id"] else ""
+            sheet_email = row[cols["email"]-1].strip().lower() if len(row) >= cols["email"] else ""
+            if sheet_id == str(user["id"]) or (sheet_email and sheet_email == str(user["email"]).lower()):
+                target_row = rnum
+                break
+        if target_row is None:
+            target_row = max(2, len(rows)+1)
+        values = {
+            "id": str(user["id"]),
+            "email": str(user["email"]),
+            "username": str(user["username"]),
+            "password": str(user["password"]),
+            "balance": f"{float(user['balance']):.2f}",
+        }
+        for key, value in values.items():
+            ws.update_cell(target_row, cols[key], value)
+        return True
+    except Exception as err:
+        print(f"Users worksheet sync warning: {err}")
+        return False
+
+
 @app.route("/api/auth/register", methods=["POST"])
 def api_register():
     key = request.remote_addr or "unknown"
@@ -534,6 +583,7 @@ def api_register():
             (user_id,email,username,name,generate_password_hash(password),"USER",10000.0,stamp,stamp)
         )
         db_conn().commit()
+        sync_web_user_to_users_sheet(user_id)
     except sqlite3.IntegrityError:
         return jsonify({"status":"error","message":"Email or username already exists"}), 409
     return jsonify({"status":"success","message":"Account created. Sign in to continue."}), 201
@@ -618,6 +668,7 @@ def api_login():
     session["csrf"] = secrets.token_hex(32)
     # Web terminalda login 30 kun saqlanadi; page reload/renderdan keyin qayta register shart emas.
     session.permanent = True
+    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success","user":public_web_user(dict(user)),"csrf":session["csrf"]})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -643,6 +694,7 @@ def paper_restore_balance():
     c.execute("UPDATE web_users SET balance=10000, updated_at=? WHERE id=? AND balance < 10000",
               (db_now(), user["id"]))
     c.commit()
+    sync_web_user_to_users_sheet(user["id"])
     fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
     return jsonify({"status": "success", "balance": float(fresh["balance"])})
 
@@ -739,6 +791,7 @@ def paper_open():
         (trade_id, user["id"], asset, side, amount, entry, "OPEN", stamp)
     )
     c.commit()
+    sync_web_user_to_users_sheet(user["id"])
     fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
 
     return jsonify({
@@ -808,6 +861,7 @@ def paper_migrate():
         (trade_id, user["id"], asset, side, size, entry, "OPEN", stamp)
     )
     c.commit()
+    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success"})
 
 
@@ -860,6 +914,7 @@ def paper_close():
     )
     c.execute("DELETE FROM web_positions WHERE id=? AND user_id=?", (pos["id"], user["id"]))
     c.commit()
+    sync_web_user_to_users_sheet(user["id"])
 
     fresh = c.execute("SELECT balance FROM web_users WHERE id=?", (user["id"],)).fetchone()
     return jsonify({
@@ -892,6 +947,7 @@ def api_settings_profile():
         return jsonify({"status":"error","message":"Valid name required"}),400
     db_conn().execute("UPDATE web_users SET name=?,updated_at=? WHERE id=?",(name,db_now(),user["id"]))
     db_conn().commit()
+    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success","user":public_web_user(current_web_user())})
 
 @app.route("/api/settings/security", methods=["POST"])
@@ -905,6 +961,7 @@ def api_settings_security():
         return jsonify({"status":"error","message":"New password must contain at least 10 characters"}),400
     db_conn().execute("UPDATE web_users SET password=?,updated_at=? WHERE id=?",(generate_password_hash(new),db_now(),user["id"]))
     db_conn().commit()
+    sync_web_user_to_users_sheet(user["id"])
     return jsonify({"status":"success"})
 
 @app.route("/api/office/<kind>", methods=["GET","POST"])
@@ -1011,6 +1068,7 @@ def update_balance():
             except sqlite3.IntegrityError:
                 pass
         db_conn().commit()
+        sync_web_user_to_users_sheet(user_id)
 
         if spreadsheet:
             try:
