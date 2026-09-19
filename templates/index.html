@@ -1616,6 +1616,9 @@ function updateAvatar() {
   const name = document.getElementById('profileName');
   const email = document.getElementById('profileEmail');
   const face = document.getElementById('profileFace');
+  const logoutAction = document.querySelector('.profileAction.logout');
+  // Only show Log Out for an authenticated user; do not alter other menu items.
+  if (logoutAction) logoutAction.style.display = state.user ? 'flex' : 'none';
   if (!a) return;
   if (state.user) {
     const username = state.user.username || state.user.name || 'Trader';
@@ -1630,6 +1633,8 @@ function updateAvatar() {
     if (face) face.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg>';
   }
 }
+document.addEventListener('DOMContentLoaded', updateAvatar);
+
 document.addEventListener('click', (event) => {
   const wrap = document.getElementById('profileWrap');
   if (wrap && !wrap.contains(event.target)) closeProfileMenu();
