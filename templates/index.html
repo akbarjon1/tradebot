@@ -624,16 +624,13 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
   <div class="profilePopover" id="profilePopover" role="menu" aria-label="Profile menu">
     <div class="profileIdentity"><div class="profileFace" id="profileFace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.2" fill="currentColor"/><path d="M4.8 20c.5-4.1 3-6.2 7.2-6.2s6.7 2.1 7.2 6.2" fill="currentColor"/></svg></div><div><div class="profileName" id="profileName">Guest</div><div class="profileEmail" id="profileEmail">Sign in to your account</div></div></div>
     <div class="profileActions">
-      <button class="profileAction guestOnly" type="button" role="menuitem" onclick="profileNavigate('/login')"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Sign In</span></button>
-      <button class="profileAction guestOnly" type="button" role="menuitem" onclick="profileNavigate('/register')"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Create Account</span></button>
-
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.5-4 2.8-6.1 6.5-6.1s6 2.1 6.5 6.1"/></svg><span>My Profile</span></button>
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/settings/profile')"><svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9.7 2.8h4.6l.55 2.1a7.5 7.5 0 0 1 1.55.9l2.1-.65 2.3 4-1.55 1.55a7.7 7.7 0 0 1 0 1.8l1.55 1.55-2.3 4-2.1-.65a7.5 7.5 0 0 1-1.55.9l-.55 2.1H9.7l-.55-2.1a7.5 7.5 0 0 1-1.55-.9l-2.1.65-2.3-4 1.55-1.55a7.7 7.7 0 0 1 0-1.8L3.2 9.15l2.3-4 2.1.65a7.5 7.5 0 0 1 1.55-.9L9.7 2.8Z"/>
         <circle cx="12" cy="12" r="3.1"/>
       </svg><span>Settings</span></button>
       <button class="profileAction" type="button" role="menuitem" onclick="profileNavigate('/notifications')"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span><i class="noticeDot" id="profileNoticeDot" aria-hidden="true" hidden></i></button>
-      <button class="profileAction logout memberOnly" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
+      <button class="profileAction logout" type="button" role="menuitem" onclick="profileLogout()"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg><span>Log Out</span></button>
     </div>
   </div>
 </div>
@@ -671,38 +668,25 @@ async function syncPaperState() {
       state.user = sessionData.user;
       localStorage.setItem('obsidian_user', JSON.stringify(state.user));
     } else {
+      state.user = null;
+      try { localStorage.removeItem('obsidian_user'); } catch (err) {}
+      updateAvatar();
       return;
     }
 
     const data = await fetchAPI('/api/paper/state?t=' + Date.now());
     if (data.status !== 'success') return;
 
-    const serverHasPosition = Array.isArray(data.positions) ? data.positions.length > 0 : !!data.position;
-
-    // Eski versiyadagi local position bo'lsa, uni serverga bir marta ko'chiramiz.
-    if (!serverHasPosition && oldLocalPosition) {
-      const migrated = await fetchAPI('/api/paper/migrate', {
-        method: 'POST',
-        body: JSON.stringify({ position: oldLocalPosition })
-      });
-      if (migrated.status === 'success') {
-        oldLocalPosition = null;
-        const again = await fetchAPI('/api/paper/state?t=' + Date.now());
-        if (again.status === 'success') {
-          state.balance = Number(again.balance || 10000);
-          state.positions = again.positions || (again.position ? [again.position] : []);
-          state.position = state.positions[0] || null;
-          state.trades = again.trades || [];
-          updateNotificationDot();
-        }
-      }
-    } else {
-      state.balance = Number(data.balance || 10000);
-      state.positions = data.positions || (data.position ? [data.position] : []);
-      state.position = state.positions[0] || null;
-      state.trades = data.trades || [];
-      updateNotificationDot();
-    }
+    // Server is the source of truth across devices. Never keep a browser-only
+    // position when the server reports that it has already been closed or removed.
+    state.balance = Number(data.balance ?? 10000);
+    state.positions = Array.isArray(data.positions)
+      ? data.positions
+      : (data.position ? [data.position] : []);
+    state.position = state.positions[0] || null;
+    state.trades = Array.isArray(data.trades) ? data.trades : [];
+    oldLocalPosition = null;
+    updateNotificationDot();
 
     localStorage.setItem('obsidian_balance', state.balance);
     localStorage.setItem('obsidian_trades', JSON.stringify(state.trades));
@@ -750,7 +734,7 @@ async function fetchAPI(url, options = {}) {
 }
 
 function checkSessionBg() {
-  fetchAPI('/api/session').then(data => {
+  fetchAPI('/api/session?t=' + Date.now()).then(data => {
     if (data && data.csrf) csrfToken = data.csrf;
     if (data && data.user) {
       state.user = data.user;
@@ -758,8 +742,11 @@ function checkSessionBg() {
       state.balance = Number(state.balance || data.user.balance || 10000.0);
       localStorage.setItem('obsidian_user', JSON.stringify(state.user));
       localStorage.setItem('obsidian_balance', state.balance);
-      updateAvatar();
+    } else {
+      state.user = null;
+      try { localStorage.removeItem('obsidian_user'); } catch (err) {}
     }
+    updateAvatar();
   }).catch(()=>{});
 }
 
@@ -1095,14 +1082,26 @@ window.closePosition = async function(positionId, reason = null) {
 
   closingPosition = true;
   const live = livePrices[p.pair] || p.entryPrice;
-  const res = await fetchAPI('/api/paper/close', {
-    method: 'POST',
-    body: JSON.stringify({ id: p.id, livePrice: live })
-  });
+  let res;
+  try {
+    res = await fetchAPI('/api/paper/close', {
+      method: 'POST',
+      body: JSON.stringify({ id: p.id, livePrice: live })
+    });
+  } catch (err) {
+    closingPosition = false;
+    return toast('Server bilan aloqa uzildi. Qayta urinib ko‘ring.');
+  }
 
   if (res.status !== 'success') {
     closingPosition = false;
-    return toast(res.message || 'Position yopilmadi');
+    if (res.message === 'No open position' || res.status === 'error') {
+      await syncPaperState();
+      renderTrade((location.hash.split('/')[2] || 'BTC').toUpperCase());
+    }
+    return toast(res.message === 'No open position'
+      ? 'Bu pozitsiya serverda allaqachon yopilgan. Ro‘yxat yangilandi.'
+      : (res.message || 'Position yopilmadi'));
   }
 
   state.balance = Number(res.balance);
@@ -1520,14 +1519,34 @@ function renderProfile() {
 }
 
 async function logoutUser() {
-  fetchAPI('/api/auth/logout', { method: 'POST' }).catch(()=>{});
-  state.user = null;
-  state.balance = 10000.0;
-  state.trades = [];
-  save();
-  updateAvatar();
-  toast('Tizimdan chiqildi');
-  go('/');
+  // Lock the UI against a second click while the server invalidates this session.
+  if (window.__obsidianLoggingOut) return;
+  window.__obsidianLoggingOut = true;
+  try {
+    await fetchAPI('/api/auth/logout', { method: 'POST' });
+  } catch (err) {
+    // Clear this browser's identity locally even if the network is unavailable.
+  } finally {
+    state.user = null;
+    state.balance = 10000.0;
+    state.trades = [];
+    state.position = null;
+    state.positions = [];
+    oldLocalPosition = null;
+    try {
+      localStorage.removeItem('obsidian_user');
+      localStorage.removeItem('obsidian_pos');
+      localStorage.removeItem('obsidian_positions');
+      localStorage.removeItem('obsidian_trades');
+      localStorage.removeItem('obsidian_balance');
+    } catch (err) {}
+    save();
+    updateAvatar();
+    closeProfileMenu();
+    window.__obsidianLoggingOut = false;
+    toast('Tizimdan chiqildi');
+    go('/');
+  }
 }
 
 function renderSettings(p) {
@@ -1598,8 +1617,6 @@ function updateAvatar() {
   const email = document.getElementById('profileEmail');
   const face = document.getElementById('profileFace');
   if (!a) return;
-  document.querySelectorAll('.memberOnly').forEach(el => el.style.display = state.user ? 'flex' : 'none');
-  document.querySelectorAll('.guestOnly').forEach(el => el.style.display = state.user ? 'none' : 'flex');
   if (state.user) {
     const username = state.user.username || state.user.name || 'Trader';
     a.textContent = username.trim().charAt(0).toUpperCase() || 'T';
