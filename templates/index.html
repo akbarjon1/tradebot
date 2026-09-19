@@ -20,7 +20,8 @@ button,a{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 header{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:50;background:rgba(231,227,218,.96);backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:1.8px;white-space:nowrap}
-.logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;font-size:18px}
+.logoMark{width:31px;height:31px;border-radius:7px;background:var(--dark);color:#fff;display:grid;place-items:center;overflow:hidden}
+.logoMark img{width:100%;height:100%;display:block;object-fit:cover}
 nav{display:flex;gap:29px;margin:auto}
 nav a{font-size:12px;padding:26px 0;position:relative;color:#333}
 nav a:hover{opacity:.55}
@@ -522,10 +523,12 @@ footer{border-top:1px solid var(--line);padding:20px 4.5%;display:flex;justify-c
 @media(max-width:700px){.languageSelect{padding:7px 5px;min-width:48px;font-size:10px}}
 
 </style>
+<link rel="icon" type="image/svg+xml" href="/static/bat.svg">
+<link rel="apple-touch-icon" href="/static/bat.svg">
 </head>
 <body>
 <header>
-<a class="logo" href="#/" onclick="go('/')"><span class="logoMark">◈</span> OBSIDIAN LAB</a>
+<a class="logo" href="#/" onclick="go('/')"><span class="logoMark"><img src="/static/bat.svg" alt="Obsidian Lab bat emblem"></span> OBSIDIAN LAB</a>
 <nav id="nav">
 <a data-route="/" href="#/" onclick="go('/')">Home</a>
 <a data-route="/markets" href="#/markets" onclick="go('/markets')">Markets</a>
@@ -1313,7 +1316,7 @@ function renderAuth(p) {
   document.getElementById('app').innerHTML = `
     <section class="auth">
       <div class="authArt">
-  <div class="authBrand"><span class="authBrandMark">◆</span> OBSIDIAN LAB</div>
+  <div class="authBrand"><span class="authBrandMark"><img src="/static/bat.svg" alt=""></span> OBSIDIAN LAB</div>
   <div class="authVisual">
     <div class="authTerminal">
       <div class="authTerminalTop">
