@@ -1774,15 +1774,27 @@ document.getElementById('modalBack')?.addEventListener('click', e => { if (e.tar
     }
   };
   function translateString(src,lang){
-    if(lang==='en') return src;
-    const table=dict[lang]||{};
-    if(Object.prototype.hasOwnProperty.call(table,src.trim())){
-      const leading=src.match(/^\s*/)?.[0]||'', trailing=src.match(/\s*$/)?.[0]||'';
-      return leading+table[src.trim()]+trailing;
+    const trimmed=src.trim();
+    const leading=src.match(/^\s*/)?.[0]||'', trailing=src.match(/\s*$/)?.[0]||'';
+    // Treat English dictionary keys as canonical text. The page can be rendered
+    // in Uzbek before this picker initializes, so also recognize Uzbek/Russian
+    // values and translate them back to English or across languages.
+    const entries=Object.keys(dict.uz).map(key=>({en:key,uz:dict.uz[key],ru:dict.ru[key]||key}));
+    for(const item of entries){
+      if(trimmed===item.en || trimmed===item.uz || trimmed===item.ru){
+        const value=lang==='uz'?item.uz:(lang==='ru'?item.ru:item.en);
+        return leading+value+trailing;
+      }
     }
     let result=src;
-    Object.keys(table).sort((a,b)=>b.length-a.length).forEach(key=>{
-      if(key.length>2) result=result.split(key).join(table[key]);
+    entries.sort((a,b)=>Math.max(b.en.length,b.uz.length,b.ru.length)-Math.max(a.en.length,a.uz.length,a.ru.length)).forEach(item=>{
+      const variants=[item.en,item.uz,item.ru].filter((v,i,a)=>v && a.indexOf(v)===i && v.length>2);
+      for(const variant of variants){
+        if(result.includes(variant)){
+          const target=lang==='uz'?item.uz:(lang==='ru'?item.ru:item.en);
+          result=result.split(variant).join(target);
+        }
+      }
     });
     return result;
   }
