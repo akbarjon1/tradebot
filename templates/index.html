@@ -143,13 +143,39 @@ const state = {
 };
 
 async function fetchAPI(url, options = {}) {
-  options.headers = options.headers || {};
-  options.headers['Content-Type'] = 'application/json';
-  if (csrfToken) options.headers['X-CSRF-Token'] = csrfToken;
-  options.credentials = 'same-origin';
+  const headers = new Headers(options.headers || {});
+  if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
+  const method = (options.method || 'GET').toUpperCase();
+  const needsCsrf = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)
+    && !['/api/auth/login', '/api/auth/register', '/api/auth/telegram', '/api/auth/reset-request', '/api/auth/reset'].includes(url.split('?')[0]);
+  const requestOptions = { ...options, method, headers, credentials: 'same-origin' };
+
+  if (needsCsrf && !csrfToken) {
+    try {
+      const sessionResponse = await fetch('/api/session', { credentials: 'same-origin', cache: 'no-store' });
+      const sessionData = await sessionResponse.json();
+      csrfToken = sessionData.csrf || '';
+    } catch(e) {
+      return { status: 'error', message: e.message };
+    }
+  }
+
+  if (needsCsrf && csrfToken) headers.set('X-CSRF-Token', csrfToken);
   try {
-    const res = await fetch(url, options);
-    return await res.json();
+    let res = await fetch(url, requestOptions);
+    let data = await res.json().catch(() => ({}));
+    if (needsCsrf && res.status === 403 && data.message === 'Security token expired. Refresh the page and try again.') {
+      csrfToken = '';
+      const sessionResponse = await fetch('/api/session', { credentials: 'same-origin', cache: 'no-store' });
+      const sessionData = await sessionResponse.json();
+      csrfToken = sessionData.csrf || '';
+      if (csrfToken) {
+        headers.set('X-CSRF-Token', csrfToken);
+        res = await fetch(url, requestOptions);
+        data = await res.json().catch(() => ({}));
+      }
+    }
+    return data;
   } catch(e) {
     return { status: 'error', message: e.message };
   }
@@ -849,7 +875,7 @@ window.runBacktest = async function() {
   if (button) button.disabled = true;
   try {
     const data = await fetchAPI('/api/backtest', {method:'POST', body:JSON.stringify({symbol, interval, limit})});
-    if (!response.ok || data.status !== 'success') throw new Error(data.message || `Backtest API xatosi (${response.status})`);
+    if (data.status !== 'success') throw new Error(data.message || 'Backtest API xatosi');
     const signed = n => `${Number(n) >= 0 ? '+' : ''}${Number(n).toFixed(2)}%`;
     results.innerHTML = `<div class="grid g3"><div class="card"><span class="muted small">Strategy return</span><h2>${signed(data.strategy_return_pct)}</h2></div><div class="card"><span class="muted small">Buy & hold</span><h2>${signed(data.buy_and_hold_return_pct)}</h2></div><div class="card"><span class="muted small">Max drawdown</span><h2>${Number(data.max_drawdown_pct).toFixed(2)}%</h2></div></div><p>Entries: <strong>${data.entries}</strong> · Profitable periods: <strong>${Number(data.profitable_periods_pct).toFixed(2)}%</strong> · Candles: ${data.candles}</p><p class="muted">${data.warning || 'Tarixiy simulyatsiya, prognoz emas.'}</p>`;
     status.textContent = `${symbol} · ${interval} backtest yakunlandi.`;
@@ -878,12 +904,11 @@ async function runResearchAnalysis() {
   const button = document.querySelector('button[onclick="runResearchAnalysis()"]');
   if (button) button.disabled = true;
   try {
-    const response = await fetch('/api/agents/room', {
+    const data = await fetchAPI('/api/agents/room', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({symbol})
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.status !== 'success') throw new Error(data.message || `Agent API xatosi (${response.status})`);
+    if (data.status !== 'success') throw new Error(data.message || 'Agent API xatosi');
     const entries = [
       ['jasur','Jasur'], ['alex','Alex'], ['whale','Mister Whale']
     ];
@@ -948,6 +973,7 @@ function renderAuth(p) {
       });
       if (res && res.status === 'success') {
         state.user = res.user;
+        csrfToken = res.csrf || '';
         state.balance = Number(res.user.balance || 10000.0);
         save();
         updateAvatar();
